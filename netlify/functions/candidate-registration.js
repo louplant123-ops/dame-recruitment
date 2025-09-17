@@ -149,32 +149,18 @@ function parseMultipartFormData(body) {
   const parts = body.split(boundary).filter(part => part.trim() && !part.includes('--'));
   
   parts.forEach(part => {
-    // Split part into lines
-    const lines = part.split('\r\n');
-    
-    // Find the Content-Disposition line
-    const dispositionLine = lines.find(line => line.includes('Content-Disposition'));
-    if (!dispositionLine) return;
-    
-    // Extract field name
-    const nameMatch = dispositionLine.match(/name="([^"]+)"/);
+    // Extract field name from Content-Disposition header
+    const nameMatch = part.match(/name="([^"]+)"/);
     if (!nameMatch) return;
     
     const fieldName = nameMatch[1];
     
-    // Find where the actual content starts (after headers and empty line)
-    let contentStartIndex = -1;
-    for (let i = 0; i < lines.length; i++) {
-      if (lines[i].trim() === '' && i + 1 < lines.length) {
-        contentStartIndex = i + 1;
-        break;
-      }
-    }
+    // Find the double CRLF that separates headers from content
+    const headerEndIndex = part.indexOf('\r\n\r\n');
+    if (headerEndIndex === -1) return;
     
-    if (contentStartIndex === -1) return;
-    
-    // Get the content (everything after the empty line)
-    let value = lines.slice(contentStartIndex).join('\r\n').trim();
+    // Extract content after headers
+    let value = part.substring(headerEndIndex + 4).trim();
     
     // Skip empty values
     if (!value) {
