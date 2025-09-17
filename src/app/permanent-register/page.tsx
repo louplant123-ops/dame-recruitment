@@ -263,7 +263,7 @@ export default function PermanentCandidateRegistration() {
     <div className="space-y-6">
       <div className="text-center mb-8">
         <h2 className="text-2xl font-bold text-gray-900 mb-2">Personal Information</h2>
-        <p className="text-gray-600">Let's start with your basic details</p>
+        <p className="text-gray-600">Let&apos;s start with your basic details</p>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -658,7 +658,7 @@ export default function PermanentCandidateRegistration() {
       {formData.employmentHistory.length === 0 && (
         <div className="text-center py-8 text-gray-500">
           <Briefcase className="mx-auto h-12 w-12 text-gray-300 mb-4" />
-          <p>No employment history added yet. Click "Add Position" to get started.</p>
+          <p>No employment history added yet. Click &quot;Add Position&quot; to get started.</p>
         </div>
       )}
       
@@ -1091,9 +1091,9 @@ export default function PermanentCandidateRegistration() {
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
         <h3 className="font-semibold text-blue-900 mb-2">What happens next?</h3>
         <ul className="text-sm text-blue-800 space-y-1">
-          <li>• We'll review your application within 24 hours</li>
+          <li>• We&apos;ll review your application within 24 hours</li>
           <li>• A consultant will contact you to discuss opportunities</li>
-          <li>• We'll match you with suitable permanent positions</li>
+          <li>• We&apos;ll match you with suitable permanent positions</li>
           <li>• Interview preparation and career guidance provided</li>
         </ul>
       </div>

@@ -326,7 +326,7 @@ function JobsContent() {
                   Loading jobs from DameDesk CRM...
                 </p>
                 <p className="text-body font-body text-charcoal/60">
-                  If jobs don't appear, the CRM may not be running. <Link href="/contact" className="text-primary-red hover:underline">Contact us</Link> for available opportunities.
+                  If jobs don&apos;t appear, the CRM may not be running. <Link href="/contact" className="text-primary-red hover:underline">Contact us</Link> for available opportunities.
                 </p>
               </div>
             ) : (
