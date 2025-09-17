@@ -136,41 +136,62 @@ exports.handler = async (event, context) => {
 // Parse multipart form data
 function parseMultipartFormData(body) {
   const data = {};
-  const boundary = body.split('\r\n')[0];
+  
+  // Split by boundary and filter out empty parts and boundary markers
+  const boundaryMatch = body.match(/------WebKitFormBoundary[a-zA-Z0-9]+/);
+  if (!boundaryMatch) return data;
+  
+  const boundary = boundaryMatch[0];
   const parts = body.split(boundary).filter(part => part.trim() && !part.includes('--'));
   
   parts.forEach(part => {
+    // Split part into lines
     const lines = part.split('\r\n');
-    const dispositionLine = lines.find(line => line.includes('Content-Disposition'));
     
-    if (dispositionLine) {
-      const nameMatch = dispositionLine.match(/name="([^"]+)"/);
-      if (nameMatch) {
-        const fieldName = nameMatch[1];
-        
-        // Find the empty line that separates headers from content
-        const emptyLineIndex = lines.findIndex(line => line.trim() === '');
-        if (emptyLineIndex !== -1 && emptyLineIndex + 1 < lines.length) {
-          // Get all lines after the empty line as the value
-          let value = lines.slice(emptyLineIndex + 1).join('\r\n').trim();
-          
-          // Parse JSON strings for arrays
-          if (value.startsWith('[') && value.endsWith(']')) {
-            try {
-              value = JSON.parse(value);
-            } catch (e) {
-              // Keep as string if JSON parse fails
-            }
-          }
-          
-          // Convert string booleans to actual booleans
-          if (value === 'true') value = true;
-          if (value === 'false') value = false;
-          
-          data[fieldName] = value;
-        }
+    // Find the Content-Disposition line
+    const dispositionLine = lines.find(line => line.includes('Content-Disposition'));
+    if (!dispositionLine) return;
+    
+    // Extract field name
+    const nameMatch = dispositionLine.match(/name="([^"]+)"/);
+    if (!nameMatch) return;
+    
+    const fieldName = nameMatch[1];
+    
+    // Find where the actual content starts (after headers and empty line)
+    let contentStartIndex = -1;
+    for (let i = 0; i < lines.length; i++) {
+      if (lines[i].trim() === '' && i + 1 < lines.length) {
+        contentStartIndex = i + 1;
+        break;
       }
     }
+    
+    if (contentStartIndex === -1) return;
+    
+    // Get the content (everything after the empty line)
+    let value = lines.slice(contentStartIndex).join('\r\n').trim();
+    
+    // Skip empty values
+    if (!value) {
+      data[fieldName] = '';
+      return;
+    }
+    
+    // Parse JSON strings for arrays
+    if (value.startsWith('[') && value.endsWith(']')) {
+      try {
+        value = JSON.parse(value);
+      } catch (e) {
+        // Keep as string if JSON parse fails
+      }
+    }
+    
+    // Convert string booleans to actual booleans
+    if (value === 'true') value = true;
+    if (value === 'false') value = false;
+    
+    data[fieldName] = value;
   });
   
   return data;
