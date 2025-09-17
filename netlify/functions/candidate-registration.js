@@ -32,14 +32,38 @@ exports.handler = async (event, context) => {
     console.log('📥 Raw event body:', event.body);
     console.log('📋 Event headers:', event.headers);
     
-    // Parse the request body
+    // Parse the request body - handle both JSON and multipart/form-data
     let body;
-    try {
-      body = JSON.parse(event.body);
-      console.log('✅ Successfully parsed JSON body:', body);
-    } catch (parseError) {
-      console.error('❌ JSON parse error:', parseError);
-      throw new Error('Invalid JSON in request body');
+    const contentType = event.headers['content-type'] || '';
+    
+    if (contentType.includes('multipart/form-data')) {
+      console.log('📦 Processing multipart/form-data');
+      // For multipart data, we need to parse it differently
+      // Netlify automatically parses multipart data, but we need to handle it
+      const formData = event.body;
+      
+      // Decode base64 if needed
+      let decodedBody;
+      try {
+        decodedBody = Buffer.from(formData, 'base64').toString('utf-8');
+        console.log('📝 Decoded multipart body:', decodedBody);
+      } catch (decodeError) {
+        console.error('❌ Base64 decode error:', decodeError);
+        throw new Error('Failed to decode multipart data');
+      }
+      
+      // Parse multipart form data manually
+      body = parseMultipartFormData(decodedBody);
+      console.log('✅ Successfully parsed multipart body:', body);
+    } else {
+      // Handle JSON data
+      try {
+        body = JSON.parse(event.body);
+        console.log('✅ Successfully parsed JSON body:', body);
+      } catch (parseError) {
+        console.error('❌ JSON parse error:', parseError);
+        throw new Error('Invalid JSON in request body');
+      }
     }
     
     // Create registration data
@@ -108,6 +132,43 @@ exports.handler = async (event, context) => {
     };
   }
 };
+
+// Parse multipart form data
+function parseMultipartFormData(body) {
+  const data = {};
+  const boundary = body.split('\r\n')[0];
+  const parts = body.split(boundary).filter(part => part.trim() && !part.includes('--'));
+  
+  parts.forEach(part => {
+    const lines = part.split('\r\n').filter(line => line.trim());
+    if (lines.length >= 2) {
+      const dispositionLine = lines.find(line => line.includes('Content-Disposition'));
+      if (dispositionLine) {
+        const nameMatch = dispositionLine.match(/name="([^"]+)"/);
+        if (nameMatch) {
+          const fieldName = nameMatch[1];
+          const valueIndex = lines.findIndex(line => line.trim() === '') + 1;
+          if (valueIndex < lines.length) {
+            let value = lines.slice(valueIndex).join('\r\n').trim();
+            
+            // Parse JSON strings for arrays
+            if (value.startsWith('[') && value.endsWith(']')) {
+              try {
+                value = JSON.parse(value);
+              } catch (e) {
+                // Keep as string if JSON parse fails
+              }
+            }
+            
+            data[fieldName] = value;
+          }
+        }
+      }
+    }
+  });
+  
+  return data;
+}
 
 // Forward registration to your local DameDesk
 async function forwardToDameDesk(registrationData) {
