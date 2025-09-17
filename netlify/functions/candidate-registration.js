@@ -140,28 +140,34 @@ function parseMultipartFormData(body) {
   const parts = body.split(boundary).filter(part => part.trim() && !part.includes('--'));
   
   parts.forEach(part => {
-    const lines = part.split('\r\n').filter(line => line.trim());
-    if (lines.length >= 2) {
-      const dispositionLine = lines.find(line => line.includes('Content-Disposition'));
-      if (dispositionLine) {
-        const nameMatch = dispositionLine.match(/name="([^"]+)"/);
-        if (nameMatch) {
-          const fieldName = nameMatch[1];
-          const valueIndex = lines.findIndex(line => line.trim() === '') + 1;
-          if (valueIndex < lines.length) {
-            let value = lines.slice(valueIndex).join('\r\n').trim();
-            
-            // Parse JSON strings for arrays
-            if (value.startsWith('[') && value.endsWith(']')) {
-              try {
-                value = JSON.parse(value);
-              } catch (e) {
-                // Keep as string if JSON parse fails
-              }
+    const lines = part.split('\r\n');
+    const dispositionLine = lines.find(line => line.includes('Content-Disposition'));
+    
+    if (dispositionLine) {
+      const nameMatch = dispositionLine.match(/name="([^"]+)"/);
+      if (nameMatch) {
+        const fieldName = nameMatch[1];
+        
+        // Find the empty line that separates headers from content
+        const emptyLineIndex = lines.findIndex(line => line.trim() === '');
+        if (emptyLineIndex !== -1 && emptyLineIndex + 1 < lines.length) {
+          // Get all lines after the empty line as the value
+          let value = lines.slice(emptyLineIndex + 1).join('\r\n').trim();
+          
+          // Parse JSON strings for arrays
+          if (value.startsWith('[') && value.endsWith(']')) {
+            try {
+              value = JSON.parse(value);
+            } catch (e) {
+              // Keep as string if JSON parse fails
             }
-            
-            data[fieldName] = value;
           }
+          
+          // Convert string booleans to actual booleans
+          if (value === 'true') value = true;
+          if (value === 'false') value = false;
+          
+          data[fieldName] = value;
         }
       }
     }
