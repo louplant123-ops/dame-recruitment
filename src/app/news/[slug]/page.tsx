@@ -1,6 +1,3 @@
-'use client'
-
-import { useState, useEffect } from 'react'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Calendar, Clock, Tag } from 'lucide-react'
@@ -113,26 +110,8 @@ export async function generateStaticParams() {
 }
 
 export default function BlogPostPage({ params }: { params: { slug: string } }) {
-  const [post, setPost] = useState<BlogPost | null>(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    // Simulate API call
-    const foundPost = blogPosts.find(p => p.slug === params.slug)
-    
-    setTimeout(() => {
-      setPost(foundPost || null)
-      setLoading(false)
-    }, 100)
-  }, [params.slug])
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-red"></div>
-      </div>
-    )
-  }
+  // Find the post directly since this is now a static page
+  const post = blogPosts.find(p => p.slug === params.slug)
 
   if (!post) {
     notFound()
