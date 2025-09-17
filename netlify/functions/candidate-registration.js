@@ -55,6 +55,10 @@ exports.handler = async (event, context) => {
       // Parse multipart form data manually
       body = parseMultipartFormData(decodedBody);
       console.log('✅ Successfully parsed multipart body:', body);
+    console.log('🔍 Sample field values:');
+    console.log('  firstName:', body.firstName);
+    console.log('  email:', body.email);
+    console.log('  jobTypes:', body.jobTypes);
     } else {
       // Handle JSON data
       try {
@@ -203,6 +207,7 @@ async function forwardToDameDesk(registrationData) {
   const DAMEDESK_WEBHOOK_URL = process.env.DAMEDESK_WEBHOOK_URL;
   
   console.log('🔗 DAMEDESK_WEBHOOK_URL:', DAMEDESK_WEBHOOK_URL);
+  console.log('🕐 Environment check timestamp:', new Date().toISOString());
   
   if (DAMEDESK_WEBHOOK_URL) {
     try {
