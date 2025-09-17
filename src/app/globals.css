@@ -1,0 +1,89 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* Smooth scrolling for anchor links */
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  /* Focus styles for accessibility */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-primary-red ring-offset-2 ring-offset-white;
+  }
+  
+  /* High contrast focus for better accessibility */
+  @media (prefers-contrast: high) {
+    *:focus-visible {
+      @apply ring-4 ring-charcoal;
+    }
+  }
+}
+
+@layer components {
+  /* Button hover lift effect */
+  .btn-lift {
+    @apply transition-all duration-200 ease-out;
+  }
+  
+  .btn-lift:hover {
+    @apply -translate-y-0.5 shadow-lift;
+  }
+  
+  .btn-lift:active {
+    @apply translate-y-0 shadow-sm;
+  }
+  
+  /* Section border accents */
+  .section-accent-teal {
+    @apply border-t-2 border-accent-teal;
+  }
+  
+  .section-accent-blue {
+    @apply border-t-2 border-accent-blue;
+  }
+  
+  .section-accent-yellow {
+    @apply border-t-2 border-accent-yellow;
+  }
+  
+  .section-accent-green {
+    @apply border-t-2 border-accent-green;
+  }
+  
+  /* Card hover effects */
+  .card-hover {
+    @apply transition-all duration-300 ease-out;
+  }
+  
+  .card-hover:hover {
+    @apply shadow-lift-lg -translate-y-1;
+  }
+  
+  /* Form input focus states */
+  .form-input {
+    @apply transition-all duration-200 ease-out;
+  }
+  
+  .form-input:focus {
+    @apply ring-2 ring-primary-red ring-offset-2 border-transparent shadow-sm;
+  }
+  
+  /* Aria live regions for screen readers */
+  .sr-only {
+    @apply absolute w-px h-px p-0 -m-px overflow-hidden whitespace-nowrap border-0;
+  }
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Lato:wght@400;500&display=swap');
+
+@layer base {
+  html {
+    font-family: 'Lato', sans-serif;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Montserrat', sans-serif;
+  }
+}

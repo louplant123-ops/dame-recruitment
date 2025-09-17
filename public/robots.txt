@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://dame-recruitment.com/sitemap.xml
