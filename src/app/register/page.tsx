@@ -115,6 +115,8 @@ export default function RegisterPage() {
     e.preventDefault()
     console.log('🚀 HANDLESUBMIT CALLED - Form submission started, current step:', currentStep);
     console.log('📋 HANDLESUBMIT - Form data:', formData);
+    console.log('🔍 TERMS VALUE:', formData.terms);
+    console.log('🔍 TERMS TYPE:', typeof formData.terms);
     
     if (validateStep(currentStep)) {
       console.log('✅ Validation passed, submitting...');
