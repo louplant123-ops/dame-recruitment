@@ -1,6 +1,4 @@
 // Netlify Function for Dame Recruitment Website Registration Integration
-const https = require('https');
-const http = require('http');
 
 exports.handler = async (event, context) => {
   // Only allow POST requests
@@ -31,9 +29,18 @@ exports.handler = async (event, context) => {
 
   try {
     console.log('🌉 Netlify Function: Received registration from website');
+    console.log('📥 Raw event body:', event.body);
+    console.log('📋 Event headers:', event.headers);
     
     // Parse the request body
-    const body = JSON.parse(event.body);
+    let body;
+    try {
+      body = JSON.parse(event.body);
+      console.log('✅ Successfully parsed JSON body:', body);
+    } catch (parseError) {
+      console.error('❌ JSON parse error:', parseError);
+      throw new Error('Invalid JSON in request body');
+    }
     
     // Create registration data
     const registrationData = {
@@ -65,6 +72,8 @@ exports.handler = async (event, context) => {
       processed: false
     };
 
+    console.log('📤 About to forward to DameDesk:', registrationData);
+    
     // Forward to your local DameDesk via webhook
     await forwardToDameDesk(registrationData);
     
@@ -105,8 +114,11 @@ async function forwardToDameDesk(registrationData) {
   // Option 1: Use ngrok to expose your local DameDesk
   const DAMEDESK_WEBHOOK_URL = process.env.DAMEDESK_WEBHOOK_URL;
   
+  console.log('🔗 DAMEDESK_WEBHOOK_URL:', DAMEDESK_WEBHOOK_URL);
+  
   if (DAMEDESK_WEBHOOK_URL) {
     try {
+      console.log('📡 Attempting to forward to DameDesk...');
       const response = await fetch(DAMEDESK_WEBHOOK_URL, {
         method: 'POST',
         headers: {
@@ -116,18 +128,26 @@ async function forwardToDameDesk(registrationData) {
         body: JSON.stringify(registrationData)
       });
       
+      console.log('📊 DameDesk response status:', response.status);
+      console.log('📊 DameDesk response headers:', response.headers);
+      
       if (response.ok) {
-        console.log('✅ Successfully forwarded to DameDesk');
+        const responseText = await response.text();
+        console.log('✅ Successfully forwarded to DameDesk, response:', responseText);
         return;
+      } else {
+        const errorText = await response.text();
+        console.error('❌ DameDesk responded with error:', response.status, errorText);
+        throw new Error(`DameDesk error: ${response.status} - ${errorText}`);
       }
     } catch (error) {
-      console.warn('⚠️ Failed to forward to DameDesk:', error.message);
+      console.error('⚠️ Failed to forward to DameDesk:', error.message);
+      throw error; // Re-throw to trigger the main catch block
     }
+  } else {
+    console.warn('⚠️ No DAMEDESK_WEBHOOK_URL configured');
+    throw new Error('DAMEDESK_WEBHOOK_URL not configured');
   }
-  
-  // Option 2: Store in Netlify's database or external service
-  // For now, we'll use a simple email notification as fallback
-  await sendEmailNotification(registrationData);
 }
 
 // Fallback: Send email notification
