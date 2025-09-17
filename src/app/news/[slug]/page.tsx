@@ -105,6 +105,13 @@ const blogPosts: BlogPost[] = [
   },
 ]
 
+export async function generateStaticParams() {
+  // Generate static params for all blog post slugs
+  return blogPosts.map((post) => ({
+    slug: post.slug,
+  }))
+}
+
 export default function BlogPostPage({ params }: { params: { slug: string } }) {
   const [post, setPost] = useState<BlogPost | null>(null)
   const [loading, setLoading] = useState(true)

@@ -99,6 +99,13 @@ interface JobDetailPageProps {
   }
 }
 
+export async function generateStaticParams() {
+  // Generate static params for all job slugs
+  return mockJobs.map((job) => ({
+    slug: job.slug,
+  }))
+}
+
 export default function JobDetailPage({ params }: JobDetailPageProps) {
   const [job, setJob] = useState<Job | null>(null)
   const [loading, setLoading] = useState(true)
