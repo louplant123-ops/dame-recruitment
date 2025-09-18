@@ -48,21 +48,29 @@ export default function ContactPage() {
     setFormState('submitting')
     
     try {
-      // In production, replace with actual API endpoint
-      // Example: await fetch('/api/contact', { method: 'POST', body: JSON.stringify(formData) })
+      console.log('📞 Submitting contact form...');
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500))
-      
-      // Simulate random success/failure for demo
-      if (Math.random() > 0.2) {
+      const response = await fetch('/.netlify/functions/contact-form', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-Key': process.env.NEXT_PUBLIC_DAMEDESK_API_KEY || 'dame-api-key-2024'
+        },
+        body: JSON.stringify(formData)
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('✅ Contact form submitted successfully:', result);
         setFormState('success')
         setFormData({ name: '', company: '', email: '', message: '', website: '' })
       } else {
-        throw new Error('Submission failed')
+        const errorText = await response.text();
+        console.error('❌ Contact form submission failed:', response.status, errorText);
+        throw new Error(`Submission failed: ${response.status}`)
       }
     } catch (error) {
-      console.error('Form submission error:', error)
+      console.error('💥 Contact form submission error:', error)
       setFormState('error')
     }
   }

@@ -219,6 +219,7 @@ export default function PermanentCandidateRegistration() {
     setIsSubmitting(true);
     
     try {
+      console.log('🚀 Starting permanent registration submission...');
       const submitData = new FormData();
       
       // Add all form data
@@ -237,7 +238,9 @@ export default function PermanentCandidateRegistration() {
       
       submitData.append('registrationType', 'permanent');
       
-      const response = await fetch('/api/candidates/apply', {
+      console.log('📤 Submitting to /.netlify/functions/candidate-registration...');
+      
+      const response = await fetch('/.netlify/functions/candidate-registration', {
         method: 'POST',
         headers: {
           'X-API-Key': process.env.NEXT_PUBLIC_DAMEDESK_API_KEY || 'dame-api-key-2024'
@@ -245,15 +248,22 @@ export default function PermanentCandidateRegistration() {
         body: submitData
       });
       
+      console.log('📥 Response status:', response.status);
+      
       if (response.ok) {
+        const result = await response.json();
+        console.log('✅ Registration successful:', result);
         alert('Registration submitted successfully! We will be in touch within 24 hours.');
         // Reset form or redirect
       } else {
-        throw new Error('Registration failed');
+        const errorText = await response.text();
+        console.error('❌ Registration failed:', response.status, errorText);
+        throw new Error(`Registration failed: ${response.status} ${errorText}`);
       }
     } catch (error) {
-      console.error('Registration error:', error);
-      alert('Registration failed. Please try again.');
+      console.error('💥 Registration error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      alert(`Registration failed: ${errorMessage}. Please try again.`);
     } finally {
       setIsSubmitting(false);
     }
