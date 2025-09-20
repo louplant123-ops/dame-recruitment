@@ -1,14 +1,25 @@
 'use client'
 
-import { useState } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useState, useEffect } from 'react'
 
 export default function RegisterPart2Page() {
-  const searchParams = useSearchParams()
-  const candidateId = searchParams.get('id')
+  const [candidateId, setCandidateId] = useState<string | null>(null)
+  
+  useEffect(() => {
+    // Get candidate ID from URL params on client side
+    const urlParams = new URLSearchParams(window.location.search)
+    setCandidateId(urlParams.get('id'))
+  }, [])
+  
+  useEffect(() => {
+    // Update form data when candidateId changes
+    if (candidateId) {
+      setFormData(prev => ({ ...prev, candidateId }))
+    }
+  }, [candidateId])
   
   const [formData, setFormData] = useState({
-    candidateId: candidateId || '',
+    candidateId: '',
     sortCode: '',
     accountNumber: '',
     accountHolderName: '',
