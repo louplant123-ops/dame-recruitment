@@ -44,9 +44,12 @@ export default function RegisterPart2Page() {
     setIsSubmitting(true)
     
     try {
-      const response = await fetch('/.netlify/functions/part2-registration', {
+      const response = await fetch('https://a78b850bd7bd.ngrok-free.app/api/candidates/complete-registration', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'X-API-Key': 'website-integration'
+        },
         body: JSON.stringify(formData)
       })
       
