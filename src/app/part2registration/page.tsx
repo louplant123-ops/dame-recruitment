@@ -298,7 +298,7 @@ export default function RegisterPart2Page() {
             <div className="border-b pb-8">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Employment Contract</h2>
               
-              <div className="bg-gray-50 p-6 rounded-lg mb-6 max-h-96 overflow-y-auto">
+              <div className="bg-gray-50 p-6 rounded-lg mb-6 max-h-80 overflow-y-auto border border-gray-200">
                 <h3 className="font-semibold text-gray-900 mb-3">TERMS OF ENGAGEMENT FOR AGENCY WORKERS (CONTRACT FOR SERVICES)</h3>
                 <div className="text-sm text-gray-700 space-y-2">
                   <p><strong>Dame Recruitment</strong> - Terms of engagement for temporary agency workers</p>
@@ -362,7 +362,8 @@ export default function RegisterPart2Page() {
                   />
                   <span className="text-sm text-gray-700">
                     I have read, understood, and agree to the Terms of Engagement for Agency Workers. 
-                    I consent to my CV and personal data being forwarded to clients for employment purposes. *
+                    I consent to my CV and personal data being forwarded to clients for employment purposes. 
+                    <span className="text-red-600 ml-1">*</span>
                   </span>
                 </label>
               </div>
@@ -383,7 +384,8 @@ export default function RegisterPart2Page() {
                     required
                   />
                   <span className="text-sm text-gray-700">
-                    I consent to Dame Recruitment processing my personal data including bank details and right to work documents for employment purposes. *
+                    I consent to Dame Recruitment processing my personal data including bank details and right to work documents for employment purposes. 
+                    <span className="text-red-600 ml-1">*</span>
                   </span>
                 </label>
 
@@ -397,7 +399,8 @@ export default function RegisterPart2Page() {
                     required
                   />
                   <span className="text-sm text-gray-700">
-                    I confirm that I have the right to work in the UK and that all information provided is accurate and complete. *
+                    I confirm that I have the right to work in the UK and that all information provided is accurate and complete. 
+                    <span className="text-red-600 ml-1">*</span>
                   </span>
                 </label>
               </div>
