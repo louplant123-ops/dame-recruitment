@@ -46,11 +46,11 @@ export default function PostJobPage() {
     try {
       console.log('💼 Submitting job posting...');
       
-      const response = await fetch('/.netlify/functions/job-posting', {
+      const response = await fetch('https://a78b850bd7bd.ngrok-free.app/api/jobs', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-API-Key': process.env.NEXT_PUBLIC_DAMEDESK_API_KEY || 'dame-api-key-2024'
+          'X-API-Key': 'website-integration'
         },
         body: JSON.stringify(formData)
       });

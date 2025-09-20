@@ -11,6 +11,7 @@ export default function ContactPage() {
     company: '',
     email: '',
     message: '',
+    inquiryType: 'general', // Default to general inquiry
     // Honeypot field - should remain empty
     website: ''
   })
@@ -50,11 +51,11 @@ export default function ContactPage() {
     try {
       console.log('📞 Submitting contact form...');
       
-      const response = await fetch('/.netlify/functions/contact-form', {
+      const response = await fetch('https://a78b850bd7bd.ngrok-free.app/api/contact', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-API-Key': process.env.NEXT_PUBLIC_DAMEDESK_API_KEY || 'dame-api-key-2024'
+          'X-API-Key': 'website-integration'
         },
         body: JSON.stringify(formData)
       });
@@ -63,7 +64,7 @@ export default function ContactPage() {
         const result = await response.json();
         console.log('✅ Contact form submitted successfully:', result);
         setFormState('success')
-        setFormData({ name: '', company: '', email: '', message: '', website: '' })
+        setFormData({ name: '', company: '', email: '', message: '', inquiryType: 'general', website: '' })
       } else {
         const errorText = await response.text();
         console.error('❌ Contact form submission failed:', response.status, errorText);
@@ -291,6 +292,58 @@ export default function ContactPage() {
                         {errors.email}
                       </p>
                     )}
+                  </div>
+
+                  <div>
+                    <label className="block font-body font-medium text-charcoal mb-3">
+                      What can we help you with? *
+                    </label>
+                    <div className="space-y-3">
+                      <label className="flex items-center cursor-pointer">
+                        <input
+                          type="radio"
+                          name="inquiryType"
+                          value="job_seeker"
+                          checked={formData.inquiryType === 'job_seeker'}
+                          onChange={(e) => updateFormData('inquiryType', e.target.value)}
+                          className="w-4 h-4 text-primary-red border-neutral-light focus:ring-primary-red focus:ring-2"
+                          disabled={formState === 'submitting'}
+                        />
+                        <span className="ml-3 font-body text-charcoal">
+                          I&apos;m looking for work opportunities
+                        </span>
+                      </label>
+                      
+                      <label className="flex items-center cursor-pointer">
+                        <input
+                          type="radio"
+                          name="inquiryType"
+                          value="employer"
+                          checked={formData.inquiryType === 'employer'}
+                          onChange={(e) => updateFormData('inquiryType', e.target.value)}
+                          className="w-4 h-4 text-primary-red border-neutral-light focus:ring-primary-red focus:ring-2"
+                          disabled={formState === 'submitting'}
+                        />
+                        <span className="ml-3 font-body text-charcoal">
+                          I&apos;m looking to hire talent
+                        </span>
+                      </label>
+                      
+                      <label className="flex items-center cursor-pointer">
+                        <input
+                          type="radio"
+                          name="inquiryType"
+                          value="general"
+                          checked={formData.inquiryType === 'general'}
+                          onChange={(e) => updateFormData('inquiryType', e.target.value)}
+                          className="w-4 h-4 text-primary-red border-neutral-light focus:ring-primary-red focus:ring-2"
+                          disabled={formState === 'submitting'}
+                        />
+                        <span className="ml-3 font-body text-charcoal">
+                          General inquiry/Other
+                        </span>
+                      </label>
+                    </div>
                   </div>
 
                   {/* Honeypot field - hidden from users but visible to bots */}
