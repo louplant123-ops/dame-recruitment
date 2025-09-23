@@ -6,6 +6,25 @@
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
+# Assignment schedule function (highest priority)
+[[redirects]]
+  from = "/assignment-schedule"
+  to = "/.netlify/functions/assignment-page"
+  status = 200
+  force = true
+
+# Handle Next.js static export with trailing slashes  
+[[redirects]]
+  from = "/register"
+  to = "/register/"
+  status = 301
+
+[[redirects]]
+  from = "/part2registration"
+  to = "/part2registration/"
+  status = 301
+
+# Fallback for SPA routing (lowest priority)
 [[redirects]]
   from = "/*"
   to = "/index.html"
