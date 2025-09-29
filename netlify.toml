@@ -8,7 +8,7 @@
 
 # Assignment schedule function (highest priority)
 [[redirects]]
-  from = "/assignment-schedule"
+  from = "/assignment-schedule*"
   to = "/.netlify/functions/assignment-page"
   status = 200
   force = true
