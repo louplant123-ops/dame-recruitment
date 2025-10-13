@@ -1,5 +1,134 @@
 // Netlify Function for Dame Recruitment Website Registration Integration
 const { Client } = require('pg');
+const mammoth = require('mammoth');
+const pdfParse = require('pdf-parse');
+
+// Parse CV file and extract text
+async function parseCVFile(fileBuffer, fileName, mimeType) {
+  try {
+    console.log('📄 Parsing CV file:', fileName, 'Type:', mimeType);
+    
+    let cvText = '';
+    
+    if (mimeType === 'application/pdf') {
+      const pdfData = await pdfParse(fileBuffer);
+      cvText = pdfData.text;
+    } else if (mimeType.includes('wordprocessingml') || mimeType.includes('msword')) {
+      const result = await mammoth.extractRawText({ buffer: fileBuffer });
+      cvText = result.value;
+    } else if (mimeType === 'text/plain') {
+      cvText = fileBuffer.toString('utf-8');
+    } else {
+      throw new Error(`Unsupported file type: ${mimeType}`);
+    }
+    
+    console.log('✅ CV text extracted, length:', cvText.length);
+    return cvText;
+    
+  } catch (error) {
+    console.error('❌ CV parsing error:', error);
+    throw error;
+  }
+}
+
+// Extract candidate data from CV text using AI (Claude API)
+async function extractCandidateDataFromCV(cvText) {
+  try {
+    console.log('🤖 Extracting candidate data from CV...');
+    
+    // For now, return a simple extraction - you can enhance this with Claude API later
+    const extractedData = {
+      skills: extractSkills(cvText),
+      experience: extractExperience(cvText),
+      education: extractEducation(cvText),
+      name: extractName(cvText),
+      email: extractEmail(cvText),
+      phone: extractPhone(cvText)
+    };
+    
+    console.log('✅ Candidate data extracted:', extractedData);
+    return extractedData;
+    
+  } catch (error) {
+    console.error('❌ Data extraction error:', error);
+    return null;
+  }
+}
+
+// Simple text extraction functions (can be enhanced with AI later)
+function extractSkills(text) {
+  const skillKeywords = [
+    'warehouse', 'forklift', 'picker', 'packer', 'logistics', 'inventory',
+    'health and safety', 'manual handling', 'reach truck', 'counterbalance',
+    'order picking', 'dispatch', 'goods in', 'goods out', 'stock control'
+  ];
+  
+  const foundSkills = skillKeywords.filter(skill => 
+    text.toLowerCase().includes(skill.toLowerCase())
+  );
+  
+  return foundSkills.join(', ');
+}
+
+function extractExperience(text) {
+  const experiencePatterns = [
+    /(\d+)\s*years?\s*(of\s*)?experience/i,
+    /(\d+)\s*years?\s*in\s*warehouse/i,
+    /(\d+)\s*years?\s*warehouse/i
+  ];
+  
+  for (const pattern of experiencePatterns) {
+    const match = text.match(pattern);
+    if (match) {
+      return `${match[1]} years`;
+    }
+  }
+  
+  return 'Experience level not specified';
+}
+
+function extractEducation(text) {
+  const educationKeywords = ['gcse', 'a-level', 'degree', 'diploma', 'certificate', 'qualification'];
+  const foundEducation = educationKeywords.filter(edu => 
+    text.toLowerCase().includes(edu)
+  );
+  
+  return foundEducation.length > 0 ? foundEducation.join(', ') : 'Education not specified';
+}
+
+function extractName(text) {
+  // Simple name extraction - look for patterns at the beginning
+  const lines = text.split('\n').filter(line => line.trim());
+  if (lines.length > 0) {
+    const firstLine = lines[0].trim();
+    if (firstLine.length < 50 && firstLine.split(' ').length <= 4) {
+      return firstLine;
+    }
+  }
+  return null;
+}
+
+function extractEmail(text) {
+  const emailPattern = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+  const matches = text.match(emailPattern);
+  return matches ? matches[0] : null;
+}
+
+function extractPhone(text) {
+  const phonePatterns = [
+    /(\+44\s?)?(\(0\)\s?)?(\d{4}\s?\d{3}\s?\d{3})/g,
+    /(\+44\s?)?(\d{5}\s?\d{6})/g,
+    /(\d{3}\s?\d{4}\s?\d{4})/g
+  ];
+  
+  for (const pattern of phonePatterns) {
+    const matches = text.match(pattern);
+    if (matches) {
+      return matches[0].replace(/\s+/g, ' ').trim();
+    }
+  }
+  return null;
+}
 
 // Store registration in database
 async function storeInDatabase(registrationData) {
@@ -42,6 +171,9 @@ async function storeInDatabase(registrationData) {
         medical_conditions TEXT,
         disability_info TEXT,
         reasonable_adjustments TEXT,
+        cv_text TEXT,
+        cv_filename VARCHAR(255),
+        cv_extracted_data TEXT,
         notes TEXT,
         source VARCHAR(50) DEFAULT 'website_part1',
         created_at TIMESTAMP DEFAULT NOW(),
@@ -58,8 +190,8 @@ async function storeInDatabase(registrationData) {
         id, name, email, phone, mobile, address, postcode, 
         gender, nationality, type, status, temperature,
         right_to_work, transport, medical_conditions, disability_info, 
-        reasonable_adjustments, notes, source, created_at, updated_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'candidate', 'active', 'hot', $10, $11, $12, $13, $14, $15, 'website_part1', NOW(), NOW())
+        reasonable_adjustments, cv_text, cv_filename, cv_extracted_data, notes, source, created_at, updated_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'candidate', 'active', 'hot', $10, $11, $12, $13, $14, $15, $16, $17, $18, 'website_part1', NOW(), NOW())
       ON CONFLICT (id) 
       DO UPDATE SET 
         name = EXCLUDED.name,
@@ -75,6 +207,9 @@ async function storeInDatabase(registrationData) {
         medical_conditions = EXCLUDED.medical_conditions,
         disability_info = EXCLUDED.disability_info,
         reasonable_adjustments = EXCLUDED.reasonable_adjustments,
+        cv_text = EXCLUDED.cv_text,
+        cv_filename = EXCLUDED.cv_filename,
+        cv_extracted_data = EXCLUDED.cv_extracted_data,
         notes = EXCLUDED.notes,
         updated_at = NOW()
       RETURNING id, name
@@ -95,6 +230,9 @@ async function storeInDatabase(registrationData) {
       registrationData.medicalConditions,
       registrationData.disabilityInfo,
       registrationData.reasonableAdjustments,
+      registrationData.cvText,
+      registrationData.cvFileName,
+      registrationData.cvExtractedData ? JSON.stringify(registrationData.cvExtractedData) : null,
       `Part 1 registration: ${registrationData.experience} experience, ${registrationData.jobTypes?.join(', ')} roles`
     ];
 
@@ -161,9 +299,13 @@ exports.handler = async (event, context) => {
         throw new Error('Failed to decode multipart data');
       }
       
-      // Parse multipart form data manually
-      body = parseMultipartFormData(decodedBody);
+      // Parse multipart form data with file handling
+      const parseResult = await parseMultipartFormDataWithFiles(decodedBody);
+      body = parseResult.formData;
+      const uploadedFiles = parseResult.files;
+      
       console.log('✅ Successfully parsed multipart body:', body);
+      console.log('📁 Files uploaded:', uploadedFiles.length);
     console.log('🔍 Sample field values:');
     console.log('  firstName:', body.firstName);
     console.log('  email:', body.email);
@@ -178,7 +320,35 @@ exports.handler = async (event, context) => {
         throw new Error('Invalid JSON in request body');
       }
     }
-    
+
+    // Process CV file if uploaded
+    let cvData = null;
+    if (contentType.includes('multipart/form-data') && uploadedFiles && uploadedFiles.length > 0) {
+      console.log('📄 Processing CV files...');
+      
+      // Find CV file (look for 'cv' field name)
+      const cvFile = uploadedFiles.find(file => file.fieldName === 'cv');
+      if (cvFile) {
+        try {
+          console.log('📄 Found CV file:', cvFile.fileName);
+          
+          // Parse CV and extract data
+          const cvText = await parseCVFile(cvFile.buffer, cvFile.fileName, cvFile.mimeType);
+          cvData = await extractCandidateDataFromCV(cvText);
+          
+          console.log('✅ CV data extracted:', cvData);
+          
+          // Store CV text for later use
+          body.cvText = cvText;
+          body.cvFileName = cvFile.fileName;
+          
+        } catch (cvError) {
+          console.error('❌ CV processing error:', cvError);
+          // Continue with registration even if CV parsing fails
+        }
+      }
+    }
+
     // Create registration data
     const registrationData = {
       id: `REG_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -212,7 +382,11 @@ exports.handler = async (event, context) => {
       otherLicenses: body.otherLicenses,
       registrationType: body.registrationType || 'temp',
       source: 'netlify_function',
-      processed: false
+      processed: false,
+      // CV-related fields
+      cvText: body.cvText || null,
+      cvFileName: body.cvFileName || null,
+      cvExtractedData: cvData || null
     };
 
     console.log('📤 About to forward to DameDesk:', registrationData);
@@ -370,4 +544,79 @@ async function sendEmailNotification(registrationData) {
       console.warn('Zapier webhook failed:', error.message);
     }
   }
+}
+
+// Parse multipart form data with file handling
+async function parseMultipartFormDataWithFiles(body) {
+  const formData = {};
+  const files = [];
+  
+  // Split by boundary and filter out empty parts and boundary markers
+  const boundaryMatch = body.match(/------WebKitFormBoundary[a-zA-Z0-9]+/);
+  if (!boundaryMatch) return { formData, files };
+  
+  const boundary = boundaryMatch[0];
+  const parts = body.split(boundary).filter(part => part.trim() && !part.includes('--'));
+  
+  parts.forEach(part => {
+    // Extract field name from Content-Disposition header
+    const nameMatch = part.match(/name="([^"]+)"/);
+    if (!nameMatch) return;
+    
+    const fieldName = nameMatch[1];
+    
+    // Check if this is a file upload
+    const filenameMatch = part.match(/filename="([^"]+)"/);
+    if (filenameMatch && filenameMatch[1]) {
+      // This is a file upload
+      const fileName = filenameMatch[1];
+      console.log(`📁 File upload detected: ${fieldName} = ${fileName}`);
+      
+      // Extract content type
+      const contentTypeMatch = part.match(/Content-Type:\s*([^\r\n]+)/);
+      const mimeType = contentTypeMatch ? contentTypeMatch[1].trim() : 'application/octet-stream';
+      
+      // Find the double CRLF that separates headers from content
+      const headerEndIndex = part.indexOf('\r\n\r\n');
+      if (headerEndIndex === -1) return;
+      
+      // Extract file content (binary data)
+      const fileContent = part.substring(headerEndIndex + 4);
+      
+      // Convert to buffer (handle binary data properly)
+      const fileBuffer = Buffer.from(fileContent, 'binary');
+      
+      files.push({
+        fieldName,
+        fileName,
+        mimeType,
+        buffer: fileBuffer,
+        size: fileBuffer.length
+      });
+      
+      return;
+    }
+    
+    // Regular form field
+    // Find the double CRLF that separates headers from content
+    const headerEndIndex = part.indexOf('\r\n\r\n');
+    if (headerEndIndex === -1) return;
+    
+    // Extract content after headers
+    let value = part.substring(headerEndIndex + 4).trim();
+    
+    // Skip empty values
+    if (!value) {
+      formData[fieldName] = '';
+      return;
+    }
+    
+    // Convert string booleans to actual booleans
+    if (value === 'true') value = true;
+    if (value === 'false') value = false;
+    
+    formData[fieldName] = value;
+  });
+  
+  return { formData, files };
 }
