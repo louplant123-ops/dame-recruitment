@@ -188,6 +188,7 @@ exports.handler = async (event, context) => {
           hourly_rate REAL,
           availability TEXT,
           right_to_work TEXT,
+          right_to_work_documents TEXT,
           travel_method TEXT,
           contract_preference TEXT,
           shift_availability TEXT,
@@ -205,11 +206,12 @@ exports.handler = async (event, context) => {
       const candidateUpsertQuery = `
         INSERT INTO contacts (
           id, name, email, phone, type, status, temperature, 
-          right_to_work, notes, source, created_at, updated_at
-        ) VALUES ($1, $2, $3, $4, 'candidate', 'active', 'hot', $5, $6, 'website_part2', NOW(), NOW())
+          right_to_work, right_to_work_documents, notes, source, created_at, updated_at
+        ) VALUES ($1, $2, $3, $4, 'candidate', 'active', 'hot', $5, $6, $7, 'website_part2', NOW(), NOW())
         ON CONFLICT (id) 
         DO UPDATE SET 
           right_to_work = EXCLUDED.right_to_work,
+          right_to_work_documents = EXCLUDED.right_to_work_documents,
           notes = EXCLUDED.notes,
           temperature = 'hot',
           updated_at = NOW()
@@ -222,6 +224,7 @@ exports.handler = async (event, context) => {
         '', // email - we don't have this from Part 2 form
         formData.emergencyPhone || '',
         formData.rightToWorkMethod || 'pending',
+        formData.rightToWorkDocuments || null,
         `Part 2 completed: Bank details, NI: ${formData.niNumber}, Emergency: ${formData.emergencyName}`
       ];
       
