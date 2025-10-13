@@ -12,9 +12,36 @@ exports.handler = async (event, context) => {
 
   try {
     console.log('📋 Netlify Function: Received Part 2 registration submission');
+    console.log('📥 Raw event body:', event.body);
+    console.log('📋 Event headers:', event.headers);
     
-    // Parse the request body
-    const formData = JSON.parse(event.body);
+    // Parse the request body - handle both JSON and multipart/form-data
+    let formData;
+    const contentType = event.headers['content-type'] || '';
+    
+    if (contentType.includes('multipart/form-data')) {
+      console.log('📦 Processing multipart/form-data');
+      // For multipart data, we need to parse it differently
+      const rawBody = event.body;
+      
+      // Decode base64 if needed
+      let decodedBody;
+      try {
+        decodedBody = Buffer.from(rawBody, 'base64').toString('utf-8');
+        console.log('📝 Decoded multipart body length:', decodedBody.length);
+      } catch (decodeError) {
+        console.log('📝 Using raw body (not base64)');
+        decodedBody = rawBody;
+      }
+      
+      // Parse multipart form data
+      formData = parseMultipartFormData(decodedBody);
+      console.log('📋 Parsed form data:', formData);
+    } else {
+      // Handle JSON data
+      console.log('📦 Processing JSON data');
+      formData = JSON.parse(event.body);
+    }
     
     console.log('📋 Part 2 data:', {
       candidateId: formData.candidateId,
@@ -244,6 +271,56 @@ exports.handler = async (event, context) => {
         error: 'Failed to submit Part 2 registration',
         details: error.message
       })
-    };
+    });
   }
 };
+
+// Parse multipart form data
+function parseMultipartFormData(body) {
+  const data = {};
+  
+  // Split by boundary and filter out empty parts and boundary markers
+  const boundaryMatch = body.match(/------WebKitFormBoundary[a-zA-Z0-9]+/);
+  if (!boundaryMatch) return data;
+  
+  const boundary = boundaryMatch[0];
+  const parts = body.split(boundary).filter(part => part.trim() && !part.includes('--'));
+  
+  parts.forEach(part => {
+    // Extract field name from Content-Disposition header
+    const nameMatch = part.match(/name="([^"]+)"/);
+    if (!nameMatch) return;
+    
+    const fieldName = nameMatch[1];
+    
+    // Check if this is a file upload
+    const filenameMatch = part.match(/filename="([^"]+)"/);
+    if (filenameMatch) {
+      // This is a file - for now, just log it
+      console.log(`📁 File upload detected: ${fieldName} = ${filenameMatch[1]}`);
+      data[fieldName] = filenameMatch[1]; // Store filename for now
+      return;
+    }
+    
+    // Find the double CRLF that separates headers from content
+    const headerEndIndex = part.indexOf('\r\n\r\n');
+    if (headerEndIndex === -1) return;
+    
+    // Extract content after headers
+    let value = part.substring(headerEndIndex + 4).trim();
+    
+    // Skip empty values
+    if (!value) {
+      data[fieldName] = '';
+      return;
+    }
+    
+    // Convert string booleans to actual booleans
+    if (value === 'true') value = true;
+    if (value === 'false') value = false;
+    
+    data[fieldName] = value;
+  });
+  
+  return data;
+}
