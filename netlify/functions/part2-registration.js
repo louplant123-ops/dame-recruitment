@@ -1,5 +1,42 @@
 const fetch = require('node-fetch');
 const { Client } = require('pg');
+const AWS = require('aws-sdk');
+const crypto = require('crypto');
+
+// Configure DigitalOcean Spaces
+const spacesEndpoint = new AWS.Endpoint('fra1.digitaloceanspaces.com');
+const s3 = new AWS.S3({
+  endpoint: spacesEndpoint,
+  accessKeyId: process.env.DO_SPACES_KEY,
+  secretAccessKey: process.env.DO_SPACES_SECRET,
+  region: 'fra1'
+});
+
+// Upload file to DigitalOcean Spaces
+async function uploadFileToSpaces(fileBuffer, fileName, mimeType) {
+  const key = `right-to-work/${Date.now()}-${fileName}`;
+  
+  const uploadParams = {
+    Bucket: 'damedesk-storage',
+    Key: key,
+    Body: fileBuffer,
+    ContentType: mimeType,
+    ACL: 'private' // Keep files private for security
+  };
+
+  try {
+    const result = await s3.upload(uploadParams).promise();
+    console.log('✅ File uploaded to Spaces:', result.Location);
+    return {
+      url: result.Location,
+      key: result.Key,
+      fileName: fileName
+    };
+  } catch (error) {
+    console.error('❌ Spaces upload error:', error);
+    throw new Error('Failed to upload file to storage');
+  }
+}
 
 exports.handler = async (event, context) => {
   // Only allow POST requests
@@ -11,7 +48,7 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    console.log('📋 Netlify Function: Received Part 2 registration submission');
+    console.log('📋// Netlify Function for Dame Recruitment Part 2 Registration Integration');
     console.log('📥 Raw event body:', event.body);
     console.log('📋 Event headers:', event.headers);
     
@@ -34,9 +71,13 @@ exports.handler = async (event, context) => {
         decodedBody = rawBody;
       }
       
-      // Parse multipart form data
-      formData = parseMultipartFormData(decodedBody);
+      // Parse multipart form data and handle file uploads
+      const parseResult = await parseMultipartFormDataWithFiles(decodedBody);
+      formData = parseResult.formData;
+      const uploadedFiles = parseResult.files;
+      
       console.log('📋 Parsed form data:', formData);
+      console.log('📁 Files to upload:', uploadedFiles.length);
     } else {
       // Handle JSON data
       console.log('📦 Processing JSON data');
@@ -50,6 +91,28 @@ exports.handler = async (event, context) => {
     });
 
     console.log('📋 Full form data received:', formData);
+    
+    // Upload files to DigitalOcean Spaces if any were uploaded
+    let uploadedFileUrls = [];
+    if (contentType.includes('multipart/form-data') && uploadedFiles && uploadedFiles.length > 0) {
+      console.log('📁 Processing file uploads...');
+      try {
+        for (const file of uploadedFiles) {
+          const uploadResult = await uploadFileToSpaces(file.buffer, file.fileName, file.mimeType);
+          uploadedFileUrls.push(uploadResult);
+          console.log('✅ File uploaded:', uploadResult.fileName);
+        }
+        console.log('✅ All files uploaded successfully');
+      } catch (uploadError) {
+        console.error('❌ File upload failed:', uploadError);
+        // Continue with registration even if file upload fails
+      }
+    }
+    
+    // Store file URLs in form data for database storage
+    if (uploadedFileUrls.length > 0) {
+      formData.rightToWorkDocuments = JSON.stringify(uploadedFileUrls);
+    }
     
     try {
       // Connect to DigitalOcean PostgreSQL database
@@ -92,6 +155,7 @@ exports.handler = async (event, context) => {
           document_type VARCHAR(50),
           emergency_name VARCHAR(255),
           emergency_phone VARCHAR(20),
+          right_to_work_documents TEXT,
           contract_accepted BOOLEAN DEFAULT FALSE,
           contract_signature VARCHAR(255),
           contract_date DATE,
@@ -169,10 +233,10 @@ exports.handler = async (event, context) => {
         INSERT INTO candidate_registrations (
           candidate_id, sort_code, account_number, account_holder_name,
           ni_number, right_to_work_method, share_code, document_type,
-          emergency_name, emergency_phone, contract_accepted, 
+          emergency_name, emergency_phone, right_to_work_documents, contract_accepted, 
           contract_signature, contract_date, registration_status, 
           part2_completed_at, updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, 'work_ready', NOW(), NOW())
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, 'work_ready', NOW(), NOW())
         ON CONFLICT (candidate_id) 
         DO UPDATE SET 
           sort_code = EXCLUDED.sort_code,
@@ -184,6 +248,7 @@ exports.handler = async (event, context) => {
           document_type = EXCLUDED.document_type,
           emergency_name = EXCLUDED.emergency_name,
           emergency_phone = EXCLUDED.emergency_phone,
+          right_to_work_documents = EXCLUDED.right_to_work_documents,
           contract_accepted = EXCLUDED.contract_accepted,
           contract_signature = EXCLUDED.contract_signature,
           contract_date = EXCLUDED.contract_date,
@@ -204,6 +269,7 @@ exports.handler = async (event, context) => {
       formData.documentType,
       formData.emergencyName,
       formData.emergencyPhone,
+      formData.rightToWorkDocuments || null,
       formData.contractAccepted,
       formData.contractSignature,
       formData.contractDate
@@ -273,13 +339,14 @@ exports.handler = async (event, context) => {
   }
 };
 
-// Parse multipart form data
-function parseMultipartFormData(body) {
-  const data = {};
+// Parse multipart form data with file handling
+async function parseMultipartFormDataWithFiles(body) {
+  const formData = {};
+  const files = [];
   
   // Split by boundary and filter out empty parts and boundary markers
   const boundaryMatch = body.match(/------WebKitFormBoundary[a-zA-Z0-9]+/);
-  if (!boundaryMatch) return data;
+  if (!boundaryMatch) return { formData, files };
   
   const boundary = boundaryMatch[0];
   const parts = body.split(boundary).filter(part => part.trim() && !part.includes('--'));
@@ -293,13 +360,37 @@ function parseMultipartFormData(body) {
     
     // Check if this is a file upload
     const filenameMatch = part.match(/filename="([^"]+)"/);
-    if (filenameMatch) {
-      // This is a file - for now, just log it
-      console.log(`📁 File upload detected: ${fieldName} = ${filenameMatch[1]}`);
-      data[fieldName] = filenameMatch[1]; // Store filename for now
+    if (filenameMatch && filenameMatch[1]) {
+      // This is a file upload
+      const fileName = filenameMatch[1];
+      console.log(`📁 File upload detected: ${fieldName} = ${fileName}`);
+      
+      // Extract content type
+      const contentTypeMatch = part.match(/Content-Type:\s*([^\r\n]+)/);
+      const mimeType = contentTypeMatch ? contentTypeMatch[1].trim() : 'application/octet-stream';
+      
+      // Find the double CRLF that separates headers from content
+      const headerEndIndex = part.indexOf('\r\n\r\n');
+      if (headerEndIndex === -1) return;
+      
+      // Extract file content (binary data)
+      const fileContent = part.substring(headerEndIndex + 4);
+      
+      // Convert to buffer (handle binary data properly)
+      const fileBuffer = Buffer.from(fileContent, 'binary');
+      
+      files.push({
+        fieldName,
+        fileName,
+        mimeType,
+        buffer: fileBuffer,
+        size: fileBuffer.length
+      });
+      
       return;
     }
     
+    // Regular form field
     // Find the double CRLF that separates headers from content
     const headerEndIndex = part.indexOf('\r\n\r\n');
     if (headerEndIndex === -1) return;
@@ -309,7 +400,7 @@ function parseMultipartFormData(body) {
     
     // Skip empty values
     if (!value) {
-      data[fieldName] = '';
+      formData[fieldName] = '';
       return;
     }
     
@@ -317,8 +408,8 @@ function parseMultipartFormData(body) {
     if (value === 'true') value = true;
     if (value === 'false') value = false;
     
-    data[fieldName] = value;
+    formData[fieldName] = value;
   });
   
-  return data;
+  return { formData, files };
 }
