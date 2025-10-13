@@ -1,4 +1,113 @@
 // Netlify Function for Dame Recruitment Website Registration Integration
+const { Client } = require('pg');
+
+// Store registration in database
+async function storeInDatabase(registrationData) {
+  try {
+    console.log('🔄 Storing registration in database...');
+    
+    const client = new Client({
+      host: process.env.DB_HOST || 'damedesk-crm-production-do-user-27348714-0.j.db.ondigitalocean.com',
+      port: process.env.DB_PORT || 25060,
+      database: process.env.DB_NAME || 'defaultdb',
+      user: process.env.DB_USER || 'doadmin',
+      password: process.env.DB_PASSWORD,
+      ssl: {
+        rejectUnauthorized: false
+      },
+      connectionTimeoutMillis: 10000
+    });
+
+    await client.connect();
+    console.log('✅ Connected to database');
+
+    // Create contacts table if it doesn't exist
+    const createContactsTableQuery = `
+      CREATE TABLE IF NOT EXISTS contacts (
+        id VARCHAR(255) PRIMARY KEY,
+        name VARCHAR(255),
+        email VARCHAR(255),
+        phone VARCHAR(20),
+        mobile VARCHAR(20),
+        address TEXT,
+        postcode VARCHAR(20),
+        date_of_birth DATE,
+        gender VARCHAR(20),
+        nationality VARCHAR(100),
+        type VARCHAR(50) DEFAULT 'candidate',
+        status VARCHAR(50) DEFAULT 'active',
+        temperature VARCHAR(20) DEFAULT 'warm',
+        right_to_work VARCHAR(50),
+        transport VARCHAR(50),
+        medical_conditions TEXT,
+        disability_info TEXT,
+        reasonable_adjustments TEXT,
+        notes TEXT,
+        source VARCHAR(50) DEFAULT 'website_part1',
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `;
+    
+    await client.query(createContactsTableQuery);
+    console.log('✅ Contacts table ready');
+
+    // Insert candidate into contacts table
+    const insertQuery = `
+      INSERT INTO contacts (
+        id, name, email, phone, mobile, address, postcode, 
+        gender, nationality, type, status, temperature,
+        right_to_work, transport, medical_conditions, disability_info, 
+        reasonable_adjustments, notes, source, created_at, updated_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'candidate', 'active', 'hot', $10, $11, $12, $13, $14, $15, 'website_part1', NOW(), NOW())
+      ON CONFLICT (id) 
+      DO UPDATE SET 
+        name = EXCLUDED.name,
+        email = EXCLUDED.email,
+        phone = EXCLUDED.phone,
+        mobile = EXCLUDED.mobile,
+        address = EXCLUDED.address,
+        postcode = EXCLUDED.postcode,
+        gender = EXCLUDED.gender,
+        nationality = EXCLUDED.nationality,
+        right_to_work = EXCLUDED.right_to_work,
+        transport = EXCLUDED.transport,
+        medical_conditions = EXCLUDED.medical_conditions,
+        disability_info = EXCLUDED.disability_info,
+        reasonable_adjustments = EXCLUDED.reasonable_adjustments,
+        notes = EXCLUDED.notes,
+        updated_at = NOW()
+      RETURNING id, name
+    `;
+
+    const values = [
+      registrationData.id,
+      `${registrationData.firstName} ${registrationData.lastName}`,
+      registrationData.email,
+      registrationData.phone,
+      registrationData.mobile, // Same as phone
+      registrationData.address,
+      registrationData.postcode,
+      registrationData.gender,
+      registrationData.nationality,
+      registrationData.rightToWork,
+      registrationData.transport,
+      registrationData.medicalConditions,
+      registrationData.disabilityInfo,
+      registrationData.reasonableAdjustments,
+      `Part 1 registration: ${registrationData.experience} experience, ${registrationData.jobTypes?.join(', ')} roles`
+    ];
+
+    const result = await client.query(insertQuery, values);
+    await client.end();
+    
+    console.log('✅ Registration stored in database:', result.rows[0]);
+    
+  } catch (error) {
+    console.error('❌ Database storage error:', error);
+    // Don't throw - continue with webhook even if DB fails
+  }
+}
 
 exports.handler = async (event, context) => {
   // Only allow POST requests
@@ -107,6 +216,9 @@ exports.handler = async (event, context) => {
     };
 
     console.log('📤 About to forward to DameDesk:', registrationData);
+    
+    // Store in database first
+    await storeInDatabase(registrationData);
     
     // Forward to your local DameDesk via webhook
     await forwardToDameDesk(registrationData);
