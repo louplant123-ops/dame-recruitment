@@ -169,10 +169,10 @@ exports.handler = async (event, context) => {
         INSERT INTO candidate_registrations (
           candidate_id, sort_code, account_number, account_holder_name,
           ni_number, right_to_work_method, share_code, document_type,
-          emergency_name, emergency_phone, emergency_relationship, contract_accepted, 
+          emergency_name, emergency_phone, contract_accepted, 
           contract_signature, contract_date, registration_status, 
           part2_completed_at, updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, 'work_ready', NOW(), NOW())
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, 'work_ready', NOW(), NOW())
         ON CONFLICT (candidate_id) 
         DO UPDATE SET 
           sort_code = EXCLUDED.sort_code,
@@ -184,7 +184,6 @@ exports.handler = async (event, context) => {
           document_type = EXCLUDED.document_type,
           emergency_name = EXCLUDED.emergency_name,
           emergency_phone = EXCLUDED.emergency_phone,
-          emergency_relationship = EXCLUDED.emergency_relationship,
           contract_accepted = EXCLUDED.contract_accepted,
           contract_signature = EXCLUDED.contract_signature,
           contract_date = EXCLUDED.contract_date,
@@ -205,7 +204,6 @@ exports.handler = async (event, context) => {
       formData.documentType,
       formData.emergencyName,
       formData.emergencyPhone,
-      formData.emergencyRelationship,
       formData.contractAccepted,
       formData.contractSignature,
       formData.contractDate
