@@ -271,7 +271,7 @@ exports.handler = async (event, context) => {
         error: 'Failed to submit Part 2 registration',
         details: error.message
       })
-    });
+    };
   }
 };
 
