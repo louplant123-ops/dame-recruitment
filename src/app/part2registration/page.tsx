@@ -29,6 +29,7 @@ export default function RegisterPart2Page() {
     documentType: '',
     emergencyName: '',
     emergencyPhone: '',
+    emergencyRelationship: '',
     dataProcessingConsent: false,
     rightToWorkConfirmation: false,
     contractAccepted: false,
@@ -38,6 +39,8 @@ export default function RegisterPart2Page() {
   
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
+  const [uploadError, setUploadError] = useState('')
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target
@@ -50,25 +53,103 @@ export default function RegisterPart2Page() {
     }
   }
 
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || [])
+    setUploadError('')
+    
+    // Validate files
+    const validFiles = files.filter(file => {
+      const validTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png']
+      const maxSize = 5 * 1024 * 1024 // 5MB
+      
+      if (!validTypes.includes(file.type)) {
+        setUploadError('Only PDF, JPG, and PNG files are allowed')
+        return false
+      }
+      
+      if (file.size > maxSize) {
+        setUploadError('Files must be smaller than 5MB')
+        return false
+      }
+      
+      return true
+    })
+    
+    setUploadedFiles(prev => [...prev, ...validFiles])
+  }
+
+  const removeFile = (index: number) => {
+    setUploadedFiles(prev => prev.filter((_, i) => i !== index))
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
     
     try {
-      const response = await fetch('https://a78b850bd7bd.ngrok-free.app/api/candidates/complete-registration', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'X-API-Key': 'website-integration'
-        },
-        body: JSON.stringify(formData)
-      })
+      console.log('🚀 Submitting Part 2 registration:', formData);
+      console.log('📁 Files to upload:', uploadedFiles.length);
       
-      if (response.ok) {
+      // Create FormData to handle file uploads
+      const formDataToSend = new FormData();
+      
+      // Add all form fields
+      Object.entries(formData).forEach(([key, value]) => {
+        formDataToSend.append(key, value.toString());
+      });
+      
+      // Add uploaded files
+      uploadedFiles.forEach((file, index) => {
+        formDataToSend.append(`rightToWorkFile_${index}`, file);
+      });
+      
+      // Try multiple endpoints in case the Railway URL is different
+      const endpoints = [
+        'https://damedesk-registration-production.up.railway.app/api/candidates/complete-registration',
+        'https://railway-server-production.up.railway.app/api/candidates/complete-registration',
+        'https://damedesk-server-production.up.railway.app/api/candidates/complete-registration',
+        '/.netlify/functions/part2-registration' // Fallback to Netlify function
+      ];
+      
+      let response = null;
+      let lastError = null;
+      
+      for (const endpoint of endpoints) {
+        try {
+          console.log(`🔄 Trying endpoint: ${endpoint}`);
+          response = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 
+              'X-API-Key': 'website-integration'
+              // Don't set Content-Type for FormData - browser will set it with boundary
+            },
+            body: formDataToSend
+          });
+          
+          if (response.ok) {
+            console.log(`✅ Success with endpoint: ${endpoint}`);
+            break;
+          } else {
+            console.log(`❌ Failed with endpoint: ${endpoint} - Status: ${response.status}`);
+            lastError = `${endpoint}: ${response.status}`;
+          }
+        } catch (error) {
+          console.log(`❌ Network error with endpoint: ${endpoint}`, error);
+          lastError = `${endpoint}: ${error instanceof Error ? error.message : 'Unknown error'}`;
+          continue;
+        }
+      }
+      
+      if (response && response.ok) {
+        console.log('✅ Part 2 registration submitted successfully');
         setIsSubmitted(true)
+      } else {
+        console.error('❌ All endpoints failed. Last error:', lastError);
+        alert(`Registration failed: All servers unavailable. Last error: ${lastError}`);
       }
     } catch (error) {
-      console.error('Error:', error)
+      console.error('❌ Network error:', error);
+      alert(`Network error: ${error instanceof Error ? error.message : 'Failed to connect to server'}`);
     } finally {
       setIsSubmitting(false)
     }
@@ -235,23 +316,81 @@ export default function RegisterPart2Page() {
                 )}
 
                 {formData.rightToWorkMethod === 'physical_document' && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Document Type *
-                    </label>
-                    <select
-                      name="documentType"
-                      value={formData.documentType}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-                      required
-                    >
-                      <option value="">Select document type</option>
-                      <option value="passport">British/Irish Passport</option>
-                      <option value="visa">Non-EEA Passport with Visa</option>
-                      <option value="brp">Biometric Residence Permit</option>
-                      <option value="birth_cert">Birth Certificate + NI Document</option>
-                    </select>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Document Type *
+                      </label>
+                      <select
+                        name="documentType"
+                        value={formData.documentType}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                        required
+                      >
+                        <option value="">Select document type</option>
+                        <option value="passport">British/Irish Passport</option>
+                        <option value="visa">Non-EEA Passport with Visa</option>
+                        <option value="brp">Biometric Residence Permit</option>
+                        <option value="birth_cert">Birth Certificate + NI Document</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Upload Documents *
+                      </label>
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-red-400 transition-colors">
+                        <input
+                          type="file"
+                          id="rightToWorkFiles"
+                          multiple
+                          accept=".pdf,.jpg,.jpeg,.png"
+                          onChange={handleFileUpload}
+                          className="hidden"
+                        />
+                        <label htmlFor="rightToWorkFiles" className="cursor-pointer">
+                          <div className="text-4xl text-gray-400 mb-2">📄</div>
+                          <div className="text-gray-600 mb-2">
+                            Click to upload your documents
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            PDF, JPG, PNG files up to 5MB each
+                          </div>
+                        </label>
+                      </div>
+                      
+                      {uploadError && (
+                        <p className="text-red-600 text-sm mt-2">{uploadError}</p>
+                      )}
+
+                      {uploadedFiles.length > 0 && (
+                        <div className="mt-4 space-y-2">
+                          <p className="text-sm font-medium text-gray-700">Uploaded Files:</p>
+                          {uploadedFiles.map((file, index) => (
+                            <div key={index} className="flex items-center justify-between bg-gray-50 p-3 rounded-md">
+                              <div className="flex items-center space-x-2">
+                                <span className="text-sm text-gray-600">📎</span>
+                                <span className="text-sm text-gray-900">{file.name}</span>
+                                <span className="text-xs text-gray-500">({(file.size / 1024 / 1024).toFixed(1)}MB)</span>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => removeFile(index)}
+                                className="text-red-600 hover:text-red-800 text-sm"
+                              >
+                                Remove
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      <p className="text-sm text-gray-500 mt-2">
+                        Please upload clear photos or scans of your right to work documents. 
+                        For passports, include the photo page and any relevant visa pages.
+                      </p>
+                    </div>
                   </div>
                 )}
               </div>
@@ -261,7 +400,7 @@ export default function RegisterPart2Page() {
             <div className="border-b pb-8">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Emergency Contact</h2>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Full Name *
@@ -290,6 +429,27 @@ export default function RegisterPart2Page() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
                     required
                   />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Relationship *
+                  </label>
+                  <select
+                    name="emergencyRelationship"
+                    value={formData.emergencyRelationship}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                    required
+                  >
+                    <option value="">Select relationship</option>
+                    <option value="partner">Partner</option>
+                    <option value="spouse">Spouse</option>
+                    <option value="parent">Parent</option>
+                    <option value="sibling">Sibling</option>
+                    <option value="friend">Friend</option>
+                    <option value="other">Other</option>
+                  </select>
                 </div>
               </div>
             </div>

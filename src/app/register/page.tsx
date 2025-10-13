@@ -15,6 +15,8 @@ export default function RegisterPage() {
     dateOfBirth: '',
     address: '',
     postcode: '',
+    gender: '',
+    nationality: '',
     
     // Right to Work
     rightToWork: '',
@@ -43,6 +45,11 @@ export default function RegisterPage() {
     // CV Upload
     cvFile: null as File | null,
     
+    // Medical/Disability Information
+    medicalConditions: '',
+    disabilityInfo: '',
+    reasonableAdjustments: '',
+    
     // Terms
     terms: false
   })
@@ -51,7 +58,7 @@ export default function RegisterPage() {
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const totalSteps = 7
+  const totalSteps = 8
 
   const stepTitles = [
     'Personal Details',
@@ -60,7 +67,8 @@ export default function RegisterPage() {
     'Shift Preferences',
     'Transport',
     'Licences',
-    'CV Upload'
+    'CV Upload',
+    'Medical Information'
   ]
 
   const validateStep = (step: number): boolean => {
@@ -93,6 +101,9 @@ export default function RegisterPage() {
         if (formData.fltLicense && formData.fltTypes.length === 0) newErrors.fltTypes = 'Please select FLT types'
         break
       case 7:
+        // CV Upload step - no required validation
+        break
+      case 8:
         if (!formData.terms) newErrors.terms = 'You must accept the terms and conditions'
         break
     }
@@ -133,6 +144,8 @@ export default function RegisterPage() {
         formDataToSend.append('dateOfBirth', formData.dateOfBirth);
         formDataToSend.append('address', formData.address);
         formDataToSend.append('postcode', formData.postcode);
+        formDataToSend.append('gender', formData.gender);
+        formDataToSend.append('nationality', formData.nationality);
         formDataToSend.append('rightToWork', formData.rightToWork);
         formDataToSend.append('visaType', formData.visaType);
         formDataToSend.append('visaExpiry', formData.visaExpiry);
@@ -147,6 +160,9 @@ export default function RegisterPage() {
         formDataToSend.append('fltLicense', formData.fltLicense.toString());
         formDataToSend.append('fltTypes', JSON.stringify(formData.fltTypes));
         formDataToSend.append('otherLicenses', formData.otherLicenses);
+        formDataToSend.append('medicalConditions', formData.medicalConditions);
+        formDataToSend.append('disabilityInfo', formData.disabilityInfo);
+        formDataToSend.append('reasonableAdjustments', formData.reasonableAdjustments);
         formDataToSend.append('source', 'website_registration');
         
         // Add CV file if uploaded
@@ -410,6 +426,39 @@ export default function RegisterPage() {
                     {errors.postcode}
                   </p>
                 )}
+              </div>
+              
+              <div className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <label htmlFor="gender" className="block font-body font-medium text-charcoal mb-2">
+                    Gender
+                  </label>
+                  <select
+                    id="gender"
+                    value={formData.gender}
+                    onChange={(e) => updateFormData('gender', e.target.value)}
+                    className="w-full px-4 py-3 border border-neutral-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-red focus:border-transparent"
+                  >
+                    <option value="">Select gender</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="prefer_not_to_say">Prefer not to say</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label htmlFor="nationality" className="block font-body font-medium text-charcoal mb-2">
+                    Nationality
+                  </label>
+                  <input
+                    type="text"
+                    id="nationality"
+                    value={formData.nationality}
+                    onChange={(e) => updateFormData('nationality', e.target.value)}
+                    className="w-full px-4 py-3 border border-neutral-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-red focus:border-transparent"
+                    placeholder="e.g. British, Irish, etc."
+                  />
+                </div>
               </div>
             </div>
           )}
@@ -802,6 +851,63 @@ export default function RegisterPage() {
                 <p className="text-sm font-body text-charcoal/70">
                   Don&apos;t have a CV ready? No problem! You can still register and upload it later.
                 </p>
+              </div>
+
+            </div>
+          )}
+
+          {/* Step 8: Medical Information */}
+          {currentStep === 8 && (
+            <div className="space-y-6">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h3 className="font-body font-medium text-blue-900 mb-2">
+                  Medical & Accessibility Information
+                </h3>
+                <p className="font-body text-sm text-blue-800">
+                  This information helps us ensure we can provide appropriate support and make reasonable adjustments where needed. All information is optional and confidential.
+                </p>
+              </div>
+
+              <div>
+                <label htmlFor="medicalConditions" className="block font-body font-medium text-charcoal mb-2">
+                  Medical Conditions (Optional)
+                </label>
+                <textarea
+                  id="medicalConditions"
+                  value={formData.medicalConditions}
+                  onChange={(e) => updateFormData('medicalConditions', e.target.value)}
+                  rows={3}
+                  className="w-full px-4 py-3 border border-neutral-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-red focus:border-transparent"
+                  placeholder="Please describe any medical conditions that may affect your work..."
+                />
+              </div>
+
+              <div>
+                <label htmlFor="disabilityInfo" className="block font-body font-medium text-charcoal mb-2">
+                  Disability Information (Optional)
+                </label>
+                <textarea
+                  id="disabilityInfo"
+                  value={formData.disabilityInfo}
+                  onChange={(e) => updateFormData('disabilityInfo', e.target.value)}
+                  rows={3}
+                  className="w-full px-4 py-3 border border-neutral-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-red focus:border-transparent"
+                  placeholder="Please describe any disabilities or accessibility requirements..."
+                />
+              </div>
+
+              <div>
+                <label htmlFor="reasonableAdjustments" className="block font-body font-medium text-charcoal mb-2">
+                  Reasonable Adjustments Needed (Optional)
+                </label>
+                <textarea
+                  id="reasonableAdjustments"
+                  value={formData.reasonableAdjustments}
+                  onChange={(e) => updateFormData('reasonableAdjustments', e.target.value)}
+                  rows={3}
+                  className="w-full px-4 py-3 border border-neutral-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-red focus:border-transparent"
+                  placeholder="What adjustments or support would help you perform your best work?"
+                />
               </div>
 
               <div className="flex items-start space-x-3">
