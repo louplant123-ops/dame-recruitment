@@ -51,7 +51,7 @@ export default function ContactPage() {
     try {
       console.log('📞 Submitting contact form...');
       
-      const response = await fetch('https://a78b850bd7bd.ngrok-free.app/api/contact', {
+      const response = await fetch('/.netlify/functions/contact-form', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -1,4 +1,149 @@
-const fetch = require('node-fetch');
+const { Client } = require('pg');
+
+// Store contact in database with smart routing based on inquiry type
+async function storeContactInDatabase(contactData) {
+  try {
+    console.log('🔄 Storing contact in database...');
+    
+    const client = new Client({
+      host: process.env.DB_HOST || 'damedesk-crm-production-do-user-27348714-0.j.db.ondigitalocean.com',
+      port: process.env.DB_PORT || 25060,
+      database: process.env.DB_NAME || 'defaultdb',
+      user: process.env.DB_USER || 'doadmin',
+      password: process.env.DB_PASSWORD,
+      ssl: {
+        rejectUnauthorized: false
+      },
+      connectionTimeoutMillis: 10000
+    });
+
+    await client.connect();
+    console.log('✅ Connected to database');
+
+    const contactId = `CONTACT_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const timestamp = new Date().toISOString();
+
+    // Route based on inquiry type
+    if (contactData.inquiryType === 'job_seeker') {
+      // Save as candidate
+      console.log('👤 Routing job seeker to candidates table');
+      
+      const insertQuery = `
+        INSERT INTO contacts (
+          id, name, email, company, phone, location, skills, notes, 
+          type, source, created_at, updated_at, status, temperature
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+        RETURNING id, name, email
+      `;
+      
+      const values = [
+        contactId,
+        contactData.name,
+        contactData.email,
+        contactData.company || '',
+        '', // phone - not collected in contact form
+        '', // location - not collected in contact form
+        '', // skills - not collected in contact form
+        `Contact form message: ${contactData.message}`,
+        'candidate',
+        'website_contact_form',
+        timestamp,
+        timestamp,
+        'new',
+        'warm'
+      ];
+
+      const result = await client.query(insertQuery, values);
+      await client.end();
+      
+      return {
+        contactId: result.rows[0].id,
+        type: 'candidate',
+        message: 'Job seeker contact saved to candidates'
+      };
+
+    } else if (contactData.inquiryType === 'employer') {
+      // Save as prospect/client
+      console.log('🏢 Routing employer to prospects table');
+      
+      const insertQuery = `
+        INSERT INTO contacts (
+          id, name, email, company, phone, location, skills, notes, 
+          type, source, created_at, updated_at, status, temperature
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+        RETURNING id, name, email
+      `;
+      
+      const values = [
+        contactId,
+        contactData.name,
+        contactData.email,
+        contactData.company || '',
+        '', // phone
+        '', // location
+        '', // skills
+        `Employer inquiry: ${contactData.message}`,
+        'prospect', // Mark as prospect for hiring inquiries
+        'website_contact_form',
+        timestamp,
+        timestamp,
+        'new',
+        'hot' // Employers are hot leads
+      ];
+
+      const result = await client.query(insertQuery, values);
+      await client.end();
+      
+      return {
+        contactId: result.rows[0].id,
+        type: 'prospect',
+        message: 'Employer contact saved to prospects'
+      };
+
+    } else {
+      // General inquiry - save as general contact
+      console.log('📞 Routing general inquiry to contacts');
+      
+      const insertQuery = `
+        INSERT INTO contacts (
+          id, name, email, company, phone, location, skills, notes, 
+          type, source, created_at, updated_at, status, temperature
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+        RETURNING id, name, email
+      `;
+      
+      const values = [
+        contactId,
+        contactData.name,
+        contactData.email,
+        contactData.company || '',
+        '', // phone
+        '', // location
+        '', // skills
+        `General inquiry: ${contactData.message}`,
+        'contact', // General contact type
+        'website_contact_form',
+        timestamp,
+        timestamp,
+        'new',
+        'warm'
+      ];
+
+      const result = await client.query(insertQuery, values);
+      await client.end();
+      
+      return {
+        contactId: result.rows[0].id,
+        type: 'contact',
+        message: 'General contact saved'
+      };
+    }
+    
+  } catch (error) {
+    console.error('❌ Database storage error:', error);
+    throw error;
+  }
+}
 
 exports.handler = async (event, context) => {
   // Only allow POST requests
@@ -77,39 +222,11 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Prepare data for DameDesk
-    const submissionData = {
-      ...contactData,
-      submissionType: 'contact',
-      timestamp: new Date().toISOString(),
-      source: 'website_contact_form'
-    };
-
-    // Forward to DameDesk bridge server
-    const webhookUrl = process.env.DAMEDESK_WEBHOOK_URL || 'http://localhost:3001/api/contact';
-    if (!webhookUrl) {
-      throw new Error('DAMEDESK_WEBHOOK_URL not configured');
-    }
-
-    console.log('🔗 Forwarding to DameDesk bridge server...');
+    // Store contact in database with smart routing
+    console.log('🎯 Processing contact with smart routing based on inquiry type:', contactData.inquiryType);
     
-    const response = await fetch(webhookUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-Key': process.env.NEXT_PUBLIC_DAMEDESK_API_KEY || 'dame-api-key-2024'
-      },
-      body: JSON.stringify(submissionData)
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('❌ DameDesk bridge server error:', response.status, errorText);
-      throw new Error(`Bridge server error: ${response.status}`);
-    }
-
-    const result = await response.json();
-    console.log('✅ Successfully forwarded to DameDesk:', result);
+    const result = await storeContactInDatabase(contactData);
+    console.log('✅ Contact processed successfully:', result);
 
     return {
       statusCode: 200,
@@ -120,7 +237,9 @@ exports.handler = async (event, context) => {
       body: JSON.stringify({
         success: true,
         message: 'Contact form submitted successfully',
-        contactId: result.contactId || `CONTACT_${Date.now()}`
+        contactId: result.contactId,
+        contactType: result.type,
+        routingMessage: result.message
       })
     };
 
