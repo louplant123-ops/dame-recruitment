@@ -20,6 +20,10 @@ async function storeContactInDatabase(contactData) {
     await client.connect();
     console.log('✅ Connected to database');
 
+    // Test database connection first
+    const testResult = await client.query('SELECT NOW() as current_time');
+    console.log('✅ Database test successful:', testResult.rows[0]);
+
     const contactId = `CONTACT_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const timestamp = new Date().toISOString();
 
@@ -53,8 +57,10 @@ async function storeContactInDatabase(contactData) {
         'warm'
       ];
 
+      console.log('📝 Executing insert query for job seeker...');
       const result = await client.query(insertQuery, values);
       await client.end();
+      console.log('✅ Job seeker contact saved successfully:', result.rows[0]);
       
       return {
         contactId: result.rows[0].id,
@@ -140,7 +146,12 @@ async function storeContactInDatabase(contactData) {
     }
     
   } catch (error) {
-    console.error('❌ Database storage error:', error);
+    console.error('❌ Database storage error:', {
+      message: error.message,
+      code: error.code,
+      detail: error.detail,
+      stack: error.stack
+    });
     throw error;
   }
 }
