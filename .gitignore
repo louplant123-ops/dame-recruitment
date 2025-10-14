@@ -37,3 +37,6 @@ next-env.d.ts
 
 # Local Netlify folder
 .netlify
+
+# Prevent empty package.json in functions directory
+netlify/functions/package.json
