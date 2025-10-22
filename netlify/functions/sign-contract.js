@@ -1,4 +1,94 @@
-const fetch = require('node-fetch');
+const { Client } = require('pg');
+
+// Update contract signature in database
+async function updateContractSignature(contractId, signatureData) {
+  try {
+    console.log('🔄 Updating contract signature in database...');
+    
+    const client = new Client({
+      host: process.env.DB_HOST || 'damedesk-crm-production-do-user-27348714-0.j.db.ondigitalocean.com',
+      port: process.env.DB_PORT || 25060,
+      database: process.env.DB_NAME || 'defaultdb',
+      user: process.env.DB_USER || 'doadmin',
+      password: process.env.DB_PASSWORD || 'AVNS_wm_vFxOY5--ftSp64EL',
+      ssl: {
+        rejectUnauthorized: false
+      },
+      connectionTimeoutMillis: 10000
+    });
+
+    await client.connect();
+    console.log('✅ Connected to database');
+
+    // Update contact with signature
+    const updateQuery = `
+      UPDATE contacts 
+      SET 
+        contract_status = 'signed',
+        contract_signed_date = NOW(),
+        contract_signed_by = $1,
+        contract_signer_position = $2,
+        updated_at = NOW()
+      WHERE contract_id = $3
+      RETURNING id, name, company, contract_terms
+    `;
+
+    const values = [
+      signatureData.fullName,
+      signatureData.position,
+      contractId
+    ];
+
+    const result = await client.query(updateQuery, values);
+    
+    if (result.rows.length === 0) {
+      throw new Error('Contract not found');
+    }
+
+    const contact = result.rows[0];
+    let contractTerms = {};
+    if (contact.contract_terms) {
+      contractTerms = typeof contact.contract_terms === 'string' 
+        ? JSON.parse(contact.contract_terms)
+        : contact.contract_terms;
+    }
+
+    console.log('✅ Contract signed:', contractId);
+
+    // Create task for consultant
+    const taskId = `TASK_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const insertTaskQuery = `
+      INSERT INTO tasks (
+        id, title, description, type, priority, status,
+        contact_id, due_date, created_at, updated_at
+      ) VALUES ($1, $2, $3, 'contract_signed', 'high', 'pending', $4, NOW(), NOW(), NOW())
+      RETURNING id, title
+    `;
+
+    const taskValues = [
+      taskId,
+      `Contract Signed: ${signatureData.companyName}`,
+      `${signatureData.fullName} has signed the ${contractTerms.type || 'recruitment'} contract. Arrange placements and start work.`,
+      contact.id
+    ];
+
+    const taskResult = await client.query(insertTaskQuery, taskValues);
+    console.log('✅ Task created:', taskResult.rows[0]);
+
+    await client.end();
+    
+    return {
+      contractId: contractId,
+      clientId: contact.id,
+      taskId: taskId,
+      status: 'signed'
+    };
+    
+  } catch (error) {
+    console.error('❌ Database update error:', error);
+    throw error;
+  }
+}
 
 exports.handler = async (event, context) => {
   if (event.httpMethod !== 'POST') {
@@ -19,23 +109,11 @@ exports.handler = async (event, context) => {
       company: signatureData.signatureData.companyName
     });
 
-    // Forward to bridge server to process signature
-    const bridgeUrl = process.env.DAMEDESK_CONTRACT_WEBHOOK_URL || 'https://a78b850bd7bd.ngrok-free.app/api/contracts/sign';
-    
-    const response = await fetch(bridgeUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-Key': process.env.NEXT_PUBLIC_DAMEDESK_API_KEY || 'website-integration'
-      },
-      body: JSON.stringify(signatureData)
-    });
-
-    if (!response.ok) {
-      throw new Error(`Bridge server responded with ${response.status}`);
-    }
-
-    const result = await response.json();
+    // Update contract in database
+    const result = await updateContractSignature(
+      signatureData.contractId,
+      signatureData.signatureData
+    );
     console.log('✅ Contract signed successfully');
 
     return {
@@ -48,7 +126,9 @@ exports.handler = async (event, context) => {
       body: JSON.stringify({
         success: true,
         message: 'Contract signed successfully',
-        contractId: signatureData.contractId
+        contractId: result.contractId,
+        taskId: result.taskId,
+        savedToDatabase: true
       })
     };
 

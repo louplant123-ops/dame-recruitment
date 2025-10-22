@@ -1,4 +1,68 @@
-// Simple contact form that works without database - for testing
+// Contact form with PostgreSQL database integration
+const { Client } = require('pg');
+
+// Store contact in database
+async function storeInDatabase(contactData) {
+  try {
+    console.log('🔄 Storing contact in database...');
+    
+    const client = new Client({
+      host: process.env.DB_HOST || 'damedesk-crm-production-do-user-27348714-0.j.db.ondigitalocean.com',
+      port: process.env.DB_PORT || 25060,
+      database: process.env.DB_NAME || 'defaultdb',
+      user: process.env.DB_USER || 'doadmin',
+      password: process.env.DB_PASSWORD || 'AVNS_wm_vFxOY5--ftSp64EL',
+      ssl: {
+        rejectUnauthorized: false
+      },
+      connectionTimeoutMillis: 10000
+    });
+
+    await client.connect();
+    console.log('✅ Connected to database');
+
+    // Insert contact into contacts table
+    const insertQuery = `
+      INSERT INTO contacts (
+        id, name, email, phone, company, type, status, temperature,
+        notes, source, created_at, updated_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, 'active', $7, $8, 'website_contact_form', NOW(), NOW())
+      ON CONFLICT (id) 
+      DO UPDATE SET 
+        name = EXCLUDED.name,
+        email = EXCLUDED.email,
+        phone = EXCLUDED.phone,
+        company = EXCLUDED.company,
+        type = EXCLUDED.type,
+        temperature = EXCLUDED.temperature,
+        notes = EXCLUDED.notes,
+        updated_at = NOW()
+      RETURNING id, name, type
+    `;
+
+    const values = [
+      contactData.contactId,
+      contactData.name,
+      contactData.email,
+      contactData.phone || null,
+      contactData.company || null,
+      contactData.contactType,
+      contactData.temperature,
+      contactData.message
+    ];
+
+    const result = await client.query(insertQuery, values);
+    await client.end();
+    
+    console.log('✅ Contact stored in database:', result.rows[0]);
+    return result.rows[0];
+    
+  } catch (error) {
+    console.error('❌ Database storage error:', error);
+    throw error;
+  }
+}
+
 exports.handler = async (event, context) => {
   // Handle CORS preflight
   if (event.httpMethod === 'OPTIONS') {
@@ -81,7 +145,7 @@ exports.handler = async (event, context) => {
     const contactId = `CONTACT_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
     // Determine routing based on inquiry type
-    let contactType = 'contact';
+    let contactType = 'prospect'; // Default to prospect for general inquiries
     let temperature = 'warm';
     let message = 'General contact received';
     
@@ -101,13 +165,20 @@ exports.handler = async (event, context) => {
       temperature: temperature
     });
 
-    // TODO: Save to database (currently disabled for testing)
-    console.log('💾 Database save skipped - contact would be saved as:', {
+    // Save to database
+    const dataToStore = {
       contactId: contactId,
-      type: contactType,
-      temperature: temperature,
-      source: 'website_contact_form'
-    });
+      name: contactData.name,
+      email: contactData.email,
+      phone: contactData.phone || null,
+      company: contactData.company || null,
+      message: contactData.message,
+      contactType: contactType,
+      temperature: temperature
+    };
+
+    const dbResult = await storeInDatabase(dataToStore);
+    console.log('✅ Contact saved to database:', dbResult);
 
     return {
       statusCode: 200,
@@ -121,7 +192,8 @@ exports.handler = async (event, context) => {
         contactId: contactId,
         contactType: contactType,
         routingMessage: message,
-        note: 'Database save temporarily disabled - contact logged in function logs'
+        savedToDatabase: true,
+        dbRecord: dbResult
       })
     };
 
