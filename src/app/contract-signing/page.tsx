@@ -180,12 +180,23 @@ export default function ContractSigningPage() {
                 <div><strong>Payment Terms:</strong> {contractData.contractData.paymentTerms} days</div>
                 {contractData.contractType === 'temp' ? (
                   <>
-                    <div><strong>Standard Rate:</strong> £{contractData.contractData.standardRate}/hour</div>
-                    <div><strong>Margin:</strong> {contractData.contractData.marginPercentage}%</div>
+                    {contractData.contractData.method === 'buildup' ? (
+                      <>
+                        <div><strong>Pay Rate:</strong> £{contractData.contractData.payRate?.toFixed(2)}/hour</div>
+                        <div><strong>Charge Rate:</strong> £{contractData.contractData.chargeRate?.toFixed(2)}/hour</div>
+                        <div><strong>Margin:</strong> £{contractData.contractData.marginAmount?.toFixed(2)}/hour</div>
+                      </>
+                    ) : (
+                      <>
+                        <div><strong>Hourly Rate:</strong> £{contractData.contractData.hourlyRate}/hour</div>
+                        <div><strong>Margin:</strong> {contractData.contractData.marginPercentage}%</div>
+                      </>
+                    )}
                   </>
                 ) : (
                   <>
                     <div><strong>Fee:</strong> {contractData.contractData.feePercentage}% of salary</div>
+                    <div><strong>Minimum Fee:</strong> £{contractData.contractData.minimumFee?.toLocaleString()}</div>
                     <div><strong>Guarantee:</strong> {contractData.contractData.guaranteePeriod} days</div>
                   </>
                 )}
