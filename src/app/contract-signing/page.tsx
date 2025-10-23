@@ -38,13 +38,17 @@ export default function ContractSigningPage() {
   const [isSubmitted, setIsSubmitted] = useState(false)
 
   useEffect(() => {
+    console.log('🔍 Page loaded, checking for contract ID...')
     const urlParams = new URLSearchParams(window.location.search)
     const id = urlParams.get('id')
+    console.log('🔍 Contract ID from URL:', id)
     setContractId(id)
     
     if (id) {
+      console.log('✅ Contract ID found, loading data...')
       loadContractData(id)
     } else {
+      console.log('❌ No contract ID in URL')
       setError('Invalid contract link')
       setLoading(false)
     }
@@ -52,13 +56,18 @@ export default function ContractSigningPage() {
 
   const loadContractData = async (id: string) => {
     try {
+      console.log('🔄 Fetching contract from:', `/.netlify/functions/get-contract?id=${id}`)
       const response = await fetch(`/.netlify/functions/get-contract?id=${id}`, {
         headers: {
           'X-API-Key': 'website-integration'
         }
       })
       
+      console.log('📡 Response status:', response.status)
+      
       if (!response.ok) {
+        const errorText = await response.text()
+        console.error('❌ Error response:', errorText)
         throw new Error('Contract not found')
       }
       
