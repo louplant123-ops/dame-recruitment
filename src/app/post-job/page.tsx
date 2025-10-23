@@ -46,7 +46,7 @@ export default function PostJobPage() {
     try {
       console.log('💼 Submitting job posting...');
       
-      const response = await fetch('https://a78b850bd7bd.ngrok-free.app/api/jobs', {
+      const response = await fetch('/.netlify/functions/job-posting', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

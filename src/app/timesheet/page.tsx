@@ -214,26 +214,44 @@ export default function ClientTimesheetPortal() {
     try {
       setSubmitting(true);
 
-      // Prepare submission data
+      // Prepare submission data in format expected by Netlify function
+      const workers = candidateRows.map(candidate => ({
+        id: candidate.candidateId,
+        name: candidate.candidateName,
+        entries: Object.values(candidate.entries)
+          .filter(entry => entry.entryType !== 'hours' || (entry.hoursWorked || 0) > 0)
+          .map(entry => ({
+            date: entry.workDate,
+            hours: entry.hoursWorked || entry.calculatedHours || 0,
+            charge_rate: 0, // Will be set by consultant
+            client_notes: entry.notes || ''
+          }))
+      })).filter(worker => worker.entries.length > 0);
+
+      const totalHours = workers.reduce((sum, worker) => 
+        sum + worker.entries.reduce((wSum, entry) => wSum + entry.hours, 0), 0
+      );
+
       const submissionData = {
         clientId,
-        weekEndingDate,
+        weekEnding: weekEndingDate,
         submittedBy: submitterName,
-        comments,
-        correctionsNotes: correctionsText,
-        entries: candidateRows.flatMap(candidate => 
-          Object.values(candidate.entries).filter(entry => 
-            entry.entryType !== 'hours' || (entry.hoursWorked || 0) > 0
-          )
-        )
+        clientNotes: comments + (correctionsText ? `\n\nCorrections: ${correctionsText}` : ''),
+        workers,
+        totals: {
+          totalHours,
+          totalCharge: 0,
+          totalPay: 0,
+          totalMargin: 0
+        }
       };
 
-      // TODO: Submit to bridge server
-      const response = await fetch(`${process.env.NEXT_PUBLIC_DAMEDESK_WEBHOOK_URL || 'http://localhost:3001'}/api/timesheets/submit`, {
+      // Submit to Netlify function
+      const response = await fetch('/.netlify/functions/timesheet-submission', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_DAMEDESK_API_KEY}`
+          'X-API-Key': 'website-integration'
         },
         body: JSON.stringify(submissionData)
       });

@@ -63,6 +63,8 @@ export default function ContractSigningPage() {
       }
       
       const data = await response.json()
+      console.log('📋 Contract data received:', data)
+      console.log('📋 Contract terms:', data.contractData)
       setContractData(data)
       
       setSignatureData(prev => ({
