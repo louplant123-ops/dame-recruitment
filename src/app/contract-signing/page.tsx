@@ -12,9 +12,13 @@ interface ContractData {
   sentDate: string;
   contractData: {
     type: 'temp' | 'perm';
-    feePercentage?: number;
-    standardRate?: number;
+    method?: 'buildup' | 'percentage';
+    payRate?: number;
+    chargeRate?: number;
+    marginAmount?: number;
+    hourlyRate?: number;
     marginPercentage?: number;
+    feePercentage?: number;
     guaranteePeriod?: number;
     paymentTerms?: number;
     minimumFee?: number;
