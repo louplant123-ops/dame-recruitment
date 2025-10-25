@@ -38,20 +38,12 @@ export default function ClientInfoPage() {
   const [isSubmitted, setIsSubmitted] = useState(false)
 
   const [formData, setFormData] = useState({
-    invoice_contact_name: '',
-    invoice_contact_email: '',
-    invoice_address: '',
-    purchase_order_required: false,
-    invoice_format_preference: '',
-    payment_method: '',
     ppe_required: false,
     ppe_details: '',
     site_induction_required: false,
     health_safety_contact: '',
     site_access_instructions: '',
     parking_info: '',
-    interview_process: '',
-    decision_timeframe: '',
     key_decision_makers: '',
     preferred_start_dates: '',
     preferred_contact_method: '',
@@ -94,20 +86,12 @@ export default function ClientInfoPage() {
       
       // Pre-fill form with existing data
       setFormData({
-        invoice_contact_name: data.invoice_contact_name || data.name || '',
-        invoice_contact_email: data.invoice_contact_email || data.email || '',
-        invoice_address: data.invoice_address || '',
-        purchase_order_required: data.purchase_order_required || false,
-        invoice_format_preference: data.invoice_format_preference || '',
-        payment_method: data.payment_method || '',
         ppe_required: data.ppe_required || false,
         ppe_details: data.ppe_details || '',
         site_induction_required: data.site_induction_required || false,
         health_safety_contact: data.health_safety_contact || '',
         site_access_instructions: data.site_access_instructions || '',
         parking_info: data.parking_info || '',
-        interview_process: data.interview_process || '',
-        decision_timeframe: data.decision_timeframe || '',
         key_decision_makers: data.key_decision_makers || '',
         preferred_start_dates: data.preferred_start_dates || '',
         preferred_contact_method: data.preferred_contact_method || '',
@@ -219,89 +203,6 @@ export default function ClientInfoPage() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-8">
-              {/* Invoice Details */}
-              <div className="border-b pb-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">📄 Invoice Details</h3>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Invoice Contact Name *</label>
-                    <input
-                      type="text"
-                      value={formData.invoice_contact_name}
-                      onChange={(e) => setFormData({...formData, invoice_contact_name: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                      required
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Invoice Contact Email *</label>
-                    <input
-                      type="email"
-                      value={formData.invoice_contact_email}
-                      onChange={(e) => setFormData({...formData, invoice_contact_email: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Invoice Address *</label>
-                  <textarea
-                    value={formData.invoice_address}
-                    onChange={(e) => setFormData({...formData, invoice_address: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                    rows={3}
-                    required
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
-                  <div>
-                    <label className="flex items-center">
-                      <input
-                        type="checkbox"
-                        checked={formData.purchase_order_required}
-                        onChange={(e) => setFormData({...formData, purchase_order_required: e.target.checked})}
-                        className="mr-2 h-4 w-4 text-red-600"
-                      />
-                      <span className="text-sm font-medium text-gray-700">Purchase Order Required</span>
-                    </label>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Invoice Format Preference</label>
-                    <select
-                      value={formData.invoice_format_preference}
-                      onChange={(e) => setFormData({...formData, invoice_format_preference: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                    >
-                      <option value="">Select...</option>
-                      <option value="PDF Email">PDF Email</option>
-                      <option value="Portal">Portal</option>
-                      <option value="Post">Post</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Payment Method</label>
-                  <select
-                    value={formData.payment_method}
-                    onChange={(e) => setFormData({...formData, payment_method: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                  >
-                    <option value="">Select...</option>
-                    <option value="BACS">BACS</option>
-                    <option value="Faster Payment">Faster Payment</option>
-                    <option value="Cheque">Cheque</option>
-                    <option value="Direct Debit">Direct Debit</option>
-                  </select>
-                </div>
-              </div>
-
               {/* Site & Safety */}
               <div className="border-b pb-6">
                 <h3 className="text-xl font-semibold text-gray-900 mb-4">🦺 Site & Safety Information</h3>
@@ -377,37 +278,10 @@ export default function ClientInfoPage() {
                 </div>
               </div>
 
-              {/* Hiring Process */}
+              {/* Client Preferences */}
               <div className="border-b pb-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">👥 Hiring Process</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">👥 Client Preferences</h3>
                 
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Interview Process</label>
-                  <select
-                    value={formData.interview_process}
-                    onChange={(e) => setFormData({...formData, interview_process: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                  >
-                    <option value="">Select...</option>
-                    <option value="Phone Screen">Phone Screen</option>
-                    <option value="Video Interview">Video Interview</option>
-                    <option value="In-Person">In-Person</option>
-                    <option value="Multi-Stage">Multi-Stage</option>
-                    <option value="Other">Other</option>
-                  </select>
-                </div>
-
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Decision Timeframe</label>
-                  <input
-                    type="text"
-                    value={formData.decision_timeframe}
-                    onChange={(e) => setFormData({...formData, decision_timeframe: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                    placeholder="e.g., 24-48 hours, 1 week"
-                  />
-                </div>
-
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-2">Key Decision Makers</label>
                   <textarea
