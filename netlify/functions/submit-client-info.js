@@ -23,45 +23,29 @@ async function updateClientInfo(formId, formData) {
     const updateQuery = `
       UPDATE contacts 
       SET 
-        invoice_contact_name = $1,
-        invoice_contact_email = $2,
-        invoice_address = $3,
-        purchase_order_required = $4,
-        invoice_format_preference = $5,
-        payment_method = $6,
-        ppe_required = $7,
-        ppe_details = $8,
-        site_induction_required = $9,
-        health_safety_contact = $10,
-        site_access_instructions = $11,
-        parking_info = $12,
-        interview_process = $13,
-        decision_timeframe = $14,
-        key_decision_makers = $15,
-        preferred_start_dates = $16,
-        preferred_contact_method = $17,
-        best_contact_times = $18,
+        ppe_required = $1,
+        ppe_details = $2,
+        site_induction_required = $3,
+        health_safety_contact = $4,
+        site_access_instructions = $5,
+        parking_info = $6,
+        key_decision_makers = $7,
+        preferred_start_dates = $8,
+        preferred_contact_method = $9,
+        best_contact_times = $10,
         client_info_form_completed = NOW(),
         updated_at = NOW()
-      WHERE client_info_form_id = $19
+      WHERE client_info_form_id = $11
       RETURNING id, name, company
     `;
 
     const values = [
-      formData.invoice_contact_name,
-      formData.invoice_contact_email,
-      formData.invoice_address,
-      formData.purchase_order_required,
-      formData.invoice_format_preference,
-      formData.payment_method,
       formData.ppe_required,
       formData.ppe_details,
       formData.site_induction_required,
       formData.health_safety_contact,
       formData.site_access_instructions,
       formData.parking_info,
-      formData.interview_process,
-      formData.decision_timeframe,
       formData.key_decision_makers,
       formData.preferred_start_dates,
       formData.preferred_contact_method,
