@@ -23,23 +23,27 @@ async function updateClientInfo(formId, formData) {
     const updateQuery = `
       UPDATE contacts 
       SET 
-        ppe_required = $1,
-        ppe_details = $2,
-        site_induction_required = $3,
-        health_safety_contact = $4,
-        site_access_instructions = $5,
-        parking_info = $6,
-        key_decision_makers = $7,
-        preferred_start_dates = $8,
-        preferred_contact_method = $9,
-        best_contact_times = $10,
+        invoice_contact_name = $1,
+        invoice_contact_email = $2,
+        ppe_required = $3,
+        ppe_details = $4,
+        site_induction_required = $5,
+        health_safety_contact = $6,
+        site_access_instructions = $7,
+        parking_info = $8,
+        key_decision_makers = $9,
+        preferred_start_dates = $10,
+        preferred_contact_method = $11,
+        best_contact_times = $12,
         client_info_form_completed = NOW(),
         updated_at = NOW()
-      WHERE client_info_form_id = $11
+      WHERE client_info_form_id = $13
       RETURNING id, name, company
     `;
 
     const values = [
+      formData.invoice_contact_name,
+      formData.invoice_contact_email,
       formData.ppe_required,
       formData.ppe_details,
       formData.site_induction_required,
@@ -81,6 +85,43 @@ async function updateClientInfo(formId, formData) {
 
     const taskResult = await client.query(insertTaskQuery, taskValues);
     console.log('✅ Task created:', taskResult.rows[0]);
+
+    // Create invoice contact as a separate contact person if they don't already exist
+    if (formData.invoice_contact_name && formData.invoice_contact_email) {
+      // Check if contact already exists with this email
+      const checkContactQuery = `
+        SELECT id FROM contacts 
+        WHERE email = $1 AND company = $2
+        LIMIT 1
+      `;
+      const existingContact = await client.query(checkContactQuery, [
+        formData.invoice_contact_email,
+        contact.company
+      ]);
+
+      if (existingContact.rows.length === 0) {
+        // Create new contact person for invoicing
+        const newContactId = `CONTACT_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        const createContactQuery = `
+          INSERT INTO contacts (
+            id, name, email, company, type, position, 
+            created_at, updated_at
+          ) VALUES ($1, $2, $3, $4, 'client', 'Accounts/Finance', NOW(), NOW())
+          RETURNING id, name
+        `;
+        
+        const newContactResult = await client.query(createContactQuery, [
+          newContactId,
+          formData.invoice_contact_name,
+          formData.invoice_contact_email,
+          contact.company
+        ]);
+        
+        console.log('✅ Invoice contact created:', newContactResult.rows[0]);
+      } else {
+        console.log('ℹ️ Invoice contact already exists');
+      }
+    }
 
     await client.end();
     

@@ -38,6 +38,8 @@ export default function ClientInfoPage() {
   const [isSubmitted, setIsSubmitted] = useState(false)
 
   const [formData, setFormData] = useState({
+    invoice_contact_name: '',
+    invoice_contact_email: '',
     ppe_required: false,
     ppe_details: '',
     site_induction_required: '',
@@ -86,6 +88,8 @@ export default function ClientInfoPage() {
       
       // Pre-fill form with existing data
       setFormData({
+        invoice_contact_name: data.invoice_contact_name || data.name || '',
+        invoice_contact_email: data.invoice_contact_email || data.email || '',
         ppe_required: data.ppe_required || false,
         ppe_details: data.ppe_details || '',
         site_induction_required: data.site_induction_required || '',
@@ -203,6 +207,35 @@ export default function ClientInfoPage() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-8">
+              {/* Invoice Contact */}
+              <div className="border-b pb-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">📄 Invoice Contact</h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Invoice Contact Name *</label>
+                    <input
+                      type="text"
+                      value={formData.invoice_contact_name}
+                      onChange={(e) => setFormData({...formData, invoice_contact_name: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Invoice Contact Email *</label>
+                    <input
+                      type="email"
+                      value={formData.invoice_contact_email}
+                      onChange={(e) => setFormData({...formData, invoice_contact_email: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
               {/* Site & Safety */}
               <div className="border-b pb-6">
                 <h3 className="text-xl font-semibold text-gray-900 mb-4">🦺 Site & Safety Information</h3>
