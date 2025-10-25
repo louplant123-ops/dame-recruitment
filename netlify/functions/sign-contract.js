@@ -75,12 +75,24 @@ async function updateContractSignature(contractId, signatureData) {
     const taskResult = await client.query(insertTaskQuery, taskValues);
     console.log('✅ Task created:', taskResult.rows[0]);
 
+    // Generate client info form ID and update contact
+    const infoFormId = `INFO_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    await client.query(
+      `UPDATE contacts SET 
+        client_info_form_id = $1,
+        client_info_form_sent = NOW()
+       WHERE id = $2`,
+      [infoFormId, contact.id]
+    );
+    console.log('✅ Client info form ID generated:', infoFormId);
+
     await client.end();
     
     return {
       contractId: contractId,
       clientId: contact.id,
       taskId: taskId,
+      infoFormId: infoFormId,
       status: 'signed'
     };
     
@@ -128,6 +140,7 @@ exports.handler = async (event, context) => {
         message: 'Contract signed successfully',
         contractId: result.contractId,
         taskId: result.taskId,
+        infoFormUrl: `https://damerecruitment.co.uk/client-info?id=${result.infoFormId}`,
         savedToDatabase: true
       })
     };

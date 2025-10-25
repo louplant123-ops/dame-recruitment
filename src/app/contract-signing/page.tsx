@@ -113,6 +113,8 @@ export default function ContractSigningPage() {
       })
       
       if (response.ok) {
+        const result = await response.json()
+        console.log('Contract signed, info form URL:', result.infoFormUrl)
         setIsSubmitted(true)
       } else {
         throw new Error('Failed to sign contract')
