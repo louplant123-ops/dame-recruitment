@@ -40,7 +40,7 @@ export default function ClientInfoPage() {
   const [formData, setFormData] = useState({
     ppe_required: false,
     ppe_details: '',
-    site_induction_required: false,
+    site_induction_required: '',
     health_safety_contact: '',
     site_access_instructions: '',
     parking_info: '',
@@ -88,7 +88,7 @@ export default function ClientInfoPage() {
       setFormData({
         ppe_required: data.ppe_required || false,
         ppe_details: data.ppe_details || '',
-        site_induction_required: data.site_induction_required || false,
+        site_induction_required: data.site_induction_required || '',
         health_safety_contact: data.health_safety_contact || '',
         site_access_instructions: data.site_access_instructions || '',
         parking_info: data.parking_info || '',
@@ -233,15 +233,14 @@ export default function ClientInfoPage() {
                 )}
 
                 <div className="mb-4">
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={formData.site_induction_required}
-                      onChange={(e) => setFormData({...formData, site_induction_required: e.target.checked})}
-                      className="mr-2 h-4 w-4 text-red-600"
-                    />
-                    <span className="text-sm font-medium text-gray-700">Site Induction Required</span>
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Site Induction</label>
+                  <input
+                    type="text"
+                    value={formData.site_induction_required}
+                    onChange={(e) => setFormData({...formData, site_induction_required: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    placeholder="e.g., Client provides on day 1, Not required, Agency to arrange"
+                  />
                 </div>
 
                 <div className="mb-4">
