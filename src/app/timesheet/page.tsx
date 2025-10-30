@@ -77,6 +77,7 @@ export default function ClientTimesheetPortal() {
         return;
       }
 
+      setClientId(data.client_id);
       setClientName(data.client_company || data.client_name);
       setWeekEndingDate(data.week_ending_date);
       setIsAuthenticated(true);
