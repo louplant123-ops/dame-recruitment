@@ -56,18 +56,67 @@ export default function ClientTimesheetPortal() {
 
   // Authentication check
   useEffect(() => {
-    // TODO: Implement proper client authentication
-    // For now, simulate authentication
     const urlParams = new URLSearchParams(window.location.search);
-    const clientParam = urlParams.get('client');
+    const token = urlParams.get('token');
     
-    if (clientParam) {
-      setClientId(clientParam);
-      setClientName('Manufacturing Corp Ltd'); // TODO: Get from API
-      setIsAuthenticated(true);
-      loadTimesheet(clientParam, weekEndingDate);
+    if (token) {
+      loadTimesheetFromToken(token);
     }
-  }, [weekEndingDate]);
+  }, []);
+
+  // Load timesheet from token
+  const loadTimesheetFromToken = async (token: string) => {
+    try {
+      setLoading(true);
+      const response = await fetch(`/.netlify/functions/timesheet-entry?token=${token}`);
+      const data = await response.json();
+      
+      if (data.error) {
+        alert('Error loading timesheet: ' + data.error);
+        setLoading(false);
+        return;
+      }
+
+      setClientName(data.client_company || data.client_name);
+      setWeekEndingDate(data.week_ending_date);
+      setIsAuthenticated(true);
+
+      // Convert workers to candidate rows
+      const weekEnd = parseISO(data.week_ending_date);
+      const weekStart = startOfWeek(weekEnd, { weekStartsOn: 1 });
+      const weekDates = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
+
+      const rows: CandidateRow[] = data.workers.map((worker: any) => {
+        const entries: { [date: string]: TimesheetEntry } = {};
+        
+        weekDates.forEach(date => {
+          const dateStr = format(date, 'yyyy-MM-dd');
+          entries[dateStr] = {
+            candidateId: worker.id,
+            candidateName: worker.name,
+            workDate: dateStr,
+            entryType: 'hours',
+            hoursWorked: 0
+          };
+        });
+
+        return {
+          candidateId: worker.id,
+          candidateName: worker.name,
+          entries,
+          weeklyTotal: 0,
+          detailedMode: false
+        };
+      });
+
+      setCandidateRows(rows);
+      setLoading(false);
+    } catch (error) {
+      console.error('Failed to load timesheet:', error);
+      alert('Failed to load timesheet');
+      setLoading(false);
+    }
+  };
 
   // Load timesheet data
   const loadTimesheet = async (clientId: string, weekEndingDate: string) => {
