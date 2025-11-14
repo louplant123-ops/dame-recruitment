@@ -545,7 +545,7 @@ export default function RegisterPart2Page() {
                     />
                     <div>
                       <div className="font-medium text-gray-900">Upload CV (Recommended)</div>
-                      <div className="text-sm text-gray-500">Upload your CV and we'll automatically extract your employment history</div>
+                      <div className="text-sm text-gray-500">Upload your CV and we&apos;ll automatically extract your employment history</div>
                     </div>
                   </label>
                   
