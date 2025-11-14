@@ -2,6 +2,7 @@
 const { Client } = require('pg');
 const mammoth = require('mammoth');
 const pdfParse = require('pdf-parse');
+const PDFDocument = require('pdfkit');
 
 // Parse CV file and extract text
 async function parseCVFile(fileBuffer, fileName, mimeType) {
@@ -53,6 +54,169 @@ async function extractCandidateDataFromCV(cvText) {
     console.error('❌ Data extraction error:', error);
     return null;
   }
+}
+
+// Generate PDF from registration data
+async function generateRegistrationPDF(registrationData) {
+  return new Promise((resolve, reject) => {
+    try {
+      console.log('📄 Generating registration PDF...');
+      
+      const doc = new PDFDocument({ margin: 50 });
+      const chunks = [];
+      
+      // Collect PDF data
+      doc.on('data', chunk => chunks.push(chunk));
+      doc.on('end', () => {
+        const pdfBuffer = Buffer.concat(chunks);
+        console.log('✅ PDF generated, size:', pdfBuffer.length);
+        resolve(pdfBuffer);
+      });
+      doc.on('error', reject);
+      
+      // Header
+      doc.fontSize(20).fillColor('#DC2626').text('Dame Recruitment', { align: 'center' });
+      doc.fontSize(16).fillColor('#1F2937').text('Candidate Registration Form', { align: 'center' });
+      doc.moveDown();
+      doc.fontSize(10).fillColor('#6B7280').text(`Registration ID: ${registrationData.id}`, { align: 'center' });
+      doc.text(`Date: ${new Date(registrationData.timestamp).toLocaleDateString('en-GB')}`, { align: 'center' });
+      doc.moveDown(2);
+      
+      // Personal Details Section
+      doc.fontSize(14).fillColor('#DC2626').text('Personal Details');
+      doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke('#E5E7EB');
+      doc.moveDown(0.5);
+      
+      doc.fontSize(10).fillColor('#1F2937');
+      doc.text(`Name: ${registrationData.firstName} ${registrationData.lastName}`);
+      doc.text(`Email: ${registrationData.email}`);
+      doc.text(`Phone: ${registrationData.phone}`);
+      if (registrationData.dateOfBirth) doc.text(`Date of Birth: ${registrationData.dateOfBirth}`);
+      doc.text(`Address: ${registrationData.address}`);
+      doc.text(`Postcode: ${registrationData.postcode}`);
+      if (registrationData.gender) doc.text(`Gender: ${registrationData.gender}`);
+      if (registrationData.nationality) doc.text(`Nationality: ${registrationData.nationality}`);
+      doc.moveDown(1.5);
+      
+      // Right to Work Section
+      doc.fontSize(14).fillColor('#DC2626').text('Right to Work');
+      doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke('#E5E7EB');
+      doc.moveDown(0.5);
+      
+      doc.fontSize(10).fillColor('#1F2937');
+      doc.text(`Status: ${registrationData.rightToWork || 'Not specified'}`);
+      if (registrationData.visaType) doc.text(`Visa Type: ${registrationData.visaType}`);
+      if (registrationData.visaExpiry) doc.text(`Visa Expiry: ${registrationData.visaExpiry}`);
+      doc.moveDown(1.5);
+      
+      // Role Interests Section
+      doc.fontSize(14).fillColor('#DC2626').text('Role Interests');
+      doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke('#E5E7EB');
+      doc.moveDown(0.5);
+      
+      doc.fontSize(10).fillColor('#1F2937');
+      if (registrationData.jobTypes) {
+        const jobTypes = Array.isArray(registrationData.jobTypes) 
+          ? registrationData.jobTypes.join(', ') 
+          : registrationData.jobTypes;
+        doc.text(`Job Types: ${jobTypes}`);
+      }
+      if (registrationData.industries) {
+        const industries = Array.isArray(registrationData.industries) 
+          ? registrationData.industries.join(', ') 
+          : registrationData.industries;
+        doc.text(`Industries: ${industries}`);
+      }
+      if (registrationData.yearsOfExperience) doc.text(`Years of Experience: ${registrationData.yearsOfExperience}`);
+      if (registrationData.expectedHourlyRate) doc.text(`Expected Hourly Rate: £${registrationData.expectedHourlyRate}/hour`);
+      if (registrationData.experience) {
+        doc.text('Experience Summary:', { continued: false });
+        doc.fontSize(9).fillColor('#6B7280').text(registrationData.experience, { width: 500 });
+        doc.fontSize(10).fillColor('#1F2937');
+      }
+      doc.moveDown(1.5);
+      
+      // Availability Section
+      doc.fontSize(14).fillColor('#DC2626').text('Availability & Shifts');
+      doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke('#E5E7EB');
+      doc.moveDown(0.5);
+      
+      doc.fontSize(10).fillColor('#1F2937');
+      if (registrationData.shifts) {
+        const shifts = Array.isArray(registrationData.shifts) 
+          ? registrationData.shifts.join(', ') 
+          : registrationData.shifts;
+        doc.text(`Shift Preferences: ${shifts}`);
+      }
+      if (registrationData.availability) doc.text(`Available From: ${registrationData.availability}`);
+      doc.moveDown(1.5);
+      
+      // Transport Section
+      doc.fontSize(14).fillColor('#DC2626').text('Transport');
+      doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke('#E5E7EB');
+      doc.moveDown(0.5);
+      
+      doc.fontSize(10).fillColor('#1F2937');
+      doc.text(`Transport Method: ${registrationData.transport || 'Not specified'}`);
+      if (registrationData.maxTravelDistance) doc.text(`Maximum Travel Distance: ${registrationData.maxTravelDistance} miles`);
+      doc.text(`Driving License: ${registrationData.drivingLicense ? 'Yes' : 'No'}`);
+      doc.text(`Own Vehicle: ${registrationData.ownVehicle ? 'Yes' : 'No'}`);
+      doc.moveDown(1.5);
+      
+      // Licenses Section
+      doc.fontSize(14).fillColor('#DC2626').text('Licenses & Certifications');
+      doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke('#E5E7EB');
+      doc.moveDown(0.5);
+      
+      doc.fontSize(10).fillColor('#1F2937');
+      doc.text(`FLT License: ${registrationData.fltLicense ? 'Yes' : 'No'}`);
+      if (registrationData.fltLicense && registrationData.fltTypes) {
+        const fltTypes = Array.isArray(registrationData.fltTypes) 
+          ? registrationData.fltTypes.join(', ') 
+          : registrationData.fltTypes;
+        doc.text(`FLT Types: ${fltTypes}`);
+      }
+      if (registrationData.otherLicenses) doc.text(`Other Licenses: ${registrationData.otherLicenses}`);
+      doc.moveDown(1.5);
+      
+      // Medical Information Section (if provided)
+      if (registrationData.medicalConditions || registrationData.disabilityInfo || registrationData.reasonableAdjustments) {
+        doc.fontSize(14).fillColor('#DC2626').text('Medical & Disability Information');
+        doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke('#E5E7EB');
+        doc.moveDown(0.5);
+        
+        doc.fontSize(10).fillColor('#1F2937');
+        if (registrationData.medicalConditions) doc.text(`Medical Conditions: ${registrationData.medicalConditions}`);
+        if (registrationData.disabilityInfo) doc.text(`Disability Info: ${registrationData.disabilityInfo}`);
+        if (registrationData.reasonableAdjustments) doc.text(`Reasonable Adjustments: ${registrationData.reasonableAdjustments}`);
+        doc.moveDown(1.5);
+      }
+      
+      // CV Information
+      if (registrationData.cvFileName) {
+        doc.fontSize(14).fillColor('#DC2626').text('CV Information');
+        doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke('#E5E7EB');
+        doc.moveDown(0.5);
+        
+        doc.fontSize(10).fillColor('#1F2937');
+        doc.text(`CV File: ${registrationData.cvFileName}`);
+        doc.moveDown(1.5);
+      }
+      
+      // Footer
+      doc.fontSize(8).fillColor('#9CA3AF');
+      doc.text('This document was automatically generated by Dame Recruitment CRM system.', 50, doc.page.height - 50, {
+        align: 'center',
+        width: 500
+      });
+      
+      doc.end();
+      
+    } catch (error) {
+      console.error('❌ PDF generation error:', error);
+      reject(error);
+    }
+  });
 }
 
 // Simple text extraction functions (can be enhanced with AI later)
@@ -174,6 +338,8 @@ async function storeInDatabase(registrationData) {
         cv_text TEXT,
         cv_filename VARCHAR(255),
         cv_extracted_data TEXT,
+        registration_pdf BYTEA,
+        registration_pdf_filename VARCHAR(255),
         notes TEXT,
         source VARCHAR(50) DEFAULT 'website_part1',
         created_at TIMESTAMP DEFAULT NOW(),
@@ -190,8 +356,9 @@ async function storeInDatabase(registrationData) {
         id, name, email, phone, mobile, address, postcode, 
         gender, nationality, type, status, temperature,
         right_to_work, transport, medical_conditions, disability_info, 
-        reasonable_adjustments, cv_text, cv_filename, cv_extracted_data, notes, source, created_at, updated_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'candidate', 'active', 'hot', $10, $11, $12, $13, $14, $15, $16, $17, $18, 'website_part1', NOW(), NOW())
+        reasonable_adjustments, cv_text, cv_filename, cv_extracted_data, 
+        registration_pdf, registration_pdf_filename, notes, source, created_at, updated_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'candidate', 'active', 'hot', $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, 'website_part1', NOW(), NOW())
       ON CONFLICT (id) 
       DO UPDATE SET 
         name = EXCLUDED.name,
@@ -210,6 +377,8 @@ async function storeInDatabase(registrationData) {
         cv_text = EXCLUDED.cv_text,
         cv_filename = EXCLUDED.cv_filename,
         cv_extracted_data = EXCLUDED.cv_extracted_data,
+        registration_pdf = EXCLUDED.registration_pdf,
+        registration_pdf_filename = EXCLUDED.registration_pdf_filename,
         notes = EXCLUDED.notes,
         updated_at = NOW()
       RETURNING id, name
@@ -233,6 +402,8 @@ async function storeInDatabase(registrationData) {
       registrationData.cvText,
       registrationData.cvFileName,
       registrationData.cvExtractedData ? JSON.stringify(registrationData.cvExtractedData) : null,
+      registrationData.registrationPDF || null,
+      registrationData.registrationPDFFilename || null,
       `Part 1 registration: ${registrationData.experience} experience, ${registrationData.jobTypes?.join(', ')} roles`
     ];
 
@@ -393,6 +564,17 @@ exports.handler = async (event, context) => {
     };
 
     console.log('📤 About to forward to DameDesk:', registrationData);
+    
+    // Generate registration PDF
+    let registrationPDF = null;
+    try {
+      registrationPDF = await generateRegistrationPDF(registrationData);
+      registrationData.registrationPDF = registrationPDF;
+      registrationData.registrationPDFFilename = `Registration_${registrationData.firstName}_${registrationData.lastName}_${Date.now()}.pdf`;
+      console.log('✅ Registration PDF generated:', registrationData.registrationPDFFilename);
+    } catch (pdfError) {
+      console.error('⚠️ PDF generation failed, continuing without PDF:', pdfError);
+    }
     
     // Store in database first
     await storeInDatabase(registrationData);
