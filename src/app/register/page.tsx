@@ -27,6 +27,8 @@ export default function RegisterPage() {
     jobTypes: [] as string[],
     industries: [] as string[],
     experience: '',
+    yearsOfExperience: '',
+    expectedHourlyRate: '',
     
     // Shift Preferences
     shifts: [] as string[],
@@ -36,6 +38,7 @@ export default function RegisterPage() {
     transport: '',
     drivingLicense: false,
     ownVehicle: false,
+    maxTravelDistance: '10',
     
     // Licences
     fltLicense: false,
@@ -152,11 +155,14 @@ export default function RegisterPage() {
         formDataToSend.append('jobTypes', JSON.stringify(formData.jobTypes));
         formDataToSend.append('industries', JSON.stringify(formData.industries));
         formDataToSend.append('experience', formData.experience);
+        formDataToSend.append('yearsOfExperience', formData.yearsOfExperience);
+        formDataToSend.append('expectedHourlyRate', formData.expectedHourlyRate);
         formDataToSend.append('shifts', JSON.stringify(formData.shifts));
         formDataToSend.append('availability', formData.availability);
         formDataToSend.append('transport', formData.transport);
         formDataToSend.append('drivingLicense', formData.drivingLicense.toString());
         formDataToSend.append('ownVehicle', formData.ownVehicle.toString());
+        formDataToSend.append('maxTravelDistance', formData.maxTravelDistance);
         formDataToSend.append('fltLicense', formData.fltLicense.toString());
         formDataToSend.append('fltTypes', JSON.stringify(formData.fltTypes));
         formDataToSend.append('otherLicenses', formData.otherLicenses);
@@ -626,6 +632,47 @@ export default function RegisterPage() {
                   placeholder="Brief overview of your skills and experience..."
                 />
               </div>
+
+              <div className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <label htmlFor="yearsOfExperience" className="block font-body font-medium text-charcoal mb-2">
+                    Years of Experience
+                  </label>
+                  <select
+                    id="yearsOfExperience"
+                    value={formData.yearsOfExperience}
+                    onChange={(e) => updateFormData('yearsOfExperience', e.target.value)}
+                    className="w-full px-4 py-3 border border-neutral-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-red focus:border-transparent"
+                  >
+                    <option value="">Select experience level</option>
+                    <option value="0-1">Less than 1 year</option>
+                    <option value="1-2">1-2 years</option>
+                    <option value="2-5">2-5 years</option>
+                    <option value="5-10">5-10 years</option>
+                    <option value="10+">10+ years</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label htmlFor="expectedHourlyRate" className="block font-body font-medium text-charcoal mb-2">
+                    Expected Hourly Rate
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-charcoal/70">£</span>
+                    <input
+                      type="number"
+                      id="expectedHourlyRate"
+                      value={formData.expectedHourlyRate}
+                      onChange={(e) => updateFormData('expectedHourlyRate', e.target.value)}
+                      min="0"
+                      step="0.50"
+                      className="w-full pl-8 pr-4 py-3 border border-neutral-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-red focus:border-transparent"
+                      placeholder="12.50"
+                    />
+                  </div>
+                  <p className="mt-1 text-sm text-charcoal/60">Per hour (optional)</p>
+                </div>
+              </div>
             </div>
           )}
 
@@ -751,6 +798,29 @@ export default function RegisterPage() {
                     I have access to my own vehicle
                   </label>
                 </div>
+              </div>
+
+              <div>
+                <label htmlFor="maxTravelDistance" className="block font-body font-medium text-charcoal mb-2">
+                  Maximum Travel Distance: {formData.maxTravelDistance} miles
+                </label>
+                <input
+                  type="range"
+                  id="maxTravelDistance"
+                  min="5"
+                  max="50"
+                  step="5"
+                  value={formData.maxTravelDistance}
+                  onChange={(e) => updateFormData('maxTravelDistance', e.target.value)}
+                  className="w-full h-2 bg-neutral-light rounded-lg appearance-none cursor-pointer accent-primary-red"
+                />
+                <div className="flex justify-between text-sm text-charcoal/60 mt-1">
+                  <span>5 miles</span>
+                  <span>50 miles</span>
+                </div>
+                <p className="mt-2 text-sm text-charcoal/60">
+                  How far are you willing to travel for work?
+                </p>
               </div>
             </div>
           )}

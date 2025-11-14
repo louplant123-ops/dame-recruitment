@@ -34,13 +34,23 @@ export default function RegisterPart2Page() {
     rightToWorkConfirmation: false,
     contractAccepted: false,
     contractSignature: '',
-    contractDate: new Date().toISOString().split('T')[0]
+    contractDate: new Date().toISOString().split('T')[0],
+    cvUploadMethod: 'upload', // 'upload' or 'manual'
+    employmentHistory: [] as Array<{
+      company: string;
+      position: string;
+      startDate: string;
+      endDate: string;
+      description: string;
+    }>
   })
   
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
+  const [cvFile, setCvFile] = useState<File | null>(null)
   const [uploadError, setUploadError] = useState('')
+  const [cvUploadError, setCvUploadError] = useState('')
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target
@@ -82,6 +92,58 @@ export default function RegisterPart2Page() {
     setUploadedFiles(prev => prev.filter((_, i) => i !== index))
   }
 
+  const handleCVUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    setCvUploadError('')
+    
+    if (file) {
+      const validTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+      const maxSize = 5 * 1024 * 1024 // 5MB
+      
+      if (!validTypes.includes(file.type)) {
+        setCvUploadError('Only PDF and Word documents are allowed')
+        return
+      }
+      
+      if (file.size > maxSize) {
+        setCvUploadError('CV must be smaller than 5MB')
+        return
+      }
+      
+      setCvFile(file)
+    }
+  }
+
+  const removeCVFile = () => {
+    setCvFile(null)
+  }
+
+  const addEmploymentEntry = () => {
+    setFormData(prev => ({
+      ...prev,
+      employmentHistory: [
+        ...prev.employmentHistory,
+        { company: '', position: '', startDate: '', endDate: '', description: '' }
+      ]
+    }))
+  }
+
+  const removeEmploymentEntry = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      employmentHistory: prev.employmentHistory.filter((_, i) => i !== index)
+    }))
+  }
+
+  const updateEmploymentEntry = (index: number, field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      employmentHistory: prev.employmentHistory.map((entry, i) => 
+        i === index ? { ...entry, [field]: value } : entry
+      )
+    }))
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
@@ -93,12 +155,21 @@ export default function RegisterPart2Page() {
       // Create FormData to handle file uploads
       const formDataToSend = new FormData();
       
-      // Add all form fields
+      // Add all form fields (except employmentHistory which we'll stringify)
       Object.entries(formData).forEach(([key, value]) => {
-        formDataToSend.append(key, value.toString());
+        if (key === 'employmentHistory') {
+          formDataToSend.append(key, JSON.stringify(value));
+        } else {
+          formDataToSend.append(key, value.toString());
+        }
       });
       
-      // Add uploaded files
+      // Add CV file if uploaded
+      if (cvFile) {
+        formDataToSend.append('cvFile', cvFile);
+      }
+      
+      // Add uploaded Right to Work files
       uploadedFiles.forEach((file, index) => {
         formDataToSend.append(`rightToWorkFile_${index}`, file);
       });
@@ -452,6 +523,213 @@ export default function RegisterPart2Page() {
                   </select>
                 </div>
               </div>
+            </div>
+
+            {/* CV Upload / Employment History Section */}
+            <div className="border-b pb-8">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">CV & Employment History</h2>
+              
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  How would you like to provide your employment information?
+                </label>
+                <div className="space-y-3">
+                  <label className="flex items-center space-x-3 p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+                    <input
+                      type="radio"
+                      name="cvUploadMethod"
+                      value="upload"
+                      checked={formData.cvUploadMethod === 'upload'}
+                      onChange={handleInputChange}
+                      className="text-red-600 focus:ring-red-500"
+                    />
+                    <div>
+                      <div className="font-medium text-gray-900">Upload CV (Recommended)</div>
+                      <div className="text-sm text-gray-500">Upload your CV and we'll automatically extract your employment history</div>
+                    </div>
+                  </label>
+                  
+                  <label className="flex items-center space-x-3 p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+                    <input
+                      type="radio"
+                      name="cvUploadMethod"
+                      value="manual"
+                      checked={formData.cvUploadMethod === 'manual'}
+                      onChange={handleInputChange}
+                      className="text-red-600 focus:ring-red-500"
+                    />
+                    <div>
+                      <div className="font-medium text-gray-900">Enter Manually</div>
+                      <div className="text-sm text-gray-500">Manually enter your employment history</div>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              {formData.cvUploadMethod === 'upload' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Upload Your CV
+                  </label>
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-red-400 transition-colors">
+                    <input
+                      type="file"
+                      id="cvFile"
+                      accept=".pdf,.doc,.docx"
+                      onChange={handleCVUpload}
+                      className="hidden"
+                    />
+                    <label htmlFor="cvFile" className="cursor-pointer">
+                      <div className="text-4xl text-gray-400 mb-2">📄</div>
+                      <div className="text-gray-600 mb-2">
+                        Click to upload your CV
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        PDF or Word documents up to 5MB
+                      </div>
+                    </label>
+                  </div>
+                  
+                  {cvUploadError && (
+                    <p className="text-red-600 text-sm mt-2">{cvUploadError}</p>
+                  )}
+
+                  {cvFile && (
+                    <div className="mt-4">
+                      <div className="flex items-center justify-between bg-green-50 p-3 rounded-md border border-green-200">
+                        <div className="flex items-center space-x-2">
+                          <span className="text-sm text-green-600">✓</span>
+                          <span className="text-sm text-gray-900">{cvFile.name}</span>
+                          <span className="text-xs text-gray-500">({(cvFile.size / 1024 / 1024).toFixed(1)}MB)</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={removeCVFile}
+                          className="text-red-600 hover:text-red-800 text-sm"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                      <p className="text-sm text-green-600 mt-2">
+                        ✓ Your CV will be automatically processed and your employment history will be extracted
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {formData.cvUploadMethod === 'manual' && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Employment History
+                    </label>
+                    <button
+                      type="button"
+                      onClick={addEmploymentEntry}
+                      className="text-sm text-red-600 hover:text-red-700 font-medium"
+                    >
+                      + Add Employment
+                    </button>
+                  </div>
+
+                  {formData.employmentHistory.length === 0 ? (
+                    <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                      <p className="text-gray-500 mb-2">No employment history added yet</p>
+                      <button
+                        type="button"
+                        onClick={addEmploymentEntry}
+                        className="text-red-600 hover:text-red-700 font-medium"
+                      >
+                        Add Your First Job
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {formData.employmentHistory.map((entry, index) => (
+                        <div key={index} className="border border-gray-300 rounded-lg p-4 bg-gray-50">
+                          <div className="flex items-center justify-between mb-3">
+                            <h4 className="font-medium text-gray-900">Job {index + 1}</h4>
+                            <button
+                              type="button"
+                              onClick={() => removeEmploymentEntry(index)}
+                              className="text-red-600 hover:text-red-800 text-sm"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Company Name
+                              </label>
+                              <input
+                                type="text"
+                                value={entry.company}
+                                onChange={(e) => updateEmploymentEntry(index, 'company', e.target.value)}
+                                placeholder="Company name"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                              />
+                            </div>
+                            
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Job Title
+                              </label>
+                              <input
+                                type="text"
+                                value={entry.position}
+                                onChange={(e) => updateEmploymentEntry(index, 'position', e.target.value)}
+                                placeholder="Job title"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                              />
+                            </div>
+                            
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Start Date
+                              </label>
+                              <input
+                                type="month"
+                                value={entry.startDate}
+                                onChange={(e) => updateEmploymentEntry(index, 'startDate', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                              />
+                            </div>
+                            
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                End Date
+                              </label>
+                              <input
+                                type="month"
+                                value={entry.endDate}
+                                onChange={(e) => updateEmploymentEntry(index, 'endDate', e.target.value)}
+                                placeholder="Leave blank if current"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                              />
+                            </div>
+                            
+                            <div className="md:col-span-2">
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Job Description
+                              </label>
+                              <textarea
+                                value={entry.description}
+                                onChange={(e) => updateEmploymentEntry(index, 'description', e.target.value)}
+                                placeholder="Describe your responsibilities and achievements..."
+                                rows={3}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Employment Contract Section */}

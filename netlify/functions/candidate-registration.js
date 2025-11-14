@@ -372,9 +372,12 @@ exports.handler = async (event, context) => {
       jobTypes: body.jobTypes,
       industries: body.industries,
       experience: body.experience,
+      yearsOfExperience: body.yearsOfExperience, // NEW
+      expectedHourlyRate: body.expectedHourlyRate ? parseFloat(body.expectedHourlyRate) : null, // NEW
       shifts: body.shifts,
       availability: body.availability,
       transport: body.transport,
+      maxTravelDistance: body.maxTravelDistance ? parseInt(body.maxTravelDistance) : 10, // NEW
       drivingLicense: body.drivingLicense === 'true',
       ownVehicle: body.ownVehicle === 'true',
       fltLicense: body.fltLicense === 'true',
