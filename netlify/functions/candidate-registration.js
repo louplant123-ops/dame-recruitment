@@ -408,6 +408,48 @@ async function storeInDatabase(registrationData) {
     ];
 
     const result = await client.query(insertQuery, values);
+
+    // 🔹 Log unified Activity in DameDesk CRM for website registration
+    try {
+      const candidateId = result.rows[0]?.id;
+
+      if (candidateId) {
+        await client.query(
+          `INSERT INTO activities (
+             subject_type,
+             subject_id,
+             type,
+             summary,
+             details,
+             channel,
+             direction,
+             user_name
+           ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+          [
+            'candidate',                         // subject_type
+            candidateId,                         // subject_id from contacts.id
+            'registration',                      // type
+            'Registered via website (Part 1)',   // summary
+            JSON.stringify({
+              source: 'website_candidate_registration',
+              formVersion: 'part1',
+              email: registrationData.email,
+              name: `${registrationData.firstName} ${registrationData.lastName}`
+            }),
+            'web',                               // channel
+            'inbound',                           // direction
+            'website'                            // user_name / system actor
+          ]
+        );
+        console.log('✅ Activity logged for website registration:', candidateId);
+      } else {
+        console.warn('⚠️ No candidateId returned from contacts insert, skipping Activity log');
+      }
+    } catch (activityError) {
+      console.error('⚠️ Failed to log registration activity:', activityError);
+      // Do not throw - we don't want to break registration if Activity logging fails
+    }
+
     await client.end();
     
     console.log('✅ Registration stored in database:', result.rows[0]);
