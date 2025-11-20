@@ -461,8 +461,10 @@ async function storeInDatabase(registrationData) {
 }
 
 exports.handler = async (event, context) => {
+  console.log('🌟 candidate-registration handler VERSION: multipart-scope-fix-1');
   // Only allow POST requests
   if (event.httpMethod !== 'POST') {
+
     return {
       statusCode: 405,
       headers: {
