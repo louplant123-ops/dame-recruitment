@@ -462,9 +462,9 @@ async function storeInDatabase(registrationData) {
 
 exports.handler = async (event, context) => {
   console.log('🌟 candidate-registration handler VERSION: multipart-scope-fix-1');
+
   // Only allow POST requests
   if (event.httpMethod !== 'POST') {
-
     return {
       statusCode: 405,
       headers: {
@@ -489,13 +489,14 @@ exports.handler = async (event, context) => {
     };
   }
 
-  try {
+   try {
     console.log('🌉 Netlify Function: Received registration from website');
     console.log('📥 Raw event body:', event.body);
     console.log('📋 Event headers:', event.headers);
     
     // Parse the request body - handle both JSON and multipart/form-data
     let body;
+    let cvData = null;
     const contentType = event.headers['content-type'] || '';
     
     if (contentType.includes('multipart/form-data')) {
@@ -521,10 +522,29 @@ exports.handler = async (event, context) => {
       
       console.log('✅ Successfully parsed multipart body:', body);
       console.log('📁 Files uploaded:', uploadedFiles.length);
-    console.log('🔍 Sample field values:');
-    console.log('  firstName:', body.firstName);
-    console.log('  email:', body.email);
-    console.log('  jobTypes:', body.jobTypes);
+      console.log('🔍 Sample field values:');
+      console.log('  firstName:', body.firstName);
+      console.log('  email:', body.email);
+      console.log('  jobTypes:', body.jobTypes);
+
+      // Process CV file if uploaded (keep inside this block so uploadedFiles is in scope)
+      if (uploadedFiles && uploadedFiles.length > 0) {
+        console.log('📄 Processing CV files...');
+        const cvFile = uploadedFiles.find(file => file.fieldName === 'cv');
+        if (cvFile) {
+          try {
+            console.log('📄 Found CV file:', cvFile.fileName);
+            const cvText = await parseCVFile(cvFile.buffer, cvFile.fileName, cvFile.mimeType);
+            cvData = await extractCandidateDataFromCV(cvText);
+            console.log('✅ CV data extracted:', cvData);
+            body.cvText = cvText;
+            body.cvFileName = cvFile.fileName;
+          } catch (cvError) {
+            console.error('❌ CV processing error:', cvError);
+            // Continue with registration even if CV parsing fails
+          }
+        }
+      }
     } else {
       // Handle JSON data
       try {
@@ -533,34 +553,6 @@ exports.handler = async (event, context) => {
       } catch (parseError) {
         console.error('❌ JSON parse error:', parseError);
         throw new Error('Invalid JSON in request body');
-      }
-    }
-
-    // Process CV file if uploaded
-    let cvData = null;
-    if (contentType.includes('multipart/form-data') && uploadedFiles && uploadedFiles.length > 0) {
-      console.log('📄 Processing CV files...');
-      
-      // Find CV file (look for 'cv' field name)
-      const cvFile = uploadedFiles.find(file => file.fieldName === 'cv');
-      if (cvFile) {
-        try {
-          console.log('📄 Found CV file:', cvFile.fileName);
-          
-          // Parse CV and extract data
-          const cvText = await parseCVFile(cvFile.buffer, cvFile.fileName, cvFile.mimeType);
-          cvData = await extractCandidateDataFromCV(cvText);
-          
-          console.log('✅ CV data extracted:', cvData);
-          
-          // Store CV text for later use
-          body.cvText = cvText;
-          body.cvFileName = cvFile.fileName;
-          
-        } catch (cvError) {
-          console.error('❌ CV processing error:', cvError);
-          // Continue with registration even if CV parsing fails
-        }
       }
     }
 
