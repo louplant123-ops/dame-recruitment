@@ -404,12 +404,26 @@ async function storeInDatabase(registrationData) {
       RETURNING id, name
     `;
 
-    const summaryParts = [];
+        const summaryParts = [];
+
+    // Normalise jobTypes and industries so they can be arrays or single values
+    const jobTypesArray = Array.isArray(registrationData.jobTypes)
+      ? registrationData.jobTypes
+      : registrationData.jobTypes
+        ? [registrationData.jobTypes]
+        : [];
+
+    const industriesArray = Array.isArray(registrationData.industries)
+      ? registrationData.industries
+      : registrationData.industries
+        ? [registrationData.industries]
+        : [];
+
     if (registrationData.experience) summaryParts.push(`Experience: ${registrationData.experience}`);
-    if (registrationData.jobTypes && registrationData.jobTypes.length)
-      summaryParts.push(`Job types: ${registrationData.jobTypes.join(', ')}`);
-    if (registrationData.industries && registrationData.industries.length)
-      summaryParts.push(`Industries: ${registrationData.industries.join(', ')}`);
+    if (jobTypesArray.length)
+      summaryParts.push(`Job types: ${jobTypesArray.join(', ')}`);
+    if (industriesArray.length)
+      summaryParts.push(`Industries: ${industriesArray.join(', ')}`);
     if (registrationData.transport) summaryParts.push(`Transport: ${registrationData.transport}`);
     if (registrationData.shifts && registrationData.shifts.length)
       summaryParts.push(`Shifts: ${registrationData.shifts.join(', ')}`);
@@ -420,14 +434,13 @@ async function storeInDatabase(registrationData) {
       : 'Part 1 registration';
 
     const skillsFromForm =
-      (registrationData.industries && registrationData.industries.length
-        ? registrationData.industries.join(', ')
+      (industriesArray.length
+        ? industriesArray.join(', ')
         : null) || registrationData.experience || null;
 
-    const preferredJobTypes =
-      registrationData.jobTypes && registrationData.jobTypes.length
-        ? registrationData.jobTypes.join(', ')
-        : null;
+    const preferredJobTypes = jobTypesArray.length
+      ? jobTypesArray.join(', ')
+      : null;
 
     const values = [
       registrationData.id,
