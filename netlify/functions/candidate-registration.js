@@ -355,11 +355,11 @@ async function storeInDatabase(registrationData) {
       INSERT INTO contacts (
         id, name, email, phone, mobile, address, postcode,
         date_of_birth, gender, nationality, type, status, temperature,
-        right_to_work, transport, medical_conditions, disability_info,
+        right_to_work, transport_method, medical_conditions, disability_info,
         reasonable_adjustments, cv_text, cv_filename, cv_extracted_data,
         registration_pdf, registration_pdf_filename, notes, source,
         skills, years_of_experience, preferred_job_types, hourly_rate,
-        availability_status, available_from, transport_method,
+        availability_status, available_from,
         created_at, updated_at
       ) VALUES (
         $1, $2, $3, $4, $5, $6, $7,
@@ -368,7 +368,7 @@ async function storeInDatabase(registrationData) {
         $15, $16, $17, $18,
         $19, $20, $21, 'website_part1',
         $22, $23, $24, $25,
-        $26, $27, $28,
+        $26, $27,
         NOW(), NOW()
       )
       ON CONFLICT (id)
@@ -383,7 +383,7 @@ async function storeInDatabase(registrationData) {
         gender = EXCLUDED.gender,
         nationality = EXCLUDED.nationality,
         right_to_work = EXCLUDED.right_to_work,
-        transport = EXCLUDED.transport,
+
         medical_conditions = EXCLUDED.medical_conditions,
         disability_info = EXCLUDED.disability_info,
         reasonable_adjustments = EXCLUDED.reasonable_adjustments,
@@ -460,7 +460,7 @@ async function storeInDatabase(registrationData) {
       registrationData.gender,
       registrationData.nationality,
       registrationData.rightToWork,
-      registrationData.transport,
+      registrationData.transport_method,
       registrationData.medicalConditions,
       registrationData.disabilityInfo,
       registrationData.reasonableAdjustments,
@@ -475,8 +475,7 @@ async function storeInDatabase(registrationData) {
       preferredJobTypes,
       registrationData.expectedHourlyRate || null,
       'active',
-      registrationData.availability || null,
-      registrationData.transport || null
+      registrationData.availability || null
     ];
 
     const result = await client.query(insertQuery, values);
