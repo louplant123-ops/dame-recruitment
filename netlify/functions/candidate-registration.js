@@ -350,23 +350,24 @@ async function storeInDatabase(registrationData) {
     await client.query(createContactsTableQuery);
     console.log('✅ Contacts table ready');
 
-    // Insert candidate into contacts table
+        // Insert candidate into contacts table
     const insertQuery = `
       INSERT INTO contacts (
-        id, name, email, phone, mobile, address, postcode, 
-        gender, nationality, type, status, temperature,
-        right_to_work, transport, medical_conditions, disability_info, 
-        reasonable_adjustments, cv_text, cv_filename, cv_extracted_data, 
+        id, name, email, phone, mobile, address, postcode,
+        date_of_birth, gender, nationality, type, status, temperature,
+        right_to_work, transport, medical_conditions, disability_info,
+        reasonable_adjustments, cv_text, cv_filename, cv_extracted_data,
         registration_pdf, registration_pdf_filename, notes, source, created_at, updated_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'candidate', 'active', 'hot', $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, 'website_part1', NOW(), NOW())
-      ON CONFLICT (id) 
-      DO UPDATE SET 
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'candidate', 'active', 'hot', $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, 'website_part1', NOW(), NOW())
+      ON CONFLICT (id)
+      DO UPDATE SET
         name = EXCLUDED.name,
         email = EXCLUDED.email,
         phone = EXCLUDED.phone,
         mobile = EXCLUDED.mobile,
         address = EXCLUDED.address,
         postcode = EXCLUDED.postcode,
+        date_of_birth = EXCLUDED.date_of_birth,
         gender = EXCLUDED.gender,
         nationality = EXCLUDED.nationality,
         right_to_work = EXCLUDED.right_to_work,
@@ -384,6 +385,21 @@ async function storeInDatabase(registrationData) {
       RETURNING id, name
     `;
 
+        const summaryParts = [];
+    if (registrationData.experience) summaryParts.push(`Experience: ${registrationData.experience}`);
+    if (registrationData.jobTypes && registrationData.jobTypes.length)
+      summaryParts.push(`Job types: ${registrationData.jobTypes.join(', ')}`);
+    if (registrationData.industries && registrationData.industries.length)
+      summaryParts.push(`Industries: ${registrationData.industries.join(', ')}`);
+    if (registrationData.transport) summaryParts.push(`Transport: ${registrationData.transport}`);
+    if (registrationData.shifts && registrationData.shifts.length)
+      summaryParts.push(`Shifts: ${registrationData.shifts.join(', ')}`);
+    if (registrationData.availability) summaryParts.push(`Availability: ${registrationData.availability}`);
+
+    const notesSummary = summaryParts.length
+      ? `Part 1 registration – ${summaryParts.join(' | ')}`
+      : 'Part 1 registration';
+
     const values = [
       registrationData.id,
       `${registrationData.firstName} ${registrationData.lastName}`,
@@ -392,6 +408,7 @@ async function storeInDatabase(registrationData) {
       registrationData.mobile, // Same as phone
       registrationData.address,
       registrationData.postcode,
+      registrationData.dateOfBirth || null,
       registrationData.gender,
       registrationData.nationality,
       registrationData.rightToWork,
@@ -404,7 +421,7 @@ async function storeInDatabase(registrationData) {
       registrationData.cvExtractedData ? JSON.stringify(registrationData.cvExtractedData) : null,
       registrationData.registrationPDF || null,
       registrationData.registrationPDFFilename || null,
-      `Part 1 registration: ${registrationData.experience} experience, ${registrationData.jobTypes?.join(', ')} roles`
+      notesSummary
     ];
 
     const result = await client.query(insertQuery, values);
