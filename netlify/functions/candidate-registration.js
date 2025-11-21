@@ -465,6 +465,18 @@ async function storeInDatabase(registrationData) {
       }
     }
 
+    // Normalise availability for available_from (DATE). Only accept ISO dates (YYYY-MM-DD),
+    // and keep free-text values like "immediately" out of the DATE column.
+    let availableFromValue = null;
+    if (registrationData.availability) {
+      if (typeof registrationData.availability === 'string') {
+        const isoDateMatch = registrationData.availability.match(/^\d{4}-\d{2}-\d{2}$/);
+        if (isoDateMatch) {
+          availableFromValue = registrationData.availability;
+        }
+      }
+    }
+
     const values = [
       registrationData.id,
       `${registrationData.firstName} ${registrationData.lastName}`,
@@ -492,7 +504,7 @@ async function storeInDatabase(registrationData) {
       preferredJobTypes,
       registrationData.expectedHourlyRate || null,
       'active',
-      registrationData.availability || null
+      availableFromValue
     ];
 
     const result = await client.query(insertQuery, values);
