@@ -477,13 +477,13 @@ async function storeInDatabase(registrationData) {
     // Map website jobTypes (e.g. "temporary") into DameDesk preferred_job_types codes
     // DameDesk expects: 'temp', 'perm', 'contract', or comma-separated combos
     const typeSet = new Set(
-      jobTypesArray.map((t: any) => String(t).toLowerCase())
+      jobTypesArray.map((t) => String(t).toLowerCase())
     );
     const hasTemp = typeSet.has('temporary') || typeSet.has('temp');
     const hasPerm = typeSet.has('permanent') || typeSet.has('perm');
     const hasContract = typeSet.has('contract');
 
-    let preferredJobTypes: string | null = null;
+    let preferredJobTypes = null;
     if (hasTemp || hasPerm || hasContract) {
       const codes: string[] = [];
       if (hasTemp) codes.push('temp');
