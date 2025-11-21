@@ -448,6 +448,23 @@ async function storeInDatabase(registrationData) {
       ? jobTypesArray.join(', ')
       : null;
 
+    // Normalise yearsOfExperience so the DB INTEGER column doesn't receive ranges like "1-2"
+    let yearsOfExperienceValue = null;
+    if (registrationData.yearsOfExperience !== undefined && registrationData.yearsOfExperience !== null && registrationData.yearsOfExperience !== '') {
+      if (typeof registrationData.yearsOfExperience === 'number') {
+        yearsOfExperienceValue = registrationData.yearsOfExperience;
+      } else if (typeof registrationData.yearsOfExperience === 'string') {
+        // Handle ranges like "1-2" by taking the first number
+        const rangeMatch = registrationData.yearsOfExperience.match(/(\d+)/);
+        if (rangeMatch) {
+          yearsOfExperienceValue = parseInt(rangeMatch[1], 10);
+        } else {
+          const parsed = parseInt(registrationData.yearsOfExperience, 10);
+          yearsOfExperienceValue = Number.isNaN(parsed) ? null : parsed;
+        }
+      }
+    }
+
     const values = [
       registrationData.id,
       `${registrationData.firstName} ${registrationData.lastName}`,
@@ -471,7 +488,7 @@ async function storeInDatabase(registrationData) {
       registrationData.registrationPDFFilename || null,
       notesSummary,
       skillsFromForm,
-      registrationData.yearsOfExperience || null,
+      yearsOfExperienceValue,
       preferredJobTypes,
       registrationData.expectedHourlyRate || null,
       'active',
