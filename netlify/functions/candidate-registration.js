@@ -485,7 +485,7 @@ async function storeInDatabase(registrationData) {
 
     let preferredJobTypes = null;
     if (hasTemp || hasPerm || hasContract) {
-      const codes: string[] = [];
+      const codes = [];
       if (hasTemp) codes.push('temp');
       if (hasPerm) codes.push('perm');
       if (hasContract) codes.push('contract');
