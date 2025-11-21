@@ -357,8 +357,20 @@ async function storeInDatabase(registrationData) {
         date_of_birth, gender, nationality, type, status, temperature,
         right_to_work, transport, medical_conditions, disability_info,
         reasonable_adjustments, cv_text, cv_filename, cv_extracted_data,
-        registration_pdf, registration_pdf_filename, notes, source, created_at, updated_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'candidate', 'active', 'hot', $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, 'website_part1', NOW(), NOW())
+        registration_pdf, registration_pdf_filename, notes, source,
+        skills, years_of_experience, preferred_job_types, hourly_rate,
+        availability_status, available_from, transport_method,
+        created_at, updated_at
+      ) VALUES (
+        $1, $2, $3, $4, $5, $6, $7,
+        $8, $9, $10, 'candidate', 'active', 'hot',
+        $11, $12, $13, $14,
+        $15, $16, $17, $18,
+        $19, $20, $21, 'website_part1',
+        $22, $23, $24, $25,
+        $26, $27, $28,
+        NOW(), NOW()
+      )
       ON CONFLICT (id)
       DO UPDATE SET
         name = EXCLUDED.name,
@@ -381,11 +393,18 @@ async function storeInDatabase(registrationData) {
         registration_pdf = EXCLUDED.registration_pdf,
         registration_pdf_filename = EXCLUDED.registration_pdf_filename,
         notes = EXCLUDED.notes,
+        skills = EXCLUDED.skills,
+        years_of_experience = EXCLUDED.years_of_experience,
+        preferred_job_types = EXCLUDED.preferred_job_types,
+        hourly_rate = EXCLUDED.hourly_rate,
+        availability_status = EXCLUDED.availability_status,
+        available_from = EXCLUDED.available_from,
+        transport_method = EXCLUDED.transport_method,
         updated_at = NOW()
       RETURNING id, name
     `;
 
-        const summaryParts = [];
+    const summaryParts = [];
     if (registrationData.experience) summaryParts.push(`Experience: ${registrationData.experience}`);
     if (registrationData.jobTypes && registrationData.jobTypes.length)
       summaryParts.push(`Job types: ${registrationData.jobTypes.join(', ')}`);
@@ -399,6 +418,16 @@ async function storeInDatabase(registrationData) {
     const notesSummary = summaryParts.length
       ? `Part 1 registration – ${summaryParts.join(' | ')}`
       : 'Part 1 registration';
+
+    const skillsFromForm =
+      (registrationData.industries && registrationData.industries.length
+        ? registrationData.industries.join(', ')
+        : null) || registrationData.experience || null;
+
+    const preferredJobTypes =
+      registrationData.jobTypes && registrationData.jobTypes.length
+        ? registrationData.jobTypes.join(', ')
+        : null;
 
     const values = [
       registrationData.id,
@@ -421,7 +450,14 @@ async function storeInDatabase(registrationData) {
       registrationData.cvExtractedData ? JSON.stringify(registrationData.cvExtractedData) : null,
       registrationData.registrationPDF || null,
       registrationData.registrationPDFFilename || null,
-      notesSummary
+      notesSummary,
+      skillsFromForm,
+      registrationData.yearsOfExperience || null,
+      preferredJobTypes,
+      registrationData.expectedHourlyRate || null,
+      'active',
+      registrationData.availability || null,
+      registrationData.transport || null
     ];
 
     const result = await client.query(insertQuery, values);
@@ -632,9 +668,14 @@ exports.handler = async (event, context) => {
     // Store in database first
     await storeInDatabase(registrationData);
     
-    // Forward to your local DameDesk via webhook
-    await forwardToDameDesk(registrationData);
-    
+    // Forward to your local DameDesk via webhook (best-effort)
+    try {
+      await forwardToDameDesk(registrationData);
+    } catch (forwardError) {
+      console.error('⚠️ Forwarding to DameDesk failed, but registration stored:', forwardError);
+      // Do not throw - we still want to return 200 to the website
+    }
+
     console.log('✅ Netlify Function: Registration processed successfully');
     
     return {
