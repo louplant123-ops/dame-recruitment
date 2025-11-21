@@ -359,7 +359,7 @@ async function storeInDatabase(registrationData) {
         reasonable_adjustments, cv_text, cv_filename, cv_extracted_data,
         registration_pdf, registration_pdf_filename, notes, source,
         skills, years_of_experience, preferred_job_types, hourly_rate,
-        availability_status, available_from,
+        availability_status, available_from, max_commute_distance,
         created_at, updated_at
       ) VALUES (
         $1, $2, $3, $4, $5, $6, $7,
@@ -368,7 +368,7 @@ async function storeInDatabase(registrationData) {
         $15, $16, $17, $18,
         $19, $20, $21, 'website_part1',
         $22, $23, $24, $25,
-        $26, $27,
+        $26, $27, $28,
         NOW(), NOW()
       )
       ON CONFLICT (id)
@@ -399,6 +399,7 @@ async function storeInDatabase(registrationData) {
         hourly_rate = EXCLUDED.hourly_rate,
         availability_status = EXCLUDED.availability_status,
         available_from = EXCLUDED.available_from,
+        max_commute_distance = EXCLUDED.max_commute_distance,
         transport_method = EXCLUDED.transport_method,
         updated_at = NOW()
       RETURNING id, name
@@ -425,6 +426,29 @@ async function storeInDatabase(registrationData) {
         ? [registrationData.shifts]
         : [];
 
+    // Map raw transport string from form into a valid transport_method enum
+    // Allowed values in DameDesk DB: 'car', 'bus', 'cycling', 'walking', 'mixed', 'none'
+    let transportMethod = null;
+    if (registrationData.transport) {
+      const raw = String(registrationData.transport).toLowerCase();
+      if (raw.includes('own car')) {
+        transportMethod = 'car';
+      } else if (raw.includes('public_transport') || raw.includes('public transport') || raw.includes('bus')) {
+        transportMethod = 'bus';
+      } else if (raw.includes('bicycle') || raw.includes('cycle') || raw.includes('bike')) {
+        transportMethod = 'cycling';
+      } else if (raw.includes('walking') || raw.includes('walk')) {
+        transportMethod = 'walking';
+      } else if (raw.includes('motorbike') || raw.includes('scooter') || raw.includes('lift share') || raw.includes('lift_share')) {
+        // Treat motorbike/scooter and lift share as mixed transport
+        transportMethod = 'mixed';
+      } else if (raw.includes('mixed')) {
+        transportMethod = 'mixed';
+      } else if (raw.includes('none') || raw.includes('no_transport')) {
+        transportMethod = 'none';
+      }
+    }
+
     if (registrationData.experience) summaryParts.push(`Experience: ${registrationData.experience}`);
     if (jobTypesArray.length)
       summaryParts.push(`Job types: ${jobTypesArray.join(', ')}`);
@@ -439,14 +463,34 @@ async function storeInDatabase(registrationData) {
       ? `Part 1 registration – ${summaryParts.join(' | ')}`
       : 'Part 1 registration';
 
-    const skillsFromForm =
-      (industriesArray.length
-        ? industriesArray.join(', ')
-        : null) || registrationData.experience || null;
+    // Prioritise the free-text experience as skills, and append industries as tags
+    let skillsFromForm = null;
+    if (registrationData.experience) {
+      skillsFromForm = registrationData.experience;
+      if (industriesArray.length) {
+        skillsFromForm += ` (${industriesArray.join(', ')})`;
+      }
+    } else if (industriesArray.length) {
+      skillsFromForm = industriesArray.join(', ');
+    }
 
-    const preferredJobTypes = jobTypesArray.length
-      ? jobTypesArray.join(', ')
-      : null;
+    // Map website jobTypes (e.g. "temporary") into DameDesk preferred_job_types codes
+    // DameDesk expects: 'temp', 'perm', 'contract', or comma-separated combos
+    const typeSet = new Set(
+      jobTypesArray.map((t: any) => String(t).toLowerCase())
+    );
+    const hasTemp = typeSet.has('temporary') || typeSet.has('temp');
+    const hasPerm = typeSet.has('permanent') || typeSet.has('perm');
+    const hasContract = typeSet.has('contract');
+
+    let preferredJobTypes: string | null = null;
+    if (hasTemp || hasPerm || hasContract) {
+      const codes: string[] = [];
+      if (hasTemp) codes.push('temp');
+      if (hasPerm) codes.push('perm');
+      if (hasContract) codes.push('contract');
+      preferredJobTypes = codes.join(',');
+    }
 
     // Normalise yearsOfExperience so the DB INTEGER column doesn't receive ranges like "1-2"
     let yearsOfExperienceValue = null;
@@ -489,7 +533,7 @@ async function storeInDatabase(registrationData) {
       registrationData.gender,
       registrationData.nationality,
       registrationData.rightToWork,
-      registrationData.transport_method,
+      transportMethod,
       registrationData.medicalConditions,
       registrationData.disabilityInfo,
       registrationData.reasonableAdjustments,
@@ -504,7 +548,8 @@ async function storeInDatabase(registrationData) {
       preferredJobTypes,
       registrationData.expectedHourlyRate || null,
       'active',
-      availableFromValue
+      availableFromValue,
+      registrationData.maxTravelDistance || null
     ];
 
     const result = await client.query(insertQuery, values);
