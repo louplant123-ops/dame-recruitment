@@ -514,8 +514,12 @@ async function storeInDatabase(registrationData) {
       const candidateId = result.rows[0]?.id;
 
       if (candidateId) {
+        // Generate a simple unique id for the activity row
+        const activityId = `ACT_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
         await client.query(
           `INSERT INTO activities (
+             id,
              subject_type,
              subject_id,
              type,
@@ -524,8 +528,9 @@ async function storeInDatabase(registrationData) {
              channel,
              direction,
              user_name
-           ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+           ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
           [
+            activityId,                          // id
             'candidate',                         // subject_type
             candidateId,                         // subject_id from contacts.id
             'registration',                      // type
@@ -541,7 +546,7 @@ async function storeInDatabase(registrationData) {
             'website'                            // user_name / system actor
           ]
         );
-        console.log('✅ Activity logged for website registration:', candidateId);
+        console.log('✅ Activity logged for website registration:', candidateId, 'activityId:', activityId);
       } else {
         console.warn('⚠️ No candidateId returned from contacts insert, skipping Activity log');
       }
@@ -712,17 +717,24 @@ exports.handler = async (event, context) => {
       console.error('⚠️ PDF generation failed, continuing without PDF:', pdfError);
     }
     
-    // Store in database first
-    await storeInDatabase(registrationData);
-    
-    // Forward to your local DameDesk via webhook (best-effort)
+    // First, try to forward to DameDesk to get the canonical candidateId
+    let dameDeskResult = null;
     try {
-      await forwardToDameDesk(registrationData);
+      dameDeskResult = await forwardToDameDesk(registrationData);
+      if (dameDeskResult && dameDeskResult.candidateId) {
+        console.log('🔗 Using DameDesk candidateId for contacts.id:', dameDeskResult.candidateId);
+        registrationData.id = dameDeskResult.candidateId;
+      } else {
+        console.warn('⚠️ DameDesk response did not include candidateId, keeping local REG id');
+      }
     } catch (forwardError) {
-      console.error('⚠️ Forwarding to DameDesk failed, but registration stored:', forwardError);
-      // Do not throw - we still want to return 200 to the website
+      console.error('⚠️ Forwarding to DameDesk failed, will still store locally:', forwardError);
+      // Do not throw - we still want to store in DB and return 200
     }
 
+    // Store in database (using DameDesk candidateId if available)
+    await storeInDatabase(registrationData);
+    
     console.log('✅ Netlify Function: Registration processed successfully');
     
     return {
@@ -828,14 +840,20 @@ async function forwardToDameDesk(registrationData) {
       console.log('📊 DameDesk response status:', response.status);
       console.log('📊 DameDesk response headers:', response.headers);
       
+      const responseText = await response.text();
+      let parsed = null;
+      try {
+        parsed = JSON.parse(responseText);
+      } catch (e) {
+        console.warn('⚠️ DameDesk response was not valid JSON, raw text:', responseText);
+      }
+
       if (response.ok) {
-        const responseText = await response.text();
         console.log('✅ Successfully forwarded to DameDesk, response:', responseText);
-        return;
+        return parsed || { raw: responseText };
       } else {
-        const errorText = await response.text();
-        console.error('❌ DameDesk responded with error:', response.status, errorText);
-        throw new Error(`DameDesk error: ${response.status} - ${errorText}`);
+        console.error('❌ DameDesk responded with error:', response.status, responseText);
+        throw new Error(`DameDesk error: ${response.status} - ${responseText}`);
       }
     } catch (error) {
       console.error('⚠️ Failed to forward to DameDesk:', error.message);
