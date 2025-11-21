@@ -419,14 +419,20 @@ async function storeInDatabase(registrationData) {
         ? [registrationData.industries]
         : [];
 
+    const shiftsArray = Array.isArray(registrationData.shifts)
+      ? registrationData.shifts
+      : registrationData.shifts
+        ? [registrationData.shifts]
+        : [];
+
     if (registrationData.experience) summaryParts.push(`Experience: ${registrationData.experience}`);
     if (jobTypesArray.length)
       summaryParts.push(`Job types: ${jobTypesArray.join(', ')}`);
     if (industriesArray.length)
       summaryParts.push(`Industries: ${industriesArray.join(', ')}`);
     if (registrationData.transport) summaryParts.push(`Transport: ${registrationData.transport}`);
-    if (registrationData.shifts && registrationData.shifts.length)
-      summaryParts.push(`Shifts: ${registrationData.shifts.join(', ')}`);
+    if (shiftsArray.length)
+      summaryParts.push(`Shifts: ${shiftsArray.join(', ')}`);
     if (registrationData.availability) summaryParts.push(`Availability: ${registrationData.availability}`);
 
     const notesSummary = summaryParts.length
