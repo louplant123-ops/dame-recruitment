@@ -554,6 +554,38 @@ async function storeInDatabase(registrationData) {
 
     const result = await client.query(insertQuery, values);
 
+    // Save CV file into candidate_documents so it appears under the Documents tab
+    try {
+      if (registrationData.cvFileBase64 && registrationData.id) {
+        const documentId = `DOC_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        await client.query(
+          `INSERT INTO candidate_documents (
+             id, contact_id, type, name, file_path, file_content, file_size,
+             uploaded_date, uploaded_by, notes
+           ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+           ON CONFLICT (id) DO NOTHING`,
+          [
+            documentId,
+            registrationData.id,
+            'cv',
+            registrationData.cvFileName || 'CV from website',
+            null,
+            registrationData.cvFileBase64,
+            registrationData.cvFileSize || null,
+            new Date().toISOString(),
+            'website',
+            'CV uploaded via website registration'
+          ]
+        );
+        console.log('✅ CV saved to candidate_documents for contact:', registrationData.id);
+      } else {
+        console.log('ℹ️ No CV file data available to save to candidate_documents');
+      }
+    } catch (cvDocError) {
+      console.error('⚠️ Failed to save CV to candidate_documents:', cvDocError);
+      // Do not throw – we don't want to fail the registration if document save fails
+    }
+
     // 🔹 Log unified Activity in DameDesk CRM for website registration
     try {
       const candidateId = result.rows[0]?.id;
@@ -682,15 +714,30 @@ exports.handler = async (event, context) => {
         console.log('📄 Processing CV files...');
         const cvFile = uploadedFiles.find(file => file.fieldName === 'cv');
         if (cvFile) {
+          console.log('📄 Found CV file:', cvFile.fileName);
+
+          // Always store metadata and base64 so the file is saved even if text parsing fails
+          body.cvFileName = cvFile.fileName;
+          body.cvMimeType = cvFile.mimeType;
+          body.cvFileSize = cvFile.size;
           try {
-            console.log('📄 Found CV file:', cvFile.fileName);
+            const base64Content = `data:${cvFile.mimeType};base64,${cvFile.buffer.toString('base64')}`;
+            body.cvFileBase64 = base64Content;
+            console.log('📄 CV base64 content length:', base64Content.length);
+          } catch (base64Error) {
+            console.error('⚠️ Failed to convert CV to base64, will continue without file_content:', base64Error);
+          }
+
+          // Best-effort text extraction for CV parsing and AI enrichment
+          try {
             const cvText = await parseCVFile(cvFile.buffer, cvFile.fileName, cvFile.mimeType);
             cvData = await extractCandidateDataFromCV(cvText);
             console.log('✅ CV data extracted:', cvData);
+
+            // Store extracted text on the body (optional but useful for search/summary)
             body.cvText = cvText;
-            body.cvFileName = cvFile.fileName;
           } catch (cvError) {
-            console.error('❌ CV processing error:', cvError);
+            console.error('❌ CV processing error (file will still be saved):', cvError);
             // Continue with registration even if CV parsing fails
           }
         }
@@ -746,7 +793,10 @@ exports.handler = async (event, context) => {
       // CV-related fields
       cvText: body.cvText || null,
       cvFileName: body.cvFileName || null,
-      cvExtractedData: cvData || null
+      cvExtractedData: cvData || null,
+      cvFileBase64: body.cvFileBase64 || null,
+      cvFileSize: body.cvFileSize || null,
+      cvMimeType: body.cvMimeType || null
     };
 
     console.log('📤 About to forward to DameDesk:', registrationData);
