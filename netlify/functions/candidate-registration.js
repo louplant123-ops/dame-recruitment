@@ -355,7 +355,7 @@ async function storeInDatabase(registrationData) {
       INSERT INTO contacts (
         id, name, email, phone, mobile, address, postcode,
         date_of_birth, gender, nationality, type, status, temperature,
-        right_to_work, transport_method, medical_conditions, disability_info,
+        right_to_work, right_to_work_status, transport_method, medical_conditions, disability_info,
         reasonable_adjustments, cv_text, cv_filename, cv_extracted_data,
         registration_pdf, registration_pdf_filename, notes, source,
         skills, years_of_experience, preferred_job_types, hourly_rate,
@@ -383,6 +383,7 @@ async function storeInDatabase(registrationData) {
         gender = EXCLUDED.gender,
         nationality = EXCLUDED.nationality,
         right_to_work = EXCLUDED.right_to_work,
+        right_to_work_status = EXCLUDED.right_to_work_status,
 
         medical_conditions = EXCLUDED.medical_conditions,
         disability_info = EXCLUDED.disability_info,
@@ -463,14 +464,12 @@ async function storeInDatabase(registrationData) {
       ? `Part 1 registration – ${summaryParts.join(' | ')}`
       : 'Part 1 registration';
 
-    // Prioritise the free-text experience as skills, and append industries as tags
+    // Map website "Tell us about your experience" box directly into Skills
     let skillsFromForm = null;
     if (registrationData.experience) {
       skillsFromForm = registrationData.experience;
-      if (industriesArray.length) {
-        skillsFromForm += ` (${industriesArray.join(', ')})`;
-      }
     } else if (industriesArray.length) {
+      // Fallback: if no free-text experience, at least store industries as skills
       skillsFromForm = industriesArray.join(', ');
     }
 
@@ -506,6 +505,20 @@ async function storeInDatabase(registrationData) {
           const parsed = parseInt(registrationData.yearsOfExperience, 10);
           yearsOfExperienceValue = Number.isNaN(parsed) ? null : parsed;
         }
+      }
+    }
+
+    // Derive a simple experience level bucket from yearsOfExperienceValue for DameDesk UI
+    let experienceLevel = '';
+    if (typeof yearsOfExperienceValue === 'number' && !Number.isNaN(yearsOfExperienceValue)) {
+      if (yearsOfExperienceValue <= 2) {
+        experienceLevel = 'entry'; // Entry Level (0-2 years)
+      } else if (yearsOfExperienceValue <= 5) {
+        experienceLevel = 'mid';   // Mid Level (2-5 years)
+      } else if (yearsOfExperienceValue <= 10) {
+        experienceLevel = 'senior'; // Senior (5-10 years)
+      } else {
+        experienceLevel = 'lead';   // Lead/Expert (10+ years)
       }
     }
 
@@ -550,6 +563,7 @@ async function storeInDatabase(registrationData) {
       registrationData.gender,
       registrationData.nationality,
       registrationData.rightToWork,
+      registrationData.rightToWork, // mirror into right_to_work_status for DameDesk UI
       transportMethod,
       registrationData.medicalConditions,
       registrationData.disabilityInfo,
@@ -564,12 +578,25 @@ async function storeInDatabase(registrationData) {
       yearsOfExperienceValue,
       preferredJobTypes,
       registrationData.expectedHourlyRate || null,
-      'active',
+      registrationData.availability || 'Actively looking',
       availableFromValue,
       registrationData.maxTravelDistance || null
     ];
 
     const result = await client.query(insertQuery, values);
+
+    // Update experience_level column to mirror the derived level from years of experience
+    try {
+      if (experienceLevel && result.rows[0]?.id) {
+        await client.query(
+          'UPDATE contacts SET experience_level = $1 WHERE id = $2',
+          [experienceLevel, result.rows[0].id]
+        );
+        console.log('✅ Set experience_level for contact', result.rows[0].id, '->', experienceLevel);
+      }
+    } catch (expLevelError) {
+      console.error('⚠️ Failed to set experience_level, continuing without it:', expLevelError);
+    }
 
     // Save CV file into candidate_documents so it appears under the Documents tab
     try {
