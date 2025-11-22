@@ -523,11 +523,37 @@ async function storeInDatabase(registrationData) {
     // Normalise availability for available_from (DATE). Only accept ISO dates (YYYY-MM-DD),
     // and keep free-text values like "immediately" out of the DATE column.
     let availableFromValue = null;
+    let availabilityStatusValue = 'active'; // default enum for DB constraint
     if (registrationData.availability) {
       if (typeof registrationData.availability === 'string') {
-        const isoDateMatch = registrationData.availability.match(/^\d{4}-\d{2}-\d{2}$/);
+        const rawAvailability = registrationData.availability.trim().toLowerCase();
+
+        // If it's an ISO date, use it for available_from and treat as actively looking
+        const isoDateMatch = rawAvailability.match(/^\d{4}-\d{2}-\d{2}$/);
         if (isoDateMatch) {
-          availableFromValue = registrationData.availability;
+          availableFromValue = rawAvailability;
+          availabilityStatusValue = 'active';
+        } else {
+          // Map common website options into the allowed enum values
+          if (rawAvailability === 'immediately' || rawAvailability === 'asap' || rawAvailability === 'now') {
+            availabilityStatusValue = 'active';
+          } else if (
+            rawAvailability.includes('week') ||
+            rawAvailability.includes('month') ||
+            rawAvailability.includes('notice')
+          ) {
+            // Has some notice period like "1_week", "4_weeks", "1_month" → treat as passive
+            availabilityStatusValue = 'passive';
+          } else if (
+            rawAvailability === 'unavailable' ||
+            rawAvailability === 'not_available' ||
+            rawAvailability === 'not available'
+          ) {
+            availabilityStatusValue = 'unavailable';
+          } else {
+            // Fallback to active so we always respect the DB CHECK constraint
+            availabilityStatusValue = 'active';
+          }
         }
       }
     }
@@ -576,7 +602,7 @@ async function storeInDatabase(registrationData) {
       yearsOfExperienceValue,
       preferredJobTypes,
       registrationData.expectedHourlyRate || null,
-      registrationData.availability || 'Actively looking',
+      availabilityStatusValue,
       availableFromValue,
       registrationData.maxTravelDistance || null
     ];
