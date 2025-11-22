@@ -521,8 +521,25 @@ async function storeInDatabase(registrationData) {
       }
     }
 
+    // Try to find an existing candidate by email to avoid duplicate rows for retries
+    let contactId = registrationData.id;
+    try {
+      if (registrationData.email) {
+        const existingResult = await client.query(
+          'SELECT id FROM contacts WHERE email = $1 AND type = $2 LIMIT 1',
+          [registrationData.email, 'candidate']
+        );
+        if (existingResult.rows.length > 0) {
+          contactId = existingResult.rows[0].id;
+          console.log('ℹ️ Reusing existing contact id for email', registrationData.email, '->', contactId);
+        }
+      }
+    } catch (lookupError) {
+      console.error('⚠️ Failed to lookup existing contact by email, proceeding with new id:', lookupError);
+    }
+
     const values = [
-      registrationData.id,
+      contactId,
       `${registrationData.firstName} ${registrationData.lastName}`,
       registrationData.email,
       registrationData.phone,
