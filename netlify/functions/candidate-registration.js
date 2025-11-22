@@ -580,7 +580,8 @@ async function storeInDatabase(registrationData) {
       registrationData.expectedHourlyRate || null,
       registrationData.availability || 'Actively looking',
       availableFromValue,
-      registrationData.maxTravelDistance || null
+      registrationData.maxTravelDistance || null,
+      null
     ];
 
     const result = await client.query(insertQuery, values);
