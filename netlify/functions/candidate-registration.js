@@ -359,17 +359,15 @@ async function storeInDatabase(registrationData) {
         reasonable_adjustments, cv_text, cv_filename, cv_extracted_data,
         registration_pdf, registration_pdf_filename, notes, source,
         skills, years_of_experience, preferred_job_types, hourly_rate,
-        availability_status, available_from, max_commute_distance,
-        created_at, updated_at
+        availability_status, available_from, max_commute_distance
       ) VALUES (
         $1, $2, $3, $4, $5, $6, $7,
         $8, $9, $10, 'candidate', 'active', 'hot',
-        $11, $12, $13, $14, $15,
-        $16, $17, $18, $19,
-        $20, $21, $22, $23,
-        $24, $25, $26, $27,
-        $28, $29, $30,
-        NOW(), NOW()
+        $11, $11, $12, $13, $14,
+        $15, $16, $17, $18,
+        $19, $20, $21, $22,
+        $23, $24, $25, $26,
+        $27, $28, $29
       )
       ON CONFLICT (id)
       DO UPDATE SET
@@ -580,8 +578,7 @@ async function storeInDatabase(registrationData) {
       registrationData.expectedHourlyRate || null,
       registrationData.availability || 'Actively looking',
       availableFromValue,
-      registrationData.maxTravelDistance || null,
-      null
+      registrationData.maxTravelDistance || null
     ];
 
     const result = await client.query(insertQuery, values);
