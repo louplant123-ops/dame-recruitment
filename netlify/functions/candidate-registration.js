@@ -407,11 +407,25 @@ async function storeInDatabase(registrationData) {
         const summaryParts = [];
 
     // Normalise jobTypes and industries so they can be arrays or single values
-    const jobTypesArray = Array.isArray(registrationData.jobTypes)
-      ? registrationData.jobTypes
-      : registrationData.jobTypes
-        ? [registrationData.jobTypes]
-        : [];
+    // Normalise jobTypes so we handle real arrays, JSON strings like '["temporary"]',
+    // or single scalar values like 'temporary'
+    let jobTypesArray = [];
+    if (Array.isArray(registrationData.jobTypes)) {
+      jobTypesArray = registrationData.jobTypes;
+    } else if (registrationData.jobTypes) {
+      const rawJobTypes = registrationData.jobTypes;
+      if (typeof rawJobTypes === 'string' && rawJobTypes.trim().startsWith('[')) {
+        try {
+          const parsed = JSON.parse(rawJobTypes);
+          jobTypesArray = Array.isArray(parsed) ? parsed : [String(rawJobTypes)];
+        } catch (e) {
+          // If JSON.parse fails, fall back to treating as a single value
+          jobTypesArray = [String(rawJobTypes)];
+        }
+      } else {
+        jobTypesArray = [String(rawJobTypes)];
+      }
+    }
 
     const industriesArray = Array.isArray(registrationData.industries)
       ? registrationData.industries
