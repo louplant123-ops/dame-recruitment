@@ -803,11 +803,13 @@ exports.handler = async (event, context) => {
       // Netlify automatically parses multipart data, but we need to handle it
       const formData = event.body;
       
-      // Decode base64 if needed
+      // Decode base64 using a binary-safe encoding so file bytes are preserved.
+      // We later reconstruct file buffers with Buffer.from(part, 'binary'), so
+      // this must use the matching encoding rather than UTF-8.
       let decodedBody;
       try {
-        decodedBody = Buffer.from(formData, 'base64').toString('utf-8');
-        console.log('📝 Decoded multipart body:', decodedBody);
+        decodedBody = Buffer.from(formData, 'base64').toString('binary');
+        console.log('📝 Decoded multipart body (binary length):', decodedBody.length);
       } catch (decodeError) {
         console.error('❌ Base64 decode error:', decodeError);
         throw new Error('Failed to decode multipart data');
