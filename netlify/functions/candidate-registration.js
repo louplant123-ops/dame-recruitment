@@ -668,7 +668,8 @@ async function storeInDatabase(registrationData) {
 
     // Save CV file into candidate_documents so it appears under the Documents tab
     try {
-      if (registrationData.cvFileBase64 && registrationData.id) {
+      if (registrationData.cvFileBase64 && contactId) {
+
         const documentId = `DOC_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         await client.query(
           `INSERT INTO candidate_documents (
@@ -678,7 +679,8 @@ async function storeInDatabase(registrationData) {
            ON CONFLICT (id) DO NOTHING`,
           [
             documentId,
-            registrationData.id,
+            contactId,
+
             'cv',
             registrationData.cvFileName || 'CV from website',
             null,
@@ -689,9 +691,11 @@ async function storeInDatabase(registrationData) {
             'CV uploaded via website registration'
           ]
         );
-        console.log('✅ CV saved to candidate_documents for contact:', registrationData.id);
+        console.log('✅ CV saved to candidate_documents for contact:', contactId);
+
       } else {
         console.log('ℹ️ No CV file data available to save to candidate_documents');
+
       }
     } catch (cvDocError) {
       console.error('⚠️ Failed to save CV to candidate_documents:', cvDocError);
