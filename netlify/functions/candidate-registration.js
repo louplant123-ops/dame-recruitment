@@ -534,6 +534,16 @@ async function storeInDatabase(registrationData) {
       }
     }
 
+    // Optional notice period from website (in days). The form should ideally send
+    // a numeric number of days as noticePeriodDays.
+    let noticePeriodDaysValue = null;
+    if (registrationData.noticePeriodDays !== undefined && registrationData.noticePeriodDays !== null && registrationData.noticePeriodDays !== '') {
+      const parsedNotice = parseInt(String(registrationData.noticePeriodDays), 10);
+      if (!Number.isNaN(parsedNotice)) {
+        noticePeriodDaysValue = parsedNotice;
+      }
+    }
+
     // Normalise availability for available_from (DATE). Only accept ISO dates (YYYY-MM-DD),
     // and keep free-text values like "immediately" out of the DATE column.
     let availableFromValue = null;
@@ -547,27 +557,17 @@ async function storeInDatabase(registrationData) {
         if (isoDateMatch) {
           availableFromValue = rawAvailability;
           availabilityStatusValue = 'active';
+        } else if (
+          rawAvailability === 'unavailable' ||
+          rawAvailability === 'not_available' ||
+          rawAvailability === 'not available'
+        ) {
+          // Only explicitly unavailable values should be stored as 'unavailable'.
+          // Everything else from the website (e.g. "immediately", "1_week") is treated as active
+          // so we don't confuse candidates by auto-marking them as passive.
+          availabilityStatusValue = 'unavailable';
         } else {
-          // Map common website options into the allowed enum values
-          if (rawAvailability === 'immediately' || rawAvailability === 'asap' || rawAvailability === 'now') {
-            availabilityStatusValue = 'active';
-          } else if (
-            rawAvailability.includes('week') ||
-            rawAvailability.includes('month') ||
-            rawAvailability.includes('notice')
-          ) {
-            // Has some notice period like "1_week", "4_weeks", "1_month" → treat as passive
-            availabilityStatusValue = 'passive';
-          } else if (
-            rawAvailability === 'unavailable' ||
-            rawAvailability === 'not_available' ||
-            rawAvailability === 'not available'
-          ) {
-            availabilityStatusValue = 'unavailable';
-          } else {
-            // Fallback to active so we always respect the DB CHECK constraint
-            availabilityStatusValue = 'active';
-          }
+          availabilityStatusValue = 'active';
         }
       }
     }
@@ -623,17 +623,47 @@ async function storeInDatabase(registrationData) {
 
     const result = await client.query(insertQuery, values);
 
-    // Update experience_level column to mirror the derived level from years of experience
+    // Update experience_level, notice_period_days, and industry after insert so we
+    // don't have to modify the main INSERT column list.
     try {
-      if (experienceLevel && result.rows[0]?.id) {
-        await client.query(
-          'UPDATE contacts SET experience_level = $1 WHERE id = $2',
-          [experienceLevel, result.rows[0].id]
-        );
-        console.log('✅ Set experience_level for contact', result.rows[0].id, '->', experienceLevel);
+      const contactRowId = result.rows[0]?.id;
+      const hasIndustry = industriesArray.length > 0;
+      const hasNotice = noticePeriodDaysValue !== null;
+      const hasExperienceLevel = !!experienceLevel;
+
+      if (contactRowId && (hasIndustry || hasNotice || hasExperienceLevel)) {
+        const setClauses = [];
+        const params = [contactRowId];
+        let paramIndex = 2;
+
+        if (hasExperienceLevel) {
+          setClauses.push(`experience_level = $${paramIndex}`);
+          params.push(experienceLevel);
+          paramIndex++;
+        }
+        if (hasNotice) {
+          setClauses.push(`notice_period_days = $${paramIndex}`);
+          params.push(noticePeriodDaysValue);
+          paramIndex++;
+        }
+        if (hasIndustry) {
+          setClauses.push(`industry = $${paramIndex}`);
+          params.push(industriesArray.join(', '));
+          paramIndex++;
+        }
+
+        if (setClauses.length > 0) {
+          const updateQuery = `UPDATE contacts SET ${setClauses.join(', ')} WHERE id = $1`;
+          await client.query(updateQuery, params);
+          console.log('✅ Updated contact extra fields for', contactRowId, {
+            experienceLevel,
+            noticePeriodDaysValue,
+            industries: hasIndustry ? industriesArray.join(', ') : undefined
+          });
+        }
       }
     } catch (expLevelError) {
-      console.error('⚠️ Failed to set experience_level, continuing without it:', expLevelError);
+      console.error('⚠️ Failed to update extra contact fields, continuing without them:', expLevelError);
     }
 
     // Save CV file into candidate_documents so it appears under the Documents tab
