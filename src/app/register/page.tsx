@@ -35,10 +35,8 @@ export default function RegisterPage() {
     availability: '',
     
     // Transport
-    transport: '',
-    drivingLicense: false,
-    ownVehicle: false,
-    maxTravelDistance: '10',
+transport: '',
+maxTravelDistance: '10',
     
     // Licences
     fltLicense: false,
@@ -61,7 +59,7 @@ export default function RegisterPage() {
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const totalSteps = 8
+  const totalSteps = 7
 
   const stepTitles = [
     'Personal Details',
@@ -69,7 +67,6 @@ export default function RegisterPage() {
     'Role Interests', 
     'Shift Preferences',
     'Transport',
-    'Licences',
     'CV Upload',
     'Medical Information'
   ]
@@ -101,12 +98,9 @@ export default function RegisterPage() {
         if (!formData.transport) newErrors.transport = 'Transport method is required'
         break
       case 6:
-        if (formData.fltLicense && formData.fltTypes.length === 0) newErrors.fltTypes = 'Please select FLT types'
-        break
-      case 7:
         // CV Upload step - no required validation
         break
-      case 8:
+      case 7:
         if (!formData.terms) newErrors.terms = 'You must accept the terms and conditions'
         break
     }
@@ -160,8 +154,6 @@ export default function RegisterPage() {
         formDataToSend.append('shifts', JSON.stringify(formData.shifts));
         formDataToSend.append('availability', formData.availability);
         formDataToSend.append('transport', formData.transport);
-        formDataToSend.append('drivingLicense', formData.drivingLicense.toString());
-        formDataToSend.append('ownVehicle', formData.ownVehicle.toString());
         formDataToSend.append('maxTravelDistance', formData.maxTravelDistance);
         formDataToSend.append('fltLicense', formData.fltLicense.toString());
         formDataToSend.append('fltTypes', JSON.stringify(formData.fltTypes));
@@ -772,34 +764,6 @@ export default function RegisterPage() {
                 </fieldset>
               </div>
 
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="flex items-center space-x-3">
-                  <input
-                    type="checkbox"
-                    id="drivingLicense"
-                    checked={formData.drivingLicense}
-                    onChange={(e) => updateFormData('drivingLicense', e.target.checked)}
-                    className="h-4 w-4 text-primary-red focus:ring-primary-red border-neutral-light rounded"
-                  />
-                  <label htmlFor="drivingLicense" className="font-body text-charcoal">
-                    I have a valid UK driving licence
-                  </label>
-                </div>
-
-                <div className="flex items-center space-x-3">
-                  <input
-                    type="checkbox"
-                    id="ownVehicle"
-                    checked={formData.ownVehicle}
-                    onChange={(e) => updateFormData('ownVehicle', e.target.checked)}
-                    className="h-4 w-4 text-primary-red focus:ring-primary-red border-neutral-light rounded"
-                  />
-                  <label htmlFor="ownVehicle" className="font-body text-charcoal">
-                    I have access to my own vehicle
-                  </label>
-                </div>
-              </div>
-
               <div>
                 <label htmlFor="maxTravelDistance" className="block font-body font-medium text-charcoal mb-2">
                   Maximum Travel Distance: {formData.maxTravelDistance} miles
@@ -825,76 +789,8 @@ export default function RegisterPage() {
             </div>
           )}
 
-          {/* Step 6: Licences */}
+          {/* Step 6: CV Upload */}
           {currentStep === 6 && (
-            <div className="space-y-6">
-              <div className="flex items-center space-x-3">
-                <input
-                  type="checkbox"
-                  id="fltLicense"
-                  checked={formData.fltLicense}
-                  onChange={(e) => updateFormData('fltLicense', e.target.checked)}
-                  className="h-4 w-4 text-primary-red focus:ring-primary-red border-neutral-light rounded"
-                />
-                <label htmlFor="fltLicense" className="font-body font-medium text-charcoal">
-                  I have a Forklift Truck (FLT) licence
-                </label>
-              </div>
-
-              {formData.fltLicense && (
-                <div>
-                  <fieldset>
-                    <legend className="block font-body font-medium text-charcoal mb-4">
-                      FLT Licence Types *
-                    </legend>
-                    <div className="grid md:grid-cols-2 gap-3">
-                      {[
-                        { value: 'counterbalance', label: 'Counterbalance' },
-                        { value: 'reach', label: 'Reach Truck' },
-                        { value: 'order_picker', label: 'Order Picker' },
-                        { value: 'ppt', label: 'Powered Pallet Truck (PPT)' },
-                        { value: 'vna', label: 'Very Narrow Aisle (VNA)' },
-                        { value: 'side_loader', label: 'Side Loader' }
-                      ].map((option) => (
-                        <label key={option.value} className="flex items-center space-x-3 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            value={option.value}
-                            checked={formData.fltTypes.includes(option.value)}
-                            onChange={() => toggleArrayValue('fltTypes', option.value)}
-                            className="h-4 w-4 text-primary-red focus:ring-primary-red border-neutral-light rounded"
-                          />
-                          <span className="font-body text-charcoal">{option.label}</span>
-                        </label>
-                      ))}
-                    </div>
-                    {errors.fltTypes && (
-                      <p className="mt-2 text-sm text-red-600" role="alert">
-                        {errors.fltTypes}
-                      </p>
-                    )}
-                  </fieldset>
-                </div>
-              )}
-
-              <div>
-                <label htmlFor="otherLicenses" className="block font-body font-medium text-charcoal mb-2">
-                  Other Licences or Certifications
-                </label>
-                <textarea
-                  id="otherLicenses"
-                  value={formData.otherLicenses}
-                  onChange={(e) => updateFormData('otherLicenses', e.target.value)}
-                  rows={3}
-                  className="w-full px-4 py-3 border border-neutral-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-red focus:border-transparent"
-                  placeholder="e.g. CSCS Card, IPAF, Manual Handling, First Aid..."
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Step 7: CV Upload */}
-          {currentStep === 7 && (
             <div className="space-y-6">
               <div>
                 <label htmlFor="cvFile" className="block font-body font-medium text-charcoal mb-2">
@@ -926,8 +822,8 @@ export default function RegisterPage() {
             </div>
           )}
 
-          {/* Step 8: Medical Information */}
-          {currentStep === 8 && (
+          {/* Step 7: Medical Information */}
+          {currentStep === 7 && (
             <div className="space-y-6">
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <h3 className="font-body font-medium text-blue-900 mb-2">
