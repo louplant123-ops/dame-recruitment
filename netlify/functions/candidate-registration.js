@@ -807,16 +807,11 @@ exports.handler = async (event, context) => {
       console.log('  email:', body.email);
       console.log('  jobTypes:', body.jobTypes);
 
-<<<<<<< HEAD
       // Process CV file if uploaded (keep inside this block so uploadedFiles is in scope)
-=======
-      // Process CV file if uploaded (must stay inside this block so uploadedFiles is in scope)
->>>>>>> b057e2a (Remove licences step and driving licence fields from registration)
       if (uploadedFiles && uploadedFiles.length > 0) {
         console.log('📄 Processing CV files...');
         const cvFile = uploadedFiles.find(file => file.fieldName === 'cv');
         if (cvFile) {
-<<<<<<< HEAD
           console.log('📄 Found CV file:', cvFile.fileName);
 
           // Always store metadata and base64 so the file is saved even if text parsing fails
@@ -841,25 +836,10 @@ exports.handler = async (event, context) => {
             body.cvText = cvText;
           } catch (cvError) {
             console.error('❌ CV processing error (file will still be saved):', cvError);
-=======
-          try {
-            console.log('📄 Found CV file:', cvFile.fileName);
-            const cvText = await parseCVFile(cvFile.buffer, cvFile.fileName, cvFile.mimeType);
-            cvData = await extractCandidateDataFromCV(cvText);
-            console.log('✅ CV data extracted:', cvData);
-            body.cvText = cvText;
-            body.cvFileName = cvFile.fileName;
-          } catch (cvError) {
-            console.error('❌ CV processing error:', cvError);
->>>>>>> b057e2a (Remove licences step and driving licence fields from registration)
             // Continue with registration even if CV parsing fails
           }
         }
       }
-<<<<<<< HEAD
-=======
-      // Attach cvData to outer scope via body; registrationData builder will use body + cvData later
->>>>>>> b057e2a (Remove licences step and driving licence fields from registration)
     } else {
       // Handle JSON data
       try {
@@ -930,7 +910,6 @@ exports.handler = async (event, context) => {
       console.error('⚠️ PDF generation failed, continuing without PDF:', pdfError);
     }
     
-<<<<<<< HEAD
     // First, try to forward to DameDesk to get the canonical candidateId
     let dameDeskResult = null;
     try {
@@ -949,18 +928,6 @@ exports.handler = async (event, context) => {
     // Store in database (using DameDesk candidateId if available)
     await storeInDatabase(registrationData);
     
-=======
-    // Store in database first (single source of truth)
-    await storeInDatabase(registrationData);
-    
-    // Best-effort forward to DameDesk – do not fail the whole request if this breaks
-    try {
-      await forwardToDameDesk(registrationData);
-    } catch (forwardError) {
-      console.error('⚠️ Forward to DameDesk failed, but registration saved to DB:', forwardError);
-    }
-    
->>>>>>> b057e2a (Remove licences step and driving licence fields from registration)
     console.log('✅ Netlify Function: Registration processed successfully');
     
     return {
