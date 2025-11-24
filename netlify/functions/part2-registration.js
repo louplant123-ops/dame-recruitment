@@ -204,28 +204,29 @@ exports.handler = async (event, context) => {
       console.log('✅ Table contacts ready');
 
       // Create or update the candidate in contacts table
+      // Note: live contacts table does not have a right_to_work_documents column,
+      // so we only upsert right_to_work and notes here. Document URLs are stored
+      // in candidate_registrations.right_to_work_documents.
       const candidateUpsertQuery = `
         INSERT INTO contacts (
-          id, name, email, phone, type, status, temperature, 
-          right_to_work, right_to_work_documents, notes, source, created_at, updated_at
-        ) VALUES ($1, $2, $3, $4, 'candidate', 'active', 'hot', $5, $6, $7, 'website_part2', NOW(), NOW())
-        ON CONFLICT (id) 
-        DO UPDATE SET 
+          id, name, email, phone, type, status, temperature,
+          right_to_work, notes, source, created_at, updated_at
+        ) VALUES ($1, $2, $3, $4, 'candidate', 'active', 'hot', $5, $6, 'website_part2', NOW(), NOW())
+        ON CONFLICT (id)
+        DO UPDATE SET
           right_to_work = EXCLUDED.right_to_work,
-          right_to_work_documents = EXCLUDED.right_to_work_documents,
           notes = EXCLUDED.notes,
           temperature = 'hot',
           updated_at = NOW()
         RETURNING id, name
       `;
-      
+
       const candidateValues = [
         formData.candidateId,
         formData.accountHolderName || 'Part 2 Candidate',
         '', // email - we don't have this from Part 2 form
         formData.emergencyPhone || '',
         formData.rightToWorkMethod || 'pending',
-        formData.rightToWorkDocuments || null,
         `Part 2 completed: Bank details, NI: ${formData.niNumber}, Emergency: ${formData.emergencyName}`
       ];
       
