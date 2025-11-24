@@ -54,6 +54,7 @@ exports.handler = async (event, context) => {
     
     // Parse the request body - handle both JSON and multipart/form-data
     let formData;
+    let uploadedFiles = [];
     const contentType = event.headers['content-type'] || '';
     
     if (contentType.includes('multipart/form-data')) {
@@ -74,7 +75,7 @@ exports.handler = async (event, context) => {
       // Parse multipart form data and handle file uploads
       const parseResult = await parseMultipartFormDataWithFiles(decodedBody);
       formData = parseResult.formData;
-      const uploadedFiles = parseResult.files;
+      uploadedFiles = parseResult.files || [];
       
       console.log('📋 Parsed form data:', formData);
       console.log('📁 Files to upload:', uploadedFiles.length);
