@@ -159,24 +159,6 @@ async function generateRegistrationPDF(registrationData) {
       doc.fontSize(10).fillColor('#1F2937');
       doc.text(`Transport Method: ${registrationData.transport || 'Not specified'}`);
       if (registrationData.maxTravelDistance) doc.text(`Maximum Travel Distance: ${registrationData.maxTravelDistance} miles`);
-      doc.text(`Driving License: ${registrationData.drivingLicense ? 'Yes' : 'No'}`);
-      doc.text(`Own Vehicle: ${registrationData.ownVehicle ? 'Yes' : 'No'}`);
-      doc.moveDown(1.5);
-      
-      // Licenses Section
-      doc.fontSize(14).fillColor('#DC2626').text('Licenses & Certifications');
-      doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke('#E5E7EB');
-      doc.moveDown(0.5);
-      
-      doc.fontSize(10).fillColor('#1F2937');
-      doc.text(`FLT License: ${registrationData.fltLicense ? 'Yes' : 'No'}`);
-      if (registrationData.fltLicense && registrationData.fltTypes) {
-        const fltTypes = Array.isArray(registrationData.fltTypes) 
-          ? registrationData.fltTypes.join(', ') 
-          : registrationData.fltTypes;
-        doc.text(`FLT Types: ${fltTypes}`);
-      }
-      if (registrationData.otherLicenses) doc.text(`Other Licenses: ${registrationData.otherLicenses}`);
       doc.moveDown(1.5);
       
       // Medical Information Section (if provided)
