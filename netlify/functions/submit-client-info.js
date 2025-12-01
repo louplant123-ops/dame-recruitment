@@ -1,143 +1,150 @@
 const { Client } = require('pg');
 
-async function updateClientInfo(formId, formData) {
-  try {
-    console.log('🔄 Updating client info in database...');
-    
-    const client = new Client({
-      host: process.env.DB_HOST || 'damedesk-crm-production-do-user-27348714-0.j.db.ondigitalocean.com',
-      port: process.env.DB_PORT || 25060,
-      database: process.env.DB_NAME || 'defaultdb',
-      user: process.env.DB_USER || 'doadmin',
-      password: process.env.DB_PASSWORD || 'AVNS_wm_vFxOY5--ftSp64EL',
-      ssl: {
-        rejectUnauthorized: false
-      },
-      connectionTimeoutMillis: 10000
-    });
+/**
+ * Netlify Function: Submit Client Info
+ * Handles client information form submissions from the website
+ */
 
-    await client.connect();
-    console.log('✅ Connected to database');
-
-    // Update client with form data
-    const updateQuery = `
-      UPDATE contacts 
-      SET 
-        invoice_contact_name = $1,
-        invoice_contact_email = $2,
-        ppe_required = $3,
-        ppe_details = $4,
-        site_induction_required = $5,
-        health_safety_contact = $6,
-        site_access_instructions = $7,
-        parking_info = $8,
-        key_decision_makers = $9,
-        preferred_start_dates = $10,
-        preferred_contact_method = $11,
-        best_contact_times = $12,
-        client_info_form_completed = NOW(),
-        updated_at = NOW()
-      WHERE client_info_form_id = $13
-      RETURNING id, name, company
-    `;
-
-    const values = [
-      formData.invoice_contact_name,
-      formData.invoice_contact_email,
-      formData.ppe_required,
-      formData.ppe_details,
-      formData.site_induction_required,
-      formData.health_safety_contact,
-      formData.site_access_instructions,
-      formData.parking_info,
-      formData.key_decision_makers,
-      formData.preferred_start_dates,
-      formData.preferred_contact_method,
-      formData.best_contact_times,
-      formId
-    ];
-
-    const result = await client.query(updateQuery, values);
-    
-    if (result.rows.length === 0) {
-      throw new Error('Client not found');
-    }
-
-    const contact = result.rows[0];
-    console.log('✅ Client info updated:', formId);
-
-    // Create task for consultant
-    const taskId = `TASK_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    const insertTaskQuery = `
-      INSERT INTO tasks (
-        id, title, description, type, priority, status,
-        contact_id, due_date, created_at, updated_at
-      ) VALUES ($1, $2, $3, 'client_info_completed', 'medium', 'pending', $4, NOW(), NOW(), NOW())
-      RETURNING id, title
-    `;
-
-    const taskValues = [
-      taskId,
-      `Client Info Completed: ${contact.company}`,
-      `${contact.name} has completed their client information form. Review the operational details.`,
-      contact.id
-    ];
-
-    const taskResult = await client.query(insertTaskQuery, taskValues);
-    console.log('✅ Task created:', taskResult.rows[0]);
-
-    // Create invoice contact as a separate contact person if they don't already exist
-    if (formData.invoice_contact_name && formData.invoice_contact_email) {
-      // Check if contact already exists with this email
-      const checkContactQuery = `
-        SELECT id FROM contacts 
-        WHERE email = $1 AND company = $2
-        LIMIT 1
-      `;
-      const existingContact = await client.query(checkContactQuery, [
-        formData.invoice_contact_email,
-        contact.company
-      ]);
-
-      if (existingContact.rows.length === 0) {
-        // Create new contact person for invoicing
-        const newContactId = `CONTACT_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        const createContactQuery = `
-          INSERT INTO contacts (
-            id, name, email, company, type, position, 
-            created_at, updated_at
-          ) VALUES ($1, $2, $3, $4, 'client', 'Accounts/Finance', NOW(), NOW())
-          RETURNING id, name
-        `;
-        
-        const newContactResult = await client.query(createContactQuery, [
-          newContactId,
-          formData.invoice_contact_name,
-          formData.invoice_contact_email,
-          contact.company
-        ]);
-        
-        console.log('✅ Invoice contact created:', newContactResult.rows[0]);
-      } else {
-        console.log('ℹ️ Invoice contact already exists');
-      }
-    }
-
-    await client.end();
-    
-    return {
-      clientId: contact.id,
-      taskId: taskId,
-      status: 'completed'
-    };
-    
-  } catch (error) {
-    console.error('❌ Database update error:', error);
-    throw error;
+// Helper function to convert string values to boolean
+const convertToBoolean = (value) => {
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'string') {
+    const lowerValue = value.toLowerCase().trim();
+    // Handle various string representations
+    if (lowerValue === 'true' || lowerValue === 'yes' || lowerValue === '1') return true;
+    if (lowerValue === 'false' || lowerValue === 'no' || lowerValue === '0') return false;
+    // Handle "Client provides" / "Employee provides" type values
+    if (lowerValue.includes('client') || lowerValue.includes('yes')) return true;
+    if (lowerValue.includes('employee') || lowerValue.includes('no')) return false;
   }
-}
+  return null; // Return null for undefined/null values
+};
 
-exports.handler = async (event, context) => {
+// Database connection
+const connectToDatabase = async () => {
+  const client = new Client({
+    connectionString: process.env.DATABASE_URL,
+    ssl: {
+      rejectUnauthorized: false
+    }
+  });
+  
+  await client.connect();
+  console.log('✅ Connected to database');
+  return client;
+};
+
+// Update or insert client information
+const updateClientInfo = async (client, formData) => {
+  const {
+    companyName,
+    companyNumber,
+    vatNumber,
+    industry,
+    companySize,
+    website,
+    contactName,
+    jobTitle,
+    email,
+    phone,
+    accountsContactName,
+    accountsContactEmail,
+    accountsContactPhone,
+    address,
+    postcode,
+    // Additional fields that might be booleans
+    ppeProvided,
+    uniformProvided,
+    parkingAvailable,
+    ...otherFields
+  } = formData;
+
+  // Convert potential boolean fields
+  const ppeProvidedBool = convertToBoolean(ppeProvided);
+  const uniformProvidedBool = convertToBoolean(uniformProvided);
+  const parkingAvailableBool = convertToBoolean(parkingAvailable);
+
+  const query = `
+    INSERT INTO clients (
+      company_name,
+      company_number,
+      vat_number,
+      industry,
+      company_size,
+      website,
+      contact_name,
+      job_title,
+      email,
+      phone,
+      accounts_contact_name,
+      accounts_contact_email,
+      accounts_contact_phone,
+      address,
+      postcode,
+      ppe_provided,
+      uniform_provided,
+      parking_available,
+      type,
+      status,
+      source,
+      created_at,
+      updated_at
+    ) VALUES (
+      $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
+      $11, $12, $13, $14, $15, $16, $17, $18,
+      'client', 'prospect', 'website_form', NOW(), NOW()
+    )
+    ON CONFLICT (email) 
+    DO UPDATE SET
+      company_name = EXCLUDED.company_name,
+      company_number = EXCLUDED.company_number,
+      vat_number = EXCLUDED.vat_number,
+      industry = EXCLUDED.industry,
+      company_size = EXCLUDED.company_size,
+      website = EXCLUDED.website,
+      contact_name = EXCLUDED.contact_name,
+      job_title = EXCLUDED.job_title,
+      phone = EXCLUDED.phone,
+      accounts_contact_name = EXCLUDED.accounts_contact_name,
+      accounts_contact_email = EXCLUDED.accounts_contact_email,
+      accounts_contact_phone = EXCLUDED.accounts_contact_phone,
+      address = EXCLUDED.address,
+      postcode = EXCLUDED.postcode,
+      ppe_provided = EXCLUDED.ppe_provided,
+      uniform_provided = EXCLUDED.uniform_provided,
+      parking_available = EXCLUDED.parking_available,
+      updated_at = NOW()
+    RETURNING id;
+  `;
+
+  const values = [
+    companyName,
+    companyNumber || null,
+    vatNumber || null,
+    industry,
+    companySize || null,
+    website || null,
+    contactName,
+    jobTitle || null,
+    email,
+    phone,
+    accountsContactName || null,
+    accountsContactEmail || null,
+    accountsContactPhone || null,
+    address || null,
+    postcode || null,
+    ppeProvidedBool,
+    uniformProvidedBool,
+    parkingAvailableBool
+  ];
+
+  const result = await client.query(query, values);
+  return result.rows[0];
+};
+
+// Main handler
+exports.handler = async (event) => {
+  // Only allow POST requests
   if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
@@ -145,26 +152,36 @@ exports.handler = async (event, context) => {
     };
   }
 
-  try {
-    console.log('📋 Processing client info submission');
-    
-    const data = JSON.parse(event.body);
-    const { formId, formData } = data;
-    
-    console.log('📋 Form ID:', formId);
+  let dbClient;
 
-    // Update client in database
-    const result = await updateClientInfo(formId, formData);
-    console.log('✅ Client info submitted successfully');
+  try {
+    // Parse form data
+    const formData = JSON.parse(event.body);
+    
+    console.log('📝 Received client info submission:', {
+      company: formData.companyName,
+      email: formData.email,
+      hasAccountsContact: !!(formData.accountsContactName || formData.accountsContactEmail)
+    });
+
+    // Connect to database
+    dbClient = await connectToDatabase();
+
+    // Update client info
+    const client = await updateClientInfo(dbClient, formData);
+    
+    console.log('✅ Client info saved successfully:', client.id);
 
     return {
       statusCode: 200,
-      headers: { 'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      },
       body: JSON.stringify({
         success: true,
-        message: 'Client information submitted successfully',
-        clientId: result.clientId,
-        taskId: result.taskId
+        message: 'Client information saved successfully',
+        clientId: client.id
       })
     };
 
@@ -173,12 +190,21 @@ exports.handler = async (event, context) => {
     
     return {
       statusCode: 500,
-      headers: { 'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      },
       body: JSON.stringify({
         success: false,
-        error: 'Failed to submit client information',
+        error: 'Failed to save client information',
         details: error.message
       })
     };
+
+  } finally {
+    // Close database connection
+    if (dbClient) {
+      await dbClient.end();
+    }
   }
 };
