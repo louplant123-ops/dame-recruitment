@@ -38,8 +38,13 @@ export default function ClientInfoPage() {
   const [isSubmitted, setIsSubmitted] = useState(false)
 
   const [formData, setFormData] = useState({
+    company_number: '',
+    vat_number: '',
     invoice_contact_name: '',
     invoice_contact_email: '',
+    accounts_contact_name: '',
+    accounts_contact_email: '',
+    accounts_contact_phone: '',
     ppe_required: false,
     ppe_details: '',
     site_induction_required: '',
@@ -88,8 +93,13 @@ export default function ClientInfoPage() {
       
       // Pre-fill form with existing data
       setFormData({
+        company_number: data.company_number || '',
+        vat_number: data.vat_number || '',
         invoice_contact_name: data.invoice_contact_name || data.name || '',
         invoice_contact_email: data.invoice_contact_email || data.email || '',
+        accounts_contact_name: data.accounts_contact_name || '',
+        accounts_contact_email: data.accounts_contact_email || '',
+        accounts_contact_phone: data.accounts_contact_phone || '',
         ppe_required: data.ppe_required || false,
         ppe_details: data.ppe_details || '',
         site_induction_required: data.site_induction_required || '',
@@ -207,6 +217,35 @@ export default function ClientInfoPage() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-8">
+              {/* Company Details */}
+              <div className="border-b pb-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">🏢 Company Details</h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Company Number</label>
+                    <input
+                      type="text"
+                      value={formData.company_number}
+                      onChange={(e) => setFormData({...formData, company_number: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                      placeholder="Optional"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">VAT Number</label>
+                    <input
+                      type="text"
+                      value={formData.vat_number}
+                      onChange={(e) => setFormData({...formData, vat_number: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                      placeholder="Optional"
+                    />
+                  </div>
+                </div>
+              </div>
+
               {/* Invoice Contact */}
               <div className="border-b pb-6">
                 <h3 className="text-xl font-semibold text-gray-900 mb-4">📄 Invoice Contact</h3>
@@ -231,6 +270,46 @@ export default function ClientInfoPage() {
                       onChange={(e) => setFormData({...formData, invoice_contact_email: e.target.value})}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md"
                       required
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Accounts Contact */}
+              <div className="border-b pb-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">💰 Accounts Contact (Optional)</h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
+                    <input
+                      type="text"
+                      value={formData.accounts_contact_name}
+                      onChange={(e) => setFormData({...formData, accounts_contact_name: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                      placeholder="Optional"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                    <input
+                      type="email"
+                      value={formData.accounts_contact_email}
+                      onChange={(e) => setFormData({...formData, accounts_contact_email: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                      placeholder="Optional"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+                    <input
+                      type="tel"
+                      value={formData.accounts_contact_phone}
+                      onChange={(e) => setFormData({...formData, accounts_contact_phone: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                      placeholder="Optional"
                     />
                   </div>
                 </div>
