@@ -312,6 +312,64 @@ interface FormData {
 }
 ```
 
+### **Issue 5: "invalid input syntax for type boolean" error**
+**Error message:** `error: invalid input syntax for type boolean: "some text"`
+
+**Cause:** Form is sending text to a boolean database column.
+
+**Solution:** Match the data types between form and database:
+
+**Option A: Change database column to TEXT (if you need detailed text input)**
+```javascript
+// Run this migration script
+const { Client } = require('pg');
+
+async function fixColumnType() {
+  const client = new Client({
+    host: process.env.DB_HOST || 'your-host',
+    port: process.env.DB_PORT || 25060,
+    database: process.env.DB_NAME || 'defaultdb',
+    user: process.env.DB_USER || 'doadmin',
+    password: process.env.DB_PASSWORD,
+    ssl: { rejectUnauthorized: false }
+  });
+
+  await client.connect();
+  
+  await client.query(`
+    ALTER TABLE contacts 
+    ALTER COLUMN your_field_name TYPE TEXT 
+    USING CASE 
+      WHEN your_field_name = true THEN 'Yes'
+      WHEN your_field_name = false THEN 'No'
+      ELSE NULL
+    END;
+  `);
+  
+  await client.end();
+}
+```
+
+**Option B: Change form field to checkbox (if you only need true/false)**
+```typescript
+// Frontend - Change from text input to checkbox
+<input
+  type="checkbox"
+  checked={formData.fieldName}
+  onChange={(e) => setFormData({...formData, fieldName: e.target.checked})}
+/>
+
+// State - Change from string to boolean
+const [formData, setFormData] = useState({
+  fieldName: false  // ← boolean, not string
+})
+```
+
+**Real example from client-info form:**
+- Field: `site_induction_required`
+- Was: boolean in database, text input in form ❌
+- Fixed: Changed database to TEXT to accept "Client provides on day 1", "Not required", etc. ✅
+
 ---
 
 ## 📞 Quick Reference: Form → Function Mapping
