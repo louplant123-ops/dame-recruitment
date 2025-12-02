@@ -1,0 +1,65 @@
+warning: in the working copy of 'netlify/functions/part2-registration.js', LF will be replaced by CRLF the next time Git touches it
+[1mdiff --git a/netlify/functions/part2-registration.js b/netlify/functions/part2-registration.js[m
+[1mindex 9ef4b41..6ee4c2c 100644[m
+[1m--- a/netlify/functions/part2-registration.js[m
+[1m+++ b/netlify/functions/part2-registration.js[m
+[36m@@ -232,6 +232,59 @@[m [mexports.handler = async (event, context) => {[m
+       const candidateResult = await client.query(candidateUpsertQuery, candidateValues);[m
+       console.log('✅ Candidate record created/updated:', candidateResult.rows[0]);[m
+ [m
+[32m+[m[32m      // If any right-to-work documents were uploaded, create candidate_documents records[m
+[32m+[m[32m      if (uploadedFileUrls.length > 0) {[m
+[32m+[m[32m        console.log('📁 Creating candidate_documents records for right-to-work files...');[m
+[32m+[m[32m        for (const file of uploadedFileUrls) {[m
+[32m+[m[32m          const documentId = `DOC_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;[m
+[32m+[m[32m          const insertDocumentQuery = `[m
+[32m+[m[32m            INSERT INTO candidate_documents ([m
+[32m+[m[32m              id, contact_id, type, name, file_path, file_size, uploaded_date, uploaded_by, notes, created_at[m
+[32m+[m[32m            ) VALUES ($1, $2, $3, $4, $5, $6, NOW(), $7, $8, NOW())[m
+[32m+[m[32m          `;[m
+[32m+[m
+[32m+[m[32m          const documentValues = [[m
+[32m+[m[32m            documentId,[m
+[32m+[m[32m            formData.candidateId,[m
+[32m+[m[32m            'id', // store as ID / right-to-work document[m
+[32m+[m[32m            file.fileName || 'Right to Work Document',[m
+[32m+[m[32m            file.url,[m
+[32m+[m[32m            file.size || null,[m
+[32m+[m[32m            'website_part2',[m
+[32m+[m[32m            'Right to work document uploaded via website Part 2 registration'[m
+[32m+[m[32m          ];[m
+[32m+[m
+[32m+[m[32m          try {[m
+[32m+[m[32m            await client.query(insertDocumentQuery, documentValues);[m
+[32m+[m[32m            console.log('✅ Candidate document record created:', documentId);[m
+[32m+[m[32m          } catch (docError) {[m
+[32m+[m[32m            console.error('❌ Failed to create candidate document record:', docError.message);[m
+[32m+[m[32m          }[m
+[32m+[m[32m        }[m
+[32m+[m[32m      }[m
+[32m+[m
+[32m+[m[32m      // Update emergency contact fields on the candidate contact record[m
+[32m+[m[32m      try {[m
+[32m+[m[32m        const emergencyUpdateQuery = `[m
+[32m+[m[32m          UPDATE contacts[m
+[32m+[m[32m          SET emergency_contact_name = $2,[m
+[32m+[m[32m              emergency_contact_phone = $3,[m
+[32m+[m[32m              emergency_contact_relationship = $4,[m
+[32m+[m[32m              updated_at = NOW()[m
+[32m+[m[32m          WHERE id = $1[m
+[32m+[m[32m        `;[m
+[32m+[m
+[32m+[m[32m        await client.query(emergencyUpdateQuery, [[m
+[32m+[m[32m          formData.candidateId,[m
+[32m+[m[32m          formData.emergencyName || null,[m
+[32m+[m[32m          formData.emergencyPhone || null,[m
+[32m+[m[32m          formData.emergencyRelationship || null[m
+[32m+[m[32m        ]);[m
+[32m+[m[32m        console.log('✅ Emergency contact details updated for candidate:', formData.candidateId);[m
+[32m+[m[32m      } catch (emError) {[m
+[32m+[m[32m        console.error('❌ Failed to update emergency contact details:', emError.message);[m
+[32m+[m[32m      }[m
+[32m+[m
+       // Insert or update the candidate registration with Part 2 data[m
+       const upsertQuery = `[m
+         INSERT INTO candidate_registrations ([m

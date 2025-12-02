@@ -232,6 +232,59 @@ exports.handler = async (event, context) => {
       const candidateResult = await client.query(candidateUpsertQuery, candidateValues);
       console.log('✅ Candidate record created/updated:', candidateResult.rows[0]);
 
+      // If any right-to-work documents were uploaded, create candidate_documents records
+      if (uploadedFileUrls.length > 0) {
+        console.log('📁 Creating candidate_documents records for right-to-work files...');
+        for (const file of uploadedFileUrls) {
+          const documentId = `DOC_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
+          const insertDocumentQuery = `
+            INSERT INTO candidate_documents (
+              id, contact_id, type, name, file_path, file_size, uploaded_date, uploaded_by, notes, created_at
+            ) VALUES ($1, $2, $3, $4, $5, $6, NOW(), $7, $8, NOW())
+          `;
+
+          const documentValues = [
+            documentId,
+            formData.candidateId,
+            'id', // store as ID / right-to-work document
+            file.fileName || 'Right to Work Document',
+            file.url,
+            file.size || null,
+            'website_part2',
+            'Right to work document uploaded via website Part 2 registration'
+          ];
+
+          try {
+            await client.query(insertDocumentQuery, documentValues);
+            console.log('✅ Candidate document record created:', documentId);
+          } catch (docError) {
+            console.error('❌ Failed to create candidate document record:', docError.message);
+          }
+        }
+      }
+
+      // Update emergency contact fields on the candidate contact record
+      try {
+        const emergencyUpdateQuery = `
+          UPDATE contacts
+          SET emergency_contact_name = $2,
+              emergency_contact_phone = $3,
+              emergency_contact_relationship = $4,
+              updated_at = NOW()
+          WHERE id = $1
+        `;
+
+        await client.query(emergencyUpdateQuery, [
+          formData.candidateId,
+          formData.emergencyName || null,
+          formData.emergencyPhone || null,
+          formData.emergencyRelationship || null
+        ]);
+        console.log('✅ Emergency contact details updated for candidate:', formData.candidateId);
+      } catch (emError) {
+        console.error('❌ Failed to update emergency contact details:', emError.message);
+      }
+
       // Insert or update the candidate registration with Part 2 data
       const upsertQuery = `
         INSERT INTO candidate_registrations (

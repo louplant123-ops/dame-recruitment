@@ -25,13 +25,20 @@ async function storeJobInDatabase(jobData, clientData) {
     const insertClientQuery = `
       INSERT INTO contacts (
         id, name, email, phone, company, type, status, temperature,
+        company_number, vat_number,
+        accounts_contact_name, accounts_contact_email, accounts_contact_phone,
         notes, source, created_at, updated_at
-      ) VALUES ($1, $2, $3, $4, $5, 'client', 'active', 'hot', $6, 'website_job_posting', NOW(), NOW())
+      ) VALUES ($1, $2, $3, $4, $5, 'client', 'active', 'hot', $6, $7, $8, $9, $10, $11, 'website_job_posting', NOW(), NOW())
       ON CONFLICT (id) 
       DO UPDATE SET 
         name = EXCLUDED.name,
         phone = EXCLUDED.phone,
         company = EXCLUDED.company,
+        company_number = EXCLUDED.company_number,
+        vat_number = EXCLUDED.vat_number,
+        accounts_contact_name = EXCLUDED.accounts_contact_name,
+        accounts_contact_email = EXCLUDED.accounts_contact_email,
+        accounts_contact_phone = EXCLUDED.accounts_contact_phone,
         temperature = 'hot',
         notes = EXCLUDED.notes,
         updated_at = NOW()
@@ -44,6 +51,11 @@ async function storeJobInDatabase(jobData, clientData) {
       clientData.email,
       clientData.phone || null,
       clientData.companyName,
+      clientData.companyNumber || null,
+      clientData.vatNumber || null,
+      clientData.accountsContactName || null,
+      clientData.accountsContactEmail || null,
+      clientData.accountsContactPhone || null,
       `Job posting: ${jobData.jobTitle} - ${jobData.urgency} urgency`
     ];
 
@@ -188,7 +200,12 @@ exports.handler = async (event, context) => {
       companyName: jobData.companyName,
       contactName: jobData.contactName,
       email: jobData.email,
-      phone: jobData.phone
+      phone: jobData.phone,
+      companyNumber: jobData.companyNumber,
+      vatNumber: jobData.vatNumber,
+      accountsContactName: jobData.accountsContactName,
+      accountsContactEmail: jobData.accountsContactEmail,
+      accountsContactPhone: jobData.accountsContactPhone
     };
 
     const jobPostingData = {

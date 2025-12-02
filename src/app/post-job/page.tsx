@@ -9,6 +9,11 @@ export default function PostJobPage() {
     contactName: '',
     email: '',
     phone: '',
+    companyNumber: '',
+    vatNumber: '',
+    accountsContactName: '',
+    accountsContactEmail: '',
+    accountsContactPhone: '',
     jobTitle: '',
     jobType: '',
     location: '',
@@ -64,6 +69,11 @@ export default function PostJobPage() {
           contactName: '',
           email: '',
           phone: '',
+          companyNumber: '',
+          vatNumber: '',
+          accountsContactName: '',
+          accountsContactEmail: '',
+          accountsContactPhone: '',
           jobTitle: '',
           jobType: '',
           location: '',
@@ -207,6 +217,90 @@ export default function PostJobPage() {
                   disabled={formState === 'submitting'}
                   placeholder="Optional"
                 />
+              </div>
+            </div>
+            
+            {/* Company Details Section */}
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <label htmlFor="companyNumber" className="block font-body font-medium text-charcoal mb-2">
+                  Company Number
+                </label>
+                <input
+                  type="text"
+                  id="companyNumber"
+                  value={formData.companyNumber}
+                  onChange={(e) => updateFormData('companyNumber', e.target.value)}
+                  className="w-full px-4 py-3 border border-neutral-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-red focus:border-transparent"
+                  disabled={formState === 'submitting'}
+                  placeholder="Optional"
+                />
+              </div>
+              
+              <div>
+                <label htmlFor="vatNumber" className="block font-body font-medium text-charcoal mb-2">
+                  VAT Number
+                </label>
+                <input
+                  type="text"
+                  id="vatNumber"
+                  value={formData.vatNumber}
+                  onChange={(e) => updateFormData('vatNumber', e.target.value)}
+                  className="w-full px-4 py-3 border border-neutral-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-red focus:border-transparent"
+                  disabled={formState === 'submitting'}
+                  placeholder="Optional"
+                />
+              </div>
+            </div>
+            
+            {/* Accounts Contact Section */}
+            <div>
+              <h3 className="font-body font-semibold text-charcoal mb-4">Accounts Contact (Optional)</h3>
+              <div className="grid md:grid-cols-3 gap-6">
+                <div>
+                  <label htmlFor="accountsContactName" className="block font-body font-medium text-charcoal mb-2">
+                    Name
+                  </label>
+                  <input
+                    type="text"
+                    id="accountsContactName"
+                    value={formData.accountsContactName}
+                    onChange={(e) => updateFormData('accountsContactName', e.target.value)}
+                    className="w-full px-4 py-3 border border-neutral-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-red focus:border-transparent"
+                    disabled={formState === 'submitting'}
+                    placeholder="Optional"
+                  />
+                </div>
+                
+                <div>
+                  <label htmlFor="accountsContactEmail" className="block font-body font-medium text-charcoal mb-2">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    id="accountsContactEmail"
+                    value={formData.accountsContactEmail}
+                    onChange={(e) => updateFormData('accountsContactEmail', e.target.value)}
+                    className="w-full px-4 py-3 border border-neutral-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-red focus:border-transparent"
+                    disabled={formState === 'submitting'}
+                    placeholder="Optional"
+                  />
+                </div>
+                
+                <div>
+                  <label htmlFor="accountsContactPhone" className="block font-body font-medium text-charcoal mb-2">
+                    Phone
+                  </label>
+                  <input
+                    type="tel"
+                    id="accountsContactPhone"
+                    value={formData.accountsContactPhone}
+                    onChange={(e) => updateFormData('accountsContactPhone', e.target.value)}
+                    className="w-full px-4 py-3 border border-neutral-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-red focus:border-transparent"
+                    disabled={formState === 'submitting'}
+                    placeholder="Optional"
+                  />
+                </div>
               </div>
             </div>
             
