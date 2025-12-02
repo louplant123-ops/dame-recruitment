@@ -17,7 +17,7 @@ interface ClientData {
   payment_method?: string;
   ppe_required?: boolean;
   ppe_details?: string;
-  site_induction_required?: boolean;
+  site_induction_required?: string;
   health_safety_contact?: string;
   site_access_instructions?: string;
   parking_info?: string;
