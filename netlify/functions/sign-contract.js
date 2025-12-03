@@ -55,6 +55,50 @@ async function updateContractSignature(contractId, signatureData) {
 
     console.log('✅ Contract signed:', contractId);
 
+    // Get the full contract text to append signature
+    const contractQuery = `SELECT contract_text FROM contacts WHERE contract_id = $1`;
+    const contractResult = await client.query(contractQuery, [contractId]);
+    
+    if (contractResult.rows.length > 0 && contractResult.rows[0].contract_text) {
+      const signedDate = new Date().toLocaleDateString('en-GB', { 
+        day: 'numeric', 
+        month: 'long', 
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      
+      const signatureBlock = `
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DIGITAL SIGNATURE CONFIRMATION
+
+This contract was digitally signed on: ${signedDate}
+
+Signed by: ${signatureData.fullName}
+Position: ${signatureData.position}
+Company: ${signatureData.companyName}
+
+IP Address: ${event.headers['x-forwarded-for'] || event.headers['client-ip'] || 'Unknown'}
+User Agent: ${event.headers['user-agent'] || 'Unknown'}
+
+This constitutes a legally binding electronic signature under the Electronic 
+Communications Act 2000 and the Electronic Signatures Regulations 2002.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
+
+      const signedContractText = contractResult.rows[0].contract_text + signatureBlock;
+      
+      // Update the contract with signature block
+      await client.query(
+        `UPDATE contacts SET contract_text = $1 WHERE contract_id = $2`,
+        [signedContractText, contractId]
+      );
+      
+      console.log('✅ Contract updated with signature block');
+    }
+
     // Create task for consultant
     const taskId = `TASK_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const insertTaskQuery = `

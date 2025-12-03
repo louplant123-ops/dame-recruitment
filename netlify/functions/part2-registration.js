@@ -339,6 +339,113 @@ exports.handler = async (event, context) => {
       
       console.log('✅ Database updated successfully:', dbResult.rows[0]);
       
+      // Generate signed contract document with signature block
+      if (formData.contractAccepted && formData.contractSignature) {
+        try {
+          // Reconnect to database for contract document
+          const contractClient = new Client({
+            host: process.env.DB_HOST || 'damedesk-crm-production-do-user-27348714-0.j.db.ondigitalocean.com',
+            port: process.env.DB_PORT || 25060,
+            database: process.env.DB_NAME || 'defaultdb',
+            user: process.env.DB_USER || 'doadmin',
+            password: process.env.DB_PASSWORD || 'AVNS_wm_vFxOY5--ftSp64EL',
+            ssl: { rejectUnauthorized: false },
+            connectionTimeoutMillis: 10000
+          });
+          
+          await contractClient.connect();
+          
+          const signedDate = new Date().toLocaleDateString('en-GB', { 
+            day: 'numeric', 
+            month: 'long', 
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          });
+          
+          const contractText = `TERMS OF ENGAGEMENT FOR AGENCY WORKERS (CONTRACT FOR SERVICES)
+
+Dame Recruitment - Terms of engagement for temporary agency workers
+
+This agreement is made on ${formData.contractDate || new Date().toLocaleDateString('en-GB')}
+
+Between:
+Dame Recruitment Ltd ("the Agency")
+and
+${formData.firstName || ''} ${formData.lastName || ''} ("the Worker")
+
+By signing below, the Worker agrees to the standard terms and conditions for temporary employment through Dame Recruitment.
+
+1. PAYMENT TERMS AND DEDUCTIONS
+   - Payment will be made weekly/monthly as agreed
+   - Statutory deductions (tax, NI) will be made as required
+   - Timesheets must be submitted promptly
+
+2. ASSIGNMENT OBLIGATIONS AND CONDUCT
+   - Worker agrees to perform duties as assigned
+   - Professional conduct expected at all times
+   - Follow client site rules and procedures
+
+3. HEALTH AND SAFETY REQUIREMENTS
+   - Comply with all H&S regulations
+   - Report incidents immediately
+   - Use provided PPE where required
+
+4. CONFIDENTIALITY AND DATA PROTECTION
+   - Maintain confidentiality of client information
+   - Comply with GDPR requirements
+   - Protect sensitive data
+
+5. ANNUAL LEAVE AND SICK PAY ENTITLEMENTS
+   - Statutory holiday entitlement applies
+   - Sick pay as per statutory requirements
+   - Request leave in advance where possible
+
+6. TERMINATION CONDITIONS
+   - Either party may terminate with notice
+   - Immediate termination for gross misconduct
+   - Final payment on termination
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DIGITAL SIGNATURE CONFIRMATION
+
+This contract was digitally signed on: ${signedDate}
+
+Signed by: ${formData.contractSignature}
+Date: ${formData.contractDate}
+
+IP Address: ${event.headers['x-forwarded-for'] || event.headers['client-ip'] || 'Unknown'}
+User Agent: ${event.headers['user-agent'] || 'Unknown'}
+
+This constitutes a legally binding electronic signature under the Electronic 
+Communications Act 2000 and the Electronic Signatures Regulations 2002.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
+
+          // Save contract document to candidate_documents table
+          const docId = `DOC_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+          await contractClient.query(`
+            INSERT INTO candidate_documents (
+              id, contact_id, type, name, content, 
+              uploaded_date, uploaded_by, notes
+            ) VALUES ($1, $2, 'contract', $3, $4, NOW(), 'System', $5)
+          `, [
+            docId,
+            formData.candidateId,
+            `Worker_Contract_${formData.contractSignature.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.txt`,
+            contractText,
+            `Signed by: ${formData.contractSignature} on ${formData.contractDate}`
+          ]);
+          
+          await contractClient.end();
+          console.log('✅ Contract document saved');
+        } catch (docError) {
+          console.error('⚠️ Failed to save contract document:', docError);
+          // Continue anyway - registration is complete
+        }
+      }
+      
       var result = {
         success: true,
         registrationId: dbResult.rows[0].id,
@@ -375,9 +482,7 @@ exports.handler = async (event, context) => {
       })
     };
 
-  } catch (error) {
-    console.error('❌ Part 2 registration error:', error);
-    
+    console.log('✅ Part 2 registration completed successfully');
     return {
       statusCode: 500,
       headers: {
