@@ -232,6 +232,24 @@ exports.handler = async (event, context) => {
       const candidateResult = await client.query(candidateUpsertQuery, candidateValues);
       console.log('✅ Candidate record created/updated:', candidateResult.rows[0]);
 
+      // Create candidate_documents table if it doesn't exist
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS candidate_documents (
+          id TEXT PRIMARY KEY,
+          contact_id TEXT NOT NULL,
+          type TEXT NOT NULL,
+          name TEXT NOT NULL,
+          file_path TEXT,
+          content TEXT,
+          file_size INTEGER,
+          uploaded_date TIMESTAMP DEFAULT NOW(),
+          uploaded_by TEXT,
+          notes TEXT,
+          created_at TIMESTAMP DEFAULT NOW()
+        )
+      `);
+      console.log('✅ Table candidate_documents ready');
+
       // If any right-to-work documents were uploaded, create candidate_documents records
       if (uploadedFileUrls.length > 0) {
         console.log('📁 Creating candidate_documents records for right-to-work files...');
@@ -263,13 +281,19 @@ exports.handler = async (event, context) => {
         }
       }
 
-      // Update emergency contact fields on the candidate contact record
+      // Update emergency contact fields and contract signature on the candidate contact record
       try {
         const emergencyUpdateQuery = `
           UPDATE contacts
           SET emergency_contact_name = $2,
               emergency_contact_phone = $3,
               emergency_contact_relationship = $4,
+              contract_status = $5,
+              contract_signed_by = $6,
+              contract_signed_date = $7,
+              registration_status = $8,
+              part2_status = $9,
+              part2_completed_at = NOW(),
               updated_at = NOW()
           WHERE id = $1
         `;
@@ -278,11 +302,16 @@ exports.handler = async (event, context) => {
           formData.candidateId,
           formData.emergencyName || null,
           formData.emergencyPhone || null,
-          formData.emergencyRelationship || null
+          formData.emergencyRelationship || null,
+          formData.contractAccepted ? 'signed' : 'pending',
+          formData.contractSignature || null,
+          formData.contractDate || null,
+          'work_ready',
+          'completed'
         ]);
-        console.log('✅ Emergency contact details updated for candidate:', formData.candidateId);
+        console.log('✅ Emergency contact and contract details updated for candidate:', formData.candidateId);
       } catch (emError) {
-        console.error('❌ Failed to update emergency contact details:', emError.message);
+        console.error('❌ Failed to update candidate details:', emError.message);
       }
 
       // Insert or update the candidate registration with Part 2 data
