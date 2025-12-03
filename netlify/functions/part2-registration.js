@@ -481,8 +481,8 @@ Communications Act 2000 and the Electronic Signatures Regulations 2002.
         registrationId: result.registrationId
       })
     };
-
-    console.log('✅ Part 2 registration completed successfully');
+  } catch (error) {
+    console.error('❌ Part 2 registration error:', error);
     return {
       statusCode: 500,
       headers: {
