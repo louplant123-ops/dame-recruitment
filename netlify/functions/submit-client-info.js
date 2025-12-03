@@ -96,6 +96,36 @@ async function updateClientInfo(formId, formData) {
     const taskResult = await client.query(insertTaskQuery, taskValues);
     console.log('✅ Task created:', taskResult.rows[0]);
 
+    // Create history/timeline event for form completion
+    try {
+      const historyId = `HIST_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const insertHistoryQuery = `
+        INSERT INTO client_history (
+          id, client_id, event_type, event_action, event_date,
+          user_name, description, metadata, created_at
+        ) VALUES ($1, $2, 'form', 'completed', NOW(), $3, $4, $5, NOW())
+      `;
+
+      const historyValues = [
+        historyId,
+        contact.id,
+        contact.name || 'Client',
+        'Client information form completed via website',
+        JSON.stringify({
+          form_id: formId,
+          completed_at: new Date().toISOString(),
+          form_type: 'client_info',
+          company: contact.company
+        })
+      ];
+
+      await client.query(insertHistoryQuery, historyValues);
+      console.log('✅ Timeline event created for form completion');
+    } catch (historyError) {
+      console.error('⚠️ Failed to create timeline event:', historyError);
+      // Continue anyway - form submission is complete
+    }
+
     await client.end();
     
     return {
