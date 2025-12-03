@@ -100,6 +100,37 @@ async function storeTimesheetInDatabase(timesheetData) {
     const taskResult = await client.query(insertTaskQuery, taskValues);
     console.log('✅ Approval task created:', taskResult.rows[0]);
 
+    // Create timeline event for timesheet submission
+    try {
+      const historyId = `HIST_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const insertHistoryQuery = `
+        INSERT INTO client_history (
+          id, client_id, event_type, event_action, event_date,
+          user_name, description, metadata, created_at
+        ) VALUES ($1, $2, 'timesheet', 'submitted', NOW(), $3, $4, $5, NOW())
+      `;
+
+      const historyValues = [
+        historyId,
+        timesheetData.clientId,
+        timesheetData.submittedBy || clientName,
+        `Timesheet submitted for week ending ${timesheetData.weekEnding}`,
+        JSON.stringify({
+          timesheet_id: timesheetId,
+          week_ending: timesheetData.weekEnding,
+          total_hours: timesheetData.totals.totalHours,
+          total_workers: timesheetData.workers.length,
+          submitted_at: new Date().toISOString()
+        })
+      ];
+
+      await client.query(insertHistoryQuery, historyValues);
+      console.log('✅ Timeline event created for timesheet submission');
+    } catch (historyError) {
+      console.error('⚠️ Failed to create timeline event:', historyError);
+      // Continue anyway - timesheet submission is complete
+    }
+
     await client.end();
     
     return {

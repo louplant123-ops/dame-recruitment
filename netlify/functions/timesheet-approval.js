@@ -85,8 +85,42 @@ async function approveTimesheet(timesheetId, approvalData) {
       timesheetId
     ]);
 
+    const approvedTimesheet = result.rows[0];
+
+    // Create timeline event for timesheet approval
+    try {
+      const historyId = `HIST_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const insertHistoryQuery = `
+        INSERT INTO client_history (
+          id, client_id, event_type, event_action, event_date,
+          user_name, description, metadata, created_at
+        ) VALUES ($1, $2, 'timesheet', 'approved', NOW(), $3, $4, $5, NOW())
+      `;
+
+      const historyValues = [
+        historyId,
+        approvedTimesheet.client_id,
+        approvalData.approverName,
+        `Timesheet approved for week ending ${approvedTimesheet.week_ending_date}`,
+        JSON.stringify({
+          timesheet_id: timesheetId,
+          week_ending: approvedTimesheet.week_ending_date,
+          total_hours: approvedTimesheet.total_hours,
+          approved_by: approvalData.approverName,
+          approved_at: new Date().toISOString(),
+          approval_notes: approvalData.notes || ''
+        })
+      ];
+
+      await client.query(insertHistoryQuery, historyValues);
+      console.log('✅ Timeline event created for timesheet approval');
+    } catch (historyError) {
+      console.error('⚠️ Failed to create timeline event:', historyError);
+      // Continue anyway - timesheet approval is complete
+    }
+
     await client.end();
-    return result.rows[0];
+    return approvedTimesheet;
   } catch (error) {
     console.error('Approval error:', error);
     throw error;

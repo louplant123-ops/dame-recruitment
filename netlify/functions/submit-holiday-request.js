@@ -79,6 +79,41 @@ exports.handler = async (event) => {
       const holiday = result.rows[0];
       console.log('✅ Holiday request created:', holiday.id);
 
+      // Create timeline event for holiday request
+      try {
+        const historyId = `HIST_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        const insertHistoryQuery = `
+          INSERT INTO client_history (
+            id, client_id, event_type, event_action, event_date,
+            user_name, description, metadata, created_at
+          ) VALUES ($1, $2, 'holiday', 'requested', NOW(), $3, $4, $5, NOW())
+        `;
+
+        const historyValues = [
+          historyId,
+          formData.candidateId,
+          formData.candidateName,
+          `Holiday request: ${formData.startDate} to ${formData.endDate} (${formData.totalDays} days)`,
+          JSON.stringify({
+            holiday_id: holiday.id,
+            start_date: formData.startDate,
+            end_date: formData.endDate,
+            total_days: formData.totalDays,
+            leave_type: formData.leaveType,
+            reason: formData.reason,
+            client_approved: formData.clientApproved,
+            client_name: formData.clientName,
+            submitted_at: new Date().toISOString()
+          })
+        ];
+
+        await client.query(insertHistoryQuery, historyValues);
+        console.log('✅ Timeline event created for holiday request');
+      } catch (historyError) {
+        console.error('⚠️ Failed to create timeline event:', historyError);
+        // Continue anyway - holiday request is complete
+      }
+
     // Send notification email to office
     const officeEmailHtml = `
       <!DOCTYPE html>

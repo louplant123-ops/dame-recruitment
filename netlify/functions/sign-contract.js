@@ -1,7 +1,7 @@
 const { Client } = require('pg');
 
 // Update contract signature in database
-async function updateContractSignature(contractId, signatureData) {
+async function updateContractSignature(contractId, signatureData, event) {
   try {
     console.log('🔄 Updating contract signature in database...');
     
@@ -119,6 +119,39 @@ Communications Act 2000 and the Electronic Signatures Regulations 2002.
     const taskResult = await client.query(insertTaskQuery, taskValues);
     console.log('✅ Task created:', taskResult.rows[0]);
 
+    // Create timeline event for contract signing
+    try {
+      const historyId = `HIST_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const insertHistoryQuery = `
+        INSERT INTO client_history (
+          id, client_id, event_type, event_action, event_date,
+          user_name, description, metadata, created_at
+        ) VALUES ($1, $2, 'contract', 'signed', NOW(), $3, $4, $5, NOW())
+      `;
+
+      const historyValues = [
+        historyId,
+        contact.id,
+        signatureData.fullName,
+        `Contract signed by ${signatureData.fullName} (${signatureData.position})`,
+        JSON.stringify({
+          contract_id: contractId,
+          signer_name: signatureData.fullName,
+          signer_position: signatureData.position,
+          company: signatureData.companyName,
+          signed_date: new Date().toISOString(),
+          ip_address: event.headers['x-forwarded-for'] || event.headers['client-ip'] || 'Unknown',
+          user_agent: event.headers['user-agent'] || 'Unknown'
+        })
+      ];
+
+      await client.query(insertHistoryQuery, historyValues);
+      console.log('✅ Timeline event created for contract signing');
+    } catch (historyError) {
+      console.error('⚠️ Failed to create timeline event:', historyError);
+      // Continue anyway - contract signing is complete
+    }
+
     // Generate client info form ID and update contact
     const infoFormId = `INFO_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     await client.query(
@@ -168,7 +201,8 @@ exports.handler = async (event, context) => {
     // Update contract in database
     const result = await updateContractSignature(
       signatureData.contractId,
-      signatureData.signatureData
+      signatureData.signatureData,
+      event
     );
     console.log('✅ Contract signed successfully');
 
