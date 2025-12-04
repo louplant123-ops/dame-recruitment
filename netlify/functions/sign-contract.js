@@ -20,6 +20,10 @@ async function updateContractSignature(contractId, signatureData, event) {
     await client.connect();
     console.log('✅ Connected to database');
 
+    // Get IP address and user agent for legal record
+    const ipAddress = event.headers['x-forwarded-for'] || event.headers['client-ip'] || 'Unknown';
+    const userAgent = event.headers['user-agent'] || 'Unknown';
+
     // Update contact with signature
     const updateQuery = `
       UPDATE contacts 
@@ -28,14 +32,20 @@ async function updateContractSignature(contractId, signatureData, event) {
         contract_signed_date = NOW(),
         contract_signed_by = $1,
         contract_signer_position = $2,
+        contract_signer_company = $3,
+        contract_signature_ip = $4,
+        contract_signature_user_agent = $5,
         updated_at = NOW()
-      WHERE contract_id = $3
+      WHERE contract_id = $6
       RETURNING id, name, company, contract_terms
     `;
 
     const values = [
       signatureData.fullName,
       signatureData.position,
+      signatureData.companyName,
+      ipAddress,
+      userAgent,
       contractId
     ];
 

@@ -253,6 +253,9 @@ exports.handler = async (event, context) => {
       // If any right-to-work documents were uploaded, create candidate_documents records
       if (uploadedFileUrls.length > 0) {
         console.log('📁 Creating candidate_documents records for right-to-work files...');
+        console.log('📁 Number of files to save:', uploadedFileUrls.length);
+        console.log('📁 Candidate ID:', formData.candidateId);
+        
         for (const file of uploadedFileUrls) {
           const documentId = `DOC_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
           const insertDocumentQuery = `
@@ -272,11 +275,19 @@ exports.handler = async (event, context) => {
             'Right to work document uploaded via website Part 2 registration'
           ];
 
+          console.log('📄 Saving document:', {
+            id: documentId,
+            contact_id: formData.candidateId,
+            name: file.fileName,
+            url: file.url
+          });
+
           try {
             await client.query(insertDocumentQuery, documentValues);
             console.log('✅ Candidate document record created:', documentId);
           } catch (docError) {
             console.error('❌ Failed to create candidate document record:', docError.message);
+            console.error('❌ Document values:', documentValues);
           }
         }
       }
@@ -475,6 +486,39 @@ Communications Act 2000 and the Electronic Signatures Regulations 2002.
         }
       }
       
+      // Create timeline event for Part 2 registration completion
+      try {
+        const historyId = `HIST_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        const insertHistoryQuery = `
+          INSERT INTO client_history (
+            id, client_id, event_type, event_action, event_date,
+            user_name, description, metadata, created_at
+          ) VALUES ($1, $2, 'registration', 'part2_completed', NOW(), $3, $4, $5, NOW())
+        `;
+
+        const historyValues = [
+          historyId,
+          formData.candidateId,
+          `${formData.firstName} ${formData.lastName}`,
+          `Part 2 registration completed - Right to work verified and contract signed`,
+          JSON.stringify({
+            registration_type: 'part2',
+            right_to_work_method: formData.rightToWorkMethod,
+            documents_uploaded: uploadedFileUrls.length,
+            contract_signed: formData.contractAccepted,
+            contract_signature: formData.contractSignature,
+            emergency_contact: formData.emergencyContactName,
+            completed_at: new Date().toISOString()
+          })
+        ];
+
+        await client.query(insertHistoryQuery, historyValues);
+        console.log('✅ Timeline event created for Part 2 registration');
+      } catch (historyError) {
+        console.error('⚠️ Failed to create timeline event:', historyError);
+        // Continue anyway - registration is complete
+      }
+
       var result = {
         success: true,
         registrationId: dbResult.rows[0].id,

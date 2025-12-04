@@ -729,6 +729,43 @@ async function storeInDatabase(registrationData) {
       // Do not throw - we don't want to break registration if Activity logging fails
     }
 
+    // Create timeline event for Part 1 registration completion
+    try {
+      const candidateId = result.rows[0]?.id;
+      if (candidateId) {
+        const historyId = `HIST_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        const insertHistoryQuery = `
+          INSERT INTO client_history (
+            id, client_id, event_type, event_action, event_date,
+            user_name, description, metadata, created_at
+          ) VALUES ($1, $2, 'registration', 'part1_completed', NOW(), $3, $4, $5, NOW())
+        `;
+
+        const historyValues = [
+          historyId,
+          candidateId,
+          `${registrationData.firstName} ${registrationData.lastName}`,
+          `Part 1 registration completed - Candidate registered via website`,
+          JSON.stringify({
+            registration_type: 'part1',
+            email: registrationData.email,
+            phone: registrationData.phone,
+            postcode: registrationData.postcode,
+            cv_uploaded: !!registrationData.cvFileBase64,
+            job_types: jobTypesArray,
+            industries: industriesArray,
+            completed_at: new Date().toISOString()
+          })
+        ];
+
+        await client.query(insertHistoryQuery, historyValues);
+        console.log('✅ Timeline event created for Part 1 registration');
+      }
+    } catch (historyError) {
+      console.error('⚠️ Failed to create timeline event:', historyError);
+      // Continue anyway - registration is complete
+    }
+
     await client.end();
     
     console.log('✅ Registration stored in database:', result.rows[0]);
