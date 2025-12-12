@@ -1035,10 +1035,28 @@ maxTravelDistance: '10',
 
               {/* Previous Employment */}
               <div className="border border-neutral-light rounded-lg p-4">
-                <h4 className="font-body font-medium text-charcoal mb-4">Previous Employment</h4>
+                <div className="flex justify-between items-center mb-4">
+                  <h4 className="font-body font-medium text-charcoal">Previous Employment</h4>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newJob = {
+                        company: '',
+                        position: '',
+                        startDate: '',
+                        endDate: '',
+                        description: ''
+                      }
+                      updateFormData('employmentHistory', [...formData.employmentHistory, newJob])
+                    }}
+                    className="px-4 py-2 bg-primary-red text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
+                  >
+                    + Add Job
+                  </button>
+                </div>
                 {formData.employmentHistory.length === 0 ? (
                   <p className="text-sm text-charcoal/60 text-center py-4">
-                    No previous employment history. {formData.cvFile ? "We couldn't find any in your CV." : "Upload a CV or add manually."}
+                    No previous employment history. Click "Add Job" to add manually.
                   </p>
                 ) : (
                   <div className="space-y-4">
