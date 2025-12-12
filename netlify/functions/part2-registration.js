@@ -793,10 +793,11 @@ async function sendContractEmail({ to, candidateName, contractHTML, signatureDat
   }
   
   // Create transporter using same config as DameDesk
+  const port = parseInt(process.env.SMTP_PORT || '587');
   const transporter = nodemailer.createTransporter({
-    host: process.env.SMTP_HOST || 'smtp.gmail.com',
-    port: process.env.SMTP_PORT || 587,
-    secure: false,
+    host: process.env.SMTP_HOST || 'smtpout.secureserver.net',
+    port: port,
+    secure: port === 465, // true for 465, false for other ports
     auth: {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASS
