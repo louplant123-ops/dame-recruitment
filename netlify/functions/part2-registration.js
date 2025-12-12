@@ -530,83 +530,166 @@ exports.handler = async (event, context) => {
             minute: '2-digit'
           });
           
-          const contractText = `TERMS OF ENGAGEMENT FOR AGENCY WORKERS (CONTRACT FOR SERVICES)
+          // Generate HTML contract for better preview
+          const contractHTML = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Employment Contract - Dame Recruitment</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; line-height: 1.6; color: #333; }
+    h1 { color: #c41e3a; text-align: center; border-bottom: 3px solid #c41e3a; padding-bottom: 10px; }
+    h2 { color: #c41e3a; margin-top: 30px; }
+    .header { text-align: center; margin-bottom: 30px; }
+    .parties { background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0; }
+    .section { margin: 20px 0; }
+    .section h3 { color: #555; margin-top: 20px; }
+    .section ul { margin-left: 20px; }
+    .signature-block { background: #e8f5e9; border: 2px solid #4caf50; border-radius: 8px; padding: 20px; margin-top: 40px; }
+    .signature-block h3 { color: #2e7d32; margin-top: 0; }
+    .signature-info { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
+    .signature-info div { padding: 10px; background: white; border-radius: 4px; }
+    .signature-info strong { color: #2e7d32; }
+    .legal-notice { background: #fff3cd; border: 1px solid #ffc107; padding: 15px; border-radius: 4px; margin-top: 20px; font-size: 0.9em; }
+    .footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 0.9em; }
+  </style>
+</head>
+<body>
+  <h1>TERMS OF ENGAGEMENT FOR AGENCY WORKERS</h1>
+  <div class="header">
+    <h2>Dame Recruitment Ltd</h2>
+    <p>Contract for Services - Temporary Agency Workers</p>
+  </div>
 
-Dame Recruitment - Terms of engagement for temporary agency workers
+  <div class="parties">
+    <p><strong>This agreement is made on:</strong> ${formData.contractDate || new Date().toLocaleDateString('en-GB')}</p>
+    <p><strong>Between:</strong></p>
+    <p>Dame Recruitment Ltd ("the Agency")</p>
+    <p><strong>and</strong></p>
+    <p>${formData.firstName || ''} ${formData.lastName || ''} ("the Worker")</p>
+  </div>
 
-This agreement is made on ${formData.contractDate || new Date().toLocaleDateString('en-GB')}
+  <p>By signing below, the Worker agrees to the standard terms and conditions for temporary employment through Dame Recruitment.</p>
 
-Between:
-Dame Recruitment Ltd ("the Agency")
-and
-${formData.firstName || ''} ${formData.lastName || ''} ("the Worker")
+  <div class="section">
+    <h3>1. PAYMENT TERMS AND DEDUCTIONS</h3>
+    <ul>
+      <li>Payment will be made weekly/monthly as agreed</li>
+      <li>Statutory deductions (tax, NI) will be made as required</li>
+      <li>Timesheets must be submitted promptly</li>
+    </ul>
+  </div>
 
-By signing below, the Worker agrees to the standard terms and conditions for temporary employment through Dame Recruitment.
+  <div class="section">
+    <h3>2. ASSIGNMENT OBLIGATIONS AND CONDUCT</h3>
+    <ul>
+      <li>Worker agrees to perform duties as assigned</li>
+      <li>Professional conduct expected at all times</li>
+      <li>Follow client site rules and procedures</li>
+    </ul>
+  </div>
 
-1. PAYMENT TERMS AND DEDUCTIONS
-   - Payment will be made weekly/monthly as agreed
-   - Statutory deductions (tax, NI) will be made as required
-   - Timesheets must be submitted promptly
+  <div class="section">
+    <h3>3. HEALTH AND SAFETY REQUIREMENTS</h3>
+    <ul>
+      <li>Comply with all H&S regulations</li>
+      <li>Report incidents immediately</li>
+      <li>Use provided PPE where required</li>
+    </ul>
+  </div>
 
-2. ASSIGNMENT OBLIGATIONS AND CONDUCT
-   - Worker agrees to perform duties as assigned
-   - Professional conduct expected at all times
-   - Follow client site rules and procedures
+  <div class="section">
+    <h3>4. CONFIDENTIALITY AND DATA PROTECTION</h3>
+    <ul>
+      <li>Maintain confidentiality of client information</li>
+      <li>Comply with GDPR requirements</li>
+      <li>Protect sensitive data</li>
+    </ul>
+  </div>
 
-3. HEALTH AND SAFETY REQUIREMENTS
-   - Comply with all H&S regulations
-   - Report incidents immediately
-   - Use provided PPE where required
+  <div class="section">
+    <h3>5. ANNUAL LEAVE AND SICK PAY ENTITLEMENTS</h3>
+    <ul>
+      <li>Statutory holiday entitlement applies</li>
+      <li>Sick pay as per statutory requirements</li>
+      <li>Request leave in advance where possible</li>
+    </ul>
+  </div>
 
-4. CONFIDENTIALITY AND DATA PROTECTION
-   - Maintain confidentiality of client information
-   - Comply with GDPR requirements
-   - Protect sensitive data
+  <div class="section">
+    <h3>6. TERMINATION CONDITIONS</h3>
+    <ul>
+      <li>Either party may terminate with notice</li>
+      <li>Immediate termination for gross misconduct</li>
+      <li>Final payment on termination</li>
+    </ul>
+  </div>
 
-5. ANNUAL LEAVE AND SICK PAY ENTITLEMENTS
-   - Statutory holiday entitlement applies
-   - Sick pay as per statutory requirements
-   - Request leave in advance where possible
+  <div class="signature-block">
+    <h3>✓ DIGITAL SIGNATURE CONFIRMATION</h3>
+    <p><strong>This contract was digitally signed on:</strong> ${signedDate}</p>
+    <div class="signature-info">
+      <div><strong>Signed by:</strong><br>${formData.contractSignature}</div>
+      <div><strong>Date:</strong><br>${formData.contractDate}</div>
+      <div><strong>IP Address:</strong><br>${event.headers['x-forwarded-for'] || event.headers['client-ip'] || 'Unknown'}</div>
+      <div><strong>User Agent:</strong><br>${(event.headers['user-agent'] || 'Unknown').substring(0, 50)}...</div>
+    </div>
+  </div>
 
-6. TERMINATION CONDITIONS
-   - Either party may terminate with notice
-   - Immediate termination for gross misconduct
-   - Final payment on termination
+  <div class="legal-notice">
+    <strong>Legal Notice:</strong> This constitutes a legally binding electronic signature under the Electronic Communications Act 2000 and the Electronic Signatures Regulations 2002.
+  </div>
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  <div class="footer">
+    <p>Dame Recruitment Ltd | Registered in England and Wales</p>
+    <p>Document generated: ${new Date().toLocaleString('en-GB')}</p>
+  </div>
+</body>
+</html>`;
 
-DIGITAL SIGNATURE CONFIRMATION
-
-This contract was digitally signed on: ${signedDate}
-
-Signed by: ${formData.contractSignature}
-Date: ${formData.contractDate}
-
-IP Address: ${event.headers['x-forwarded-for'] || event.headers['client-ip'] || 'Unknown'}
-User Agent: ${event.headers['user-agent'] || 'Unknown'}
-
-This constitutes a legally binding electronic signature under the Electronic 
-Communications Act 2000 and the Electronic Signatures Regulations 2002.
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
-
-          // Save contract document to candidate_documents table
+          // Save contract document to candidate_documents table as HTML
           const docId = `DOC_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+          const contractBase64 = Buffer.from(contractHTML).toString('base64');
+          
           await contractClient.query(`
             INSERT INTO candidate_documents (
-              id, contact_id, type, name, content, 
+              id, contact_id, type, name, content, file_size,
               uploaded_date, uploaded_by, notes
-            ) VALUES ($1, $2, 'contract', $3, $4, NOW(), 'System', $5)
+            ) VALUES ($1, $2, 'contract', $3, $4, $5, NOW(), 'System', $6)
           `, [
             docId,
             formData.candidateId,
-            `Worker_Contract_${formData.contractSignature.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.txt`,
-            contractText,
+            `Worker_Contract_${formData.contractSignature.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.html`,
+            contractBase64,
+            contractHTML.length,
             `Signed by: ${formData.contractSignature} on ${formData.contractDate}`
           ]);
           
+          console.log('✅ Contract document saved as HTML');
+          
+          // Send contract copy to candidate via email
+          if (formData.email || contactData?.email) {
+            try {
+              const candidateEmail = formData.email || contactData?.email;
+              console.log('📧 Sending contract copy to:', candidateEmail);
+              
+              await sendContractEmail({
+                to: candidateEmail,
+                candidateName: `${formData.firstName || ''} ${formData.lastName || ''}`,
+                contractHTML: contractHTML,
+                signatureDate: signedDate
+              });
+              
+              console.log('✅ Contract email sent successfully');
+            } catch (emailError) {
+              console.error('⚠️ Failed to send contract email:', emailError);
+              // Don't fail the registration if email fails
+            }
+          } else {
+            console.warn('⚠️ No email address available to send contract');
+          }
+          
           await contractClient.end();
-          console.log('✅ Contract document saved');
         } catch (docError) {
           console.error('⚠️ Failed to save contract document:', docError);
           // Continue anyway - registration is complete
@@ -698,6 +781,96 @@ Communications Act 2000 and the Electronic Signatures Regulations 2002.
     };
   }
 };
+
+// Send contract email to candidate
+async function sendContractEmail({ to, candidateName, contractHTML, signatureDate }) {
+  // Use Netlify's email service or SendGrid
+  const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
+  
+  if (!SENDGRID_API_KEY) {
+    console.warn('⚠️ SENDGRID_API_KEY not configured - skipping email');
+    return;
+  }
+  
+  const emailData = {
+    personalizations: [{
+      to: [{ email: to }],
+      subject: 'Your Employment Contract - Dame Recruitment'
+    }],
+    from: {
+      email: 'noreply@damerecruitment.co.uk',
+      name: 'Dame Recruitment'
+    },
+    content: [{
+      type: 'text/html',
+      value: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="UTF-8">
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: #c41e3a; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+            .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }
+            .button { display: inline-block; background: #c41e3a; color: white; padding: 12px 30px; text-decoration: none; border-radius: 4px; margin: 20px 0; }
+            .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 0.9em; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>Dame Recruitment</h1>
+            </div>
+            <div class="content">
+              <h2>Your Employment Contract</h2>
+              <p>Dear ${candidateName},</p>
+              <p>Thank you for completing your registration with Dame Recruitment!</p>
+              <p>Your employment contract has been digitally signed and is now active. A copy of your signed contract is attached to this email for your records.</p>
+              <p><strong>Contract Details:</strong></p>
+              <ul>
+                <li>Signed on: ${signatureDate}</li>
+                <li>Status: Active</li>
+                <li>Type: Temporary Agency Worker Agreement</li>
+              </ul>
+              <p>Please keep this contract for your records. You can also access it anytime through your candidate portal.</p>
+              <p>If you have any questions about your contract or registration, please don't hesitate to contact us.</p>
+              <p>We look forward to working with you!</p>
+              <p><strong>Best regards,</strong><br>The Dame Recruitment Team</p>
+            </div>
+            <div class="footer">
+              <p>Dame Recruitment Ltd | Registered in England and Wales</p>
+              <p>This is an automated message. Please do not reply to this email.</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `
+    }],
+    attachments: [{
+      content: Buffer.from(contractHTML).toString('base64'),
+      filename: `Employment_Contract_${candidateName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.html`,
+      type: 'text/html',
+      disposition: 'attachment'
+    }]
+  };
+  
+  const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${SENDGRID_API_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(emailData)
+  });
+  
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`SendGrid API error: ${response.status} - ${errorText}`);
+  }
+  
+  console.log('✅ Email sent via SendGrid to:', to);
+}
 
 // Parse multipart form data with file handling
 async function parseMultipartFormDataWithFiles(body) {
