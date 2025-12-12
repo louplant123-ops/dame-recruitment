@@ -150,23 +150,19 @@ maxTravelDistance: '10',
         if (!formData.nationality) newErrors.nationality = 'Nationality is required'
         break
       case 3:
-        if (!formData.rightToWork) newErrors.rightToWork = 'Right to work status is required'
-        if (formData.rightToWork === 'visa' && !formData.visaType) newErrors.visaType = 'Visa type is required'
-        break
-      case 4:
         if (formData.jobTypes.length === 0) newErrors.jobTypes = 'Please select at least one job type'
         if (formData.industries.length === 0) newErrors.industries = 'Please select at least one industry'
         break
-      case 5:
+      case 4:
         if (formData.shifts.length === 0) newErrors.shifts = 'Please select at least one shift preference'
         break
-      case 6:
+      case 5:
         if (!formData.transport) newErrors.transport = 'Transport method is required'
         break
-      case 7:
+      case 6:
         // Employment History - no required validation
         break
-      case 8:
+      case 7:
         if (!formData.terms) newErrors.terms = 'You must accept the terms and conditions'
         break
     }

@@ -4,20 +4,6 @@ import { useState, useEffect } from 'react'
 
 export default function RegisterPart2Page() {
   const [candidateId, setCandidateId] = useState<string | null>(null)
-  
-  useEffect(() => {
-    // Get candidate ID from URL params on client side
-    const urlParams = new URLSearchParams(window.location.search)
-    setCandidateId(urlParams.get('id'))
-  }, [])
-  
-  useEffect(() => {
-    // Update form data when candidateId changes
-    if (candidateId) {
-      setFormData(prev => ({ ...prev, candidateId }))
-    }
-  }, [candidateId])
-  
   const [formData, setFormData] = useState({
     candidateId: '',
     sortCode: '',
@@ -43,6 +29,19 @@ export default function RegisterPart2Page() {
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
   const [uploadError, setUploadError] = useState('')
+
+  useEffect(() => {
+    // Get candidate ID from URL params on client side
+    const urlParams = new URLSearchParams(window.location.search)
+    setCandidateId(urlParams.get('id'))
+  }, [])
+  
+  useEffect(() => {
+    // Update form data when candidateId changes
+    if (candidateId) {
+      setFormData(prev => ({ ...prev, candidateId }))
+    }
+  }, [candidateId])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target
@@ -96,13 +95,9 @@ export default function RegisterPart2Page() {
       // Create FormData to handle file uploads
       const formDataToSend = new FormData();
       
-      // Add all form fields (except employmentHistory which we'll stringify)
+      // Add all form fields
       Object.entries(formData).forEach(([key, value]) => {
-        if (key === 'employmentHistory') {
-          formDataToSend.append(key, JSON.stringify(value));
-        } else {
-          formDataToSend.append(key, value.toString());
-        }
+        formDataToSend.append(key, value.toString());
       });
       
       // Add uploaded Right to Work files
@@ -334,7 +329,7 @@ export default function RegisterPart2Page() {
                               Complete a fast, secure digital identity check using Yoti.
                             </p>
                             <div className="bg-white rounded-md p-3 mb-3">
-                              <p className="text-sm font-medium text-gray-900 mb-2">What you'll need:</p>
+                              <p className="text-sm font-medium text-gray-900 mb-2">What you&apos;ll need:</p>
                               <ul className="text-sm text-gray-700 space-y-1 ml-4 list-disc">
                                 <li>Your valid UK or Irish passport</li>
                                 <li>A smartphone or webcam</li>
@@ -343,7 +338,7 @@ export default function RegisterPart2Page() {
                             </div>
                             <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
                               <p className="text-sm text-blue-900">
-                                <strong>📧 Next step:</strong> After you submit this form, we'll email you a secure Yoti link to complete your digital identity verification. This is fully compliant with UK Home Office requirements.
+                                <strong>📧 Next step:</strong> After you submit this form, we&apos;ll email you a secure Yoti link to complete your digital identity verification. This is fully compliant with UK Home Office requirements.
                               </p>
                             </div>
                           </div>
@@ -361,7 +356,7 @@ export default function RegisterPart2Page() {
                               One of our consultants will verify your identity via a live video call.
                             </p>
                             <div className="bg-white rounded-md p-3 mb-3">
-                              <p className="text-sm font-medium text-gray-900 mb-2">What you'll need:</p>
+                              <p className="text-sm font-medium text-gray-900 mb-2">What you&apos;ll need:</p>
                               <ul className="text-sm text-gray-700 space-y-1 ml-4 list-disc">
                                 <li>Your original UK or Irish passport</li>
                                 <li>A device with camera and microphone</li>
@@ -553,21 +548,23 @@ export default function RegisterPart2Page() {
                                   </div>
                                   <button
                                     type="button"
-                                onClick={() => removeFile(index)}
-                                className="text-red-600 hover:text-red-800 text-sm"
-                              >
-                                Remove
-                              </button>
+                                    onClick={() => removeFile(index)}
+                                    className="text-red-600 hover:text-red-800 text-sm"
+                                  >
+                                    Remove
+                                  </button>
+                                </div>
+                              ))}
                             </div>
-                          ))}
-                        </div>
-                      )}
+                          )}
 
-                      <p className="text-sm text-gray-500 mt-2">
-                        Please upload clear photos or scans of your right to work documents. 
-                        For passports, include the photo page and any relevant visa pages.
-                      </p>
-                    </div>
+                          <p className="text-sm text-gray-500 mt-2">
+                            Please upload clear photos or scans of your right to work documents. 
+                            For passports, include the photo page and any relevant visa pages.
+                          </p>
+                        </div>
+                      </div>
+                    </details>
                   </div>
                 )}
               </div>
