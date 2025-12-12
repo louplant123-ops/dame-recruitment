@@ -782,94 +782,84 @@ exports.handler = async (event, context) => {
   }
 };
 
-// Send contract email to candidate
+// Send contract email to candidate using Nodemailer (same as DameDesk)
 async function sendContractEmail({ to, candidateName, contractHTML, signatureDate }) {
-  // Use Netlify's email service or SendGrid
-  const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
+  const nodemailer = require('nodemailer');
   
-  if (!SENDGRID_API_KEY) {
-    console.warn('⚠️ SENDGRID_API_KEY not configured - skipping email');
+  // Check if SMTP credentials are configured
+  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+    console.warn('⚠️ SMTP credentials not configured - skipping email');
     return;
   }
   
-  const emailData = {
-    personalizations: [{
-      to: [{ email: to }],
-      subject: 'Your Employment Contract - Dame Recruitment'
-    }],
-    from: {
-      email: 'noreply@damerecruitment.co.uk',
-      name: 'Dame Recruitment'
-    },
-    content: [{
-      type: 'text/html',
-      value: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="UTF-8">
-          <style>
-            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .header { background: #c41e3a; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
-            .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }
-            .button { display: inline-block; background: #c41e3a; color: white; padding: 12px 30px; text-decoration: none; border-radius: 4px; margin: 20px 0; }
-            .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 0.9em; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <h1>Dame Recruitment</h1>
-            </div>
-            <div class="content">
-              <h2>Your Employment Contract</h2>
-              <p>Dear ${candidateName},</p>
-              <p>Thank you for completing your registration with Dame Recruitment!</p>
-              <p>Your employment contract has been digitally signed and is now active. A copy of your signed contract is attached to this email for your records.</p>
-              <p><strong>Contract Details:</strong></p>
-              <ul>
-                <li>Signed on: ${signatureDate}</li>
-                <li>Status: Active</li>
-                <li>Type: Temporary Agency Worker Agreement</li>
-              </ul>
-              <p>Please keep this contract for your records. You can also access it anytime through your candidate portal.</p>
-              <p>If you have any questions about your contract or registration, please don't hesitate to contact us.</p>
-              <p>We look forward to working with you!</p>
-              <p><strong>Best regards,</strong><br>The Dame Recruitment Team</p>
-            </div>
-            <div class="footer">
-              <p>Dame Recruitment Ltd | Registered in England and Wales</p>
-              <p>This is an automated message. Please do not reply to this email.</p>
-            </div>
-          </div>
-        </body>
-        </html>
-      `
-    }],
+  // Create transporter using same config as DameDesk
+  const transporter = nodemailer.createTransporter({
+    host: process.env.SMTP_HOST || 'smtp.gmail.com',
+    port: process.env.SMTP_PORT || 587,
+    secure: false,
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS
+    }
+  });
+  
+  const emailHTML = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #dc2626; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+        .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }
+        .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 0.9em; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>Dame Recruitment</h1>
+        </div>
+        <div class="content">
+          <h2>Your Employment Contract</h2>
+          <p>Dear ${candidateName},</p>
+          <p>Thank you for completing your registration with Dame Recruitment!</p>
+          <p>Your employment contract has been digitally signed and is now active. A copy of your signed contract is attached to this email for your records.</p>
+          <p><strong>Contract Details:</strong></p>
+          <ul>
+            <li>Signed on: ${signatureDate}</li>
+            <li>Status: Active</li>
+            <li>Type: Temporary Agency Worker Agreement</li>
+          </ul>
+          <p>Please keep this contract for your records. You can also access it anytime through your candidate portal.</p>
+          <p>If you have any questions about your contract or registration, please don't hesitate to contact us.</p>
+          <p>We look forward to working with you!</p>
+          <p><strong>Best regards,</strong><br>The Dame Recruitment Team</p>
+        </div>
+        <div class="footer">
+          <p>Dame Recruitment Ltd | Registered in England and Wales</p>
+          <p>This is an automated message. Please do not reply to this email.</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+  
+  const mailOptions = {
+    from: process.env.SMTP_FROM || 'noreply@damerecruitment.co.uk',
+    to: to,
+    subject: 'Your Employment Contract - Dame Recruitment',
+    html: emailHTML,
     attachments: [{
-      content: Buffer.from(contractHTML).toString('base64'),
       filename: `Employment_Contract_${candidateName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.html`,
-      type: 'text/html',
-      disposition: 'attachment'
+      content: contractHTML,
+      contentType: 'text/html'
     }]
   };
   
-  const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${SENDGRID_API_KEY}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(emailData)
-  });
-  
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`SendGrid API error: ${response.status} - ${errorText}`);
-  }
-  
-  console.log('✅ Email sent via SendGrid to:', to);
+  const result = await transporter.sendMail(mailOptions);
+  console.log('✅ Contract email sent via SMTP to:', to, '- Message ID:', result.messageId);
 }
 
 // Parse multipart form data with file handling
