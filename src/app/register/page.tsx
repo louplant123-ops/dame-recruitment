@@ -1,12 +1,18 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import type { Metadata } from 'next'
 
-// Multi-step registration form component
-export default function RegisterPage() {
+// Registration form component (wrapped in Suspense)
+function RegistrationForm() {
+  const searchParams = useSearchParams()
+  const candidateId = searchParams.get('id')
+  
   const [currentStep, setCurrentStep] = useState(1)
+  const [isLoadingCandidate, setIsLoadingCandidate] = useState(false)
   const [formData, setFormData] = useState({
+    candidateId: candidateId || '', // Store candidate ID for submission
     // Personal Details
     firstName: '',
     lastName: '',
@@ -17,11 +23,6 @@ export default function RegisterPage() {
     postcode: '',
     gender: '',
     nationality: '',
-    
-    // Right to Work
-    rightToWork: '',
-    visaType: '',
-    visaExpiry: '',
     
     // Role Interests
     jobTypes: [] as string[],
@@ -46,6 +47,19 @@ maxTravelDistance: '10',
     // CV Upload
     cvFile: null as File | null,
     
+    // Employment History
+    currentlyEmployed: false,
+    currentEmployer: '',
+    currentPosition: '',
+    currentStartDate: '',
+    employmentHistory: [] as Array<{
+      company: string;
+      position: string;
+      startDate: string;
+      endDate: string;
+      description: string;
+    }>,
+    
     // Medical/Disability Information
     medicalConditions: '',
     disabilityInfo: '',
@@ -58,49 +72,101 @@ maxTravelDistance: '10',
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isParsingCV, setIsParsingCV] = useState(false)
+  const [cvParseMessage, setCvParseMessage] = useState<{type: 'success' | 'error', text: string} | null>(null)
 
   const totalSteps = 7
 
   const stepTitles = [
+    'CV Upload (Optional)',
     'Personal Details',
-    'Right to Work',
     'Role Interests', 
     'Shift Preferences',
     'Transport',
-    'CV Upload',
+    'Employment History',
     'Medical Information'
   ]
+
+  // Pre-fill form if candidate ID is provided
+  useEffect(() => {
+    const loadCandidateData = async () => {
+      if (!candidateId) return
+      
+      setIsLoadingCandidate(true)
+      try {
+        // Fetch candidate data from DameDesk via API
+        const response = await fetch(`/.netlify/functions/get-candidate?id=${candidateId}`)
+        
+        if (response.ok) {
+          const candidate = await response.json()
+          console.log('📋 Pre-filling form with candidate data:', candidate)
+          
+          // Split name into first and last name
+          const nameParts = candidate.name?.split(' ') || []
+          const firstName = nameParts[0] || ''
+          const lastName = nameParts.slice(1).join(' ') || ''
+          
+          setFormData(prev => ({
+            ...prev,
+            candidateId: candidateId,
+            firstName: firstName,
+            lastName: lastName,
+            email: candidate.email || '',
+            phone: candidate.phone || '',
+            postcode: candidate.postcode || '',
+            address: candidate.address || ''
+          }))
+          
+          console.log('✅ Form pre-filled successfully')
+        } else {
+          console.warn('⚠️ Could not fetch candidate data, starting with empty form')
+        }
+      } catch (error) {
+        console.error('❌ Error loading candidate data:', error)
+      } finally {
+        setIsLoadingCandidate(false)
+      }
+    }
+    
+    loadCandidateData()
+  }, [candidateId])
 
   const validateStep = (step: number): boolean => {
     const newErrors: Record<string, string> = {}
     
     switch (step) {
       case 1:
-        if (!formData.firstName.trim()) newErrors.firstName = 'First name is required'
-        if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required'
-        if (!formData.email.trim()) newErrors.email = 'Email is required'
-        if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Invalid email format'
-        if (!formData.phone.trim()) newErrors.phone = 'Phone number is required'
-        if (!formData.postcode.trim()) newErrors.postcode = 'Postcode is required'
+        // CV Upload step - no required validation
         break
       case 2:
+        if (!formData.firstName) newErrors.firstName = 'First name is required'
+        if (!formData.lastName) newErrors.lastName = 'Last name is required'
+        if (!formData.email) newErrors.email = 'Email is required'
+        if (!formData.phone) newErrors.phone = 'Phone number is required'
+        if (!formData.dateOfBirth) newErrors.dateOfBirth = 'Date of birth is required'
+        if (!formData.address) newErrors.address = 'Address is required'
+        if (!formData.postcode) newErrors.postcode = 'Postcode is required'
+        if (!formData.gender) newErrors.gender = 'Gender is required'
+        if (!formData.nationality) newErrors.nationality = 'Nationality is required'
+        break
+      case 3:
         if (!formData.rightToWork) newErrors.rightToWork = 'Right to work status is required'
         if (formData.rightToWork === 'visa' && !formData.visaType) newErrors.visaType = 'Visa type is required'
         break
-      case 3:
+      case 4:
         if (formData.jobTypes.length === 0) newErrors.jobTypes = 'Please select at least one job type'
         if (formData.industries.length === 0) newErrors.industries = 'Please select at least one industry'
         break
-      case 4:
+      case 5:
         if (formData.shifts.length === 0) newErrors.shifts = 'Please select at least one shift preference'
         break
-      case 5:
+      case 6:
         if (!formData.transport) newErrors.transport = 'Transport method is required'
         break
-      case 6:
-        // CV Upload step - no required validation
-        break
       case 7:
+        // Employment History - no required validation
+        break
+      case 8:
         if (!formData.terms) newErrors.terms = 'You must accept the terms and conditions'
         break
     }
@@ -119,12 +185,119 @@ maxTravelDistance: '10',
     setCurrentStep(prev => Math.max(prev - 1, 1))
   }
 
+  const handleCVUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Update form data with file
+    updateFormData('cvFile', file)
+
+    // Check file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      setCvParseMessage({ type: 'error', text: 'File is too large. Maximum size is 5MB.' })
+      return
+    }
+
+    setIsParsingCV(true)
+    setCvParseMessage(null)
+
+    try {
+      // Convert file to base64
+      const reader = new FileReader()
+      reader.onload = async () => {
+        try {
+          const base64 = (reader.result as string).split(',')[1]
+
+          // Call parse-cv API
+          const response = await fetch('/.netlify/functions/parse-cv', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fileData: base64,
+              fileName: file.name,
+              mimeType: file.type
+            })
+          })
+
+          const result = await response.json()
+
+          if (result.success && result.data) {
+            // Auto-fill form with AI-extracted data
+            const aiData = result.data
+
+            // Check if currently employed (most recent job has "Present" as end date)
+            const currentlyEmployed = aiData.employmentHistory && 
+              aiData.employmentHistory.length > 0 && 
+              (aiData.employmentHistory[0].endDate === 'Present' || 
+               aiData.employmentHistory[0].endDate === 'present' ||
+               aiData.employmentHistory[0].endDate === 'Current' ||
+               aiData.employmentHistory[0].endDate === 'current')
+
+            setFormData(prev => ({
+              ...prev,
+              firstName: aiData.firstName || prev.firstName,
+              lastName: aiData.lastName || prev.lastName,
+              email: aiData.email || prev.email,
+              phone: aiData.phone || prev.phone,
+              address: aiData.address || prev.address,
+              postcode: aiData.postcode || prev.postcode,
+              jobTypes: aiData.jobTypes && aiData.jobTypes.length > 0 ? aiData.jobTypes : prev.jobTypes,
+              industries: aiData.industries && aiData.industries.length > 0 ? aiData.industries : prev.industries,
+              experience: aiData.experience || prev.experience,
+              yearsOfExperience: aiData.yearsOfExperience || prev.yearsOfExperience,
+              expectedHourlyRate: aiData.expectedHourlyRate?.toString() || prev.expectedHourlyRate,
+              shifts: aiData.shifts && aiData.shifts.length > 0 ? aiData.shifts : prev.shifts,
+              currentlyEmployed: currentlyEmployed,
+              currentEmployer: currentlyEmployed ? aiData.employmentHistory[0].company : '',
+              currentPosition: currentlyEmployed ? aiData.employmentHistory[0].position : '',
+              currentStartDate: currentlyEmployed ? aiData.employmentHistory[0].startDate : '',
+              employmentHistory: aiData.employmentHistory || []
+            }))
+
+            setCvParseMessage({
+              type: 'success',
+              text: '✅ CV parsed successfully! Your form has been auto-filled. Please review and edit as needed.'
+            })
+          } else {
+            setCvParseMessage({
+              type: 'error',
+              text: result.error || 'Could not parse CV. Please fill in the form manually.'
+            })
+          }
+        } catch (error) {
+          console.error('CV parsing error:', error)
+          setCvParseMessage({
+            type: 'error',
+            text: 'Failed to parse CV. Please fill in the form manually.'
+          })
+        } finally {
+          setIsParsingCV(false)
+        }
+      }
+
+      reader.readAsDataURL(file)
+    } catch (error) {
+      console.error('File read error:', error)
+      setCvParseMessage({
+        type: 'error',
+        text: 'Failed to read file. Please try again.'
+      })
+      setIsParsingCV(false)
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     console.log('🚀 HANDLESUBMIT CALLED - Form submission started, current step:', currentStep);
     console.log('📋 HANDLESUBMIT - Form data:', formData);
     console.log('🔍 TERMS VALUE:', formData.terms);
     console.log('🔍 TERMS TYPE:', typeof formData.terms);
+    
+    // Prevent double submission
+    if (isSubmitting) {
+      console.warn('⚠️ Form is already submitting, ignoring duplicate submission');
+      return;
+    }
     
     if (validateStep(currentStep)) {
       console.log('✅ Validation passed, submitting...');
@@ -143,9 +316,6 @@ maxTravelDistance: '10',
         formDataToSend.append('postcode', formData.postcode);
         formDataToSend.append('gender', formData.gender);
         formDataToSend.append('nationality', formData.nationality);
-        formDataToSend.append('rightToWork', formData.rightToWork);
-        formDataToSend.append('visaType', formData.visaType);
-        formDataToSend.append('visaExpiry', formData.visaExpiry);
         formDataToSend.append('jobTypes', JSON.stringify(formData.jobTypes));
         formDataToSend.append('industries', JSON.stringify(formData.industries));
         formDataToSend.append('experience', formData.experience);
@@ -161,7 +331,18 @@ maxTravelDistance: '10',
         formDataToSend.append('medicalConditions', formData.medicalConditions);
         formDataToSend.append('disabilityInfo', formData.disabilityInfo);
         formDataToSend.append('reasonableAdjustments', formData.reasonableAdjustments);
+        formDataToSend.append('currentlyEmployed', formData.currentlyEmployed.toString());
+        formDataToSend.append('currentEmployer', formData.currentEmployer);
+        formDataToSend.append('currentPosition', formData.currentPosition);
+        formDataToSend.append('currentStartDate', formData.currentStartDate);
+        formDataToSend.append('employmentHistory', JSON.stringify(formData.employmentHistory));
         formDataToSend.append('source', 'website_registration');
+        
+        // Add candidate ID if this is updating an existing candidate
+        if (formData.candidateId) {
+          formDataToSend.append('candidateId', formData.candidateId);
+          console.log('📝 Updating existing candidate:', formData.candidateId);
+        }
         
         // Add CV file if uploaded
         if (formData.cvFile) {
@@ -286,8 +467,50 @@ maxTravelDistance: '10',
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Step 1: Personal Details */}
+          {/* Step 1: CV Upload */}
           {currentStep === 1 && (
+            <div className="space-y-6">
+              <div>
+                <label htmlFor="cvFile" className="block font-body font-medium text-charcoal mb-2">
+                  Upload Your CV (Optional)
+                </label>
+                <div className="border-2 border-dashed border-neutral-light rounded-lg p-6 text-center">
+                  <input
+                    type="file"
+                    id="cvFile"
+                    accept=".pdf,.doc,.docx"
+                    onChange={handleCVUpload}
+                    className="hidden"
+                  />
+                  <label htmlFor="cvFile" className="cursor-pointer">
+                    <div className="text-4xl text-neutral-light mb-2">📄</div>
+                    <div className="font-body text-charcoal mb-2">
+                      {formData.cvFile ? formData.cvFile.name : 'Click to upload your CV'}
+                    </div>
+                    <div className="font-body text-sm text-charcoal/70">
+                      Supported formats: PDF, DOC, DOCX (Max 5MB)
+                    </div>
+                    {isParsingCV && (
+                      <div className="mt-3 text-sm text-blue-600">
+                        📄 Processing your CV...
+                      </div>
+                    )}
+                  </label>
+                </div>
+                <p className="text-sm font-body text-charcoal/70 mt-2">
+                  Upload your CV first and we&apos;ll auto-fill the form for you! Or skip this step and fill it manually.
+                </p>
+                {cvParseMessage && (
+                  <div className={`mt-3 p-3 rounded-lg ${cvParseMessage.type === 'success' ? 'bg-green-50 text-green-800' : 'bg-yellow-50 text-yellow-800'}`}>
+                    {cvParseMessage.text}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Step 2: Personal Details */}
+          {currentStep === 2 && (
             <div className="space-y-6">
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
@@ -461,87 +684,6 @@ maxTravelDistance: '10',
             </div>
           )}
 
-          {/* Step 2: Right to Work */}
-          {currentStep === 2 && (
-            <div className="space-y-6">
-              <div>
-                <fieldset>
-                  <legend className="block font-body font-medium text-charcoal mb-4">
-                    Right to Work Status *
-                  </legend>
-                  <div className="space-y-3">
-                    {[
-                      { value: 'uk_citizen', label: 'UK Citizen' },
-                      { value: 'eu_settled', label: 'EU Settled/Pre-settled Status' },
-                      { value: 'visa', label: 'Work Visa' },
-                      { value: 'other', label: 'Other' }
-                    ].map((option) => (
-                      <label key={option.value} className="flex items-center space-x-3 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="rightToWork"
-                          value={option.value}
-                          checked={formData.rightToWork === option.value}
-                          onChange={(e) => updateFormData('rightToWork', e.target.value)}
-                          className="h-4 w-4 text-primary-red focus:ring-primary-red border-neutral-light"
-                        />
-                        <span className="font-body text-charcoal">{option.label}</span>
-                      </label>
-                    ))}
-                  </div>
-                  {errors.rightToWork && (
-                    <p className="mt-2 text-sm text-red-600" role="alert">
-                      {errors.rightToWork}
-                    </p>
-                  )}
-                </fieldset>
-              </div>
-
-              {formData.rightToWork === 'visa' && (
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div>
-                    <label htmlFor="visaType" className="block font-body font-medium text-charcoal mb-2">
-                      Visa Type *
-                    </label>
-                    <select
-                      id="visaType"
-                      value={formData.visaType}
-                      onChange={(e) => updateFormData('visaType', e.target.value)}
-                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-red focus:border-transparent ${
-                        errors.visaType ? 'border-red-500' : 'border-neutral-light'
-                      }`}
-                      aria-describedby={errors.visaType ? 'visaType-error' : undefined}
-                    >
-                      <option value="">Select visa type</option>
-                      <option value="skilled_worker">Skilled Worker Visa</option>
-                      <option value="student">Student Visa</option>
-                      <option value="youth_mobility">Youth Mobility Scheme</option>
-                      <option value="other">Other</option>
-                    </select>
-                    {errors.visaType && (
-                      <p id="visaType-error" className="mt-1 text-sm text-red-600" role="alert">
-                        {errors.visaType}
-                      </p>
-                    )}
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="visaExpiry" className="block font-body font-medium text-charcoal mb-2">
-                      Visa Expiry Date
-                    </label>
-                    <input
-                      type="date"
-                      id="visaExpiry"
-                      value={formData.visaExpiry}
-                      onChange={(e) => updateFormData('visaExpiry', e.target.value)}
-                      className="w-full px-4 py-3 border border-neutral-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-red focus:border-transparent"
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
           {/* Step 3: Role Interests */}
           {currentStep === 3 && (
             <div className="space-y-6">
@@ -582,14 +724,46 @@ maxTravelDistance: '10',
                   <legend className="block font-body font-medium text-charcoal mb-4">
                     Industries of Interest *
                   </legend>
-                  <div className="grid md:grid-cols-2 gap-3">
+                  <div className="space-y-3 max-h-80 overflow-y-auto border border-neutral-light rounded-lg p-4">
                     {[
-                      { value: 'warehousing', label: 'Warehousing & Logistics' },
                       { value: 'manufacturing', label: 'Manufacturing' },
                       { value: 'engineering', label: 'Engineering' },
                       { value: 'construction', label: 'Construction' },
                       { value: 'automotive', label: 'Automotive' },
-                      { value: 'food_production', label: 'Food Production' }
+                      { value: 'food_production', label: 'Food Production' },
+                      { value: 'warehousing', label: 'Warehousing & Logistics' },
+                      { value: 'retail', label: 'Retail' },
+                      { value: 'hospitality', label: 'Hospitality & Catering' },
+                      { value: 'healthcare', label: 'Healthcare' },
+                      { value: 'education', label: 'Education' },
+                      { value: 'administration', label: 'Administration & Office' },
+                      { value: 'customer_service', label: 'Customer Service' },
+                      { value: 'sales', label: 'Sales' },
+                      { value: 'it', label: 'IT & Technology' },
+                      { value: 'finance', label: 'Finance & Accounting' },
+                      { value: 'hr', label: 'Human Resources' },
+                      { value: 'marketing', label: 'Marketing' },
+                      { value: 'legal', label: 'Legal' },
+                      { value: 'property', label: 'Property & Real Estate' },
+                      { value: 'transport', label: 'Transport & Delivery' },
+                      { value: 'security', label: 'Security' },
+                      { value: 'cleaning', label: 'Cleaning & Facilities' },
+                      { value: 'agriculture', label: 'Agriculture & Farming' },
+                      { value: 'beauty', label: 'Beauty & Wellness' },
+                      { value: 'charity', label: 'Charity & Voluntary' },
+                      { value: 'creative', label: 'Creative & Design' },
+                      { value: 'energy', label: 'Energy & Utilities' },
+                      { value: 'environment', label: 'Environment & Conservation' },
+                      { value: 'government', label: 'Government & Public Sector' },
+                      { value: 'insurance', label: 'Insurance' },
+                      { value: 'media', label: 'Media & Publishing' },
+                      { value: 'recruitment', label: 'Recruitment' },
+                      { value: 'science', label: 'Science & Research' },
+                      { value: 'social_care', label: 'Social Care' },
+                      { value: 'sport', label: 'Sport & Fitness' },
+                      { value: 'telecommunications', label: 'Telecommunications' },
+                      { value: 'travel', label: 'Travel & Tourism' },
+                      { value: 'other', label: 'Other' }
                     ].map((option) => (
                       <label key={option.value} className="flex items-center space-x-3 cursor-pointer">
                         <input
@@ -678,7 +852,8 @@ maxTravelDistance: '10',
                   </legend>
                   <div className="grid md:grid-cols-2 gap-3">
                     {[
-                      { value: 'days', label: 'Days (6am - 2pm)' },
+                      { value: 'mornings', label: 'Mornings (6am - 2pm)' },
+                      { value: 'days', label: 'Days (8am - 5pm)' },
                       { value: 'afternoons', label: 'Afternoons (2pm - 10pm)' },
                       { value: 'nights', label: 'Nights (10pm - 6am)' },
                       { value: 'rotating', label: 'Rotating Shifts' },
@@ -789,36 +964,196 @@ maxTravelDistance: '10',
             </div>
           )}
 
-          {/* Step 6: CV Upload */}
+          {/* Step 6: Employment History */}
           {currentStep === 6 && (
             <div className="space-y-6">
-              <div>
-                <label htmlFor="cvFile" className="block font-body font-medium text-charcoal mb-2">
-                  Upload Your CV (Optional)
-                </label>
-                <div className="border-2 border-dashed border-neutral-light rounded-lg p-6 text-center">
-                  <input
-                    type="file"
-                    id="cvFile"
-                    accept=".pdf,.doc,.docx"
-                    onChange={(e) => updateFormData('cvFile', e.target.files?.[0] || null)}
-                    className="hidden"
-                  />
-                  <label htmlFor="cvFile" className="cursor-pointer">
-                    <div className="text-4xl text-neutral-light mb-2">📄</div>
-                    <div className="font-body text-charcoal mb-2">
-                      {formData.cvFile ? formData.cvFile.name : 'Click to upload your CV'}
-                    </div>
-                    <div className="font-body text-sm text-charcoal/70">
-                      Supported formats: PDF, DOC, DOCX (Max 5MB)
-                    </div>
-                  </label>
-                </div>
-                <p className="text-sm font-body text-charcoal/70">
-                  Don&apos;t have a CV ready? No problem! You can still register and upload it later.
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h3 className="font-body font-medium text-blue-900 mb-2">
+                  📋 Employment History
+                </h3>
+                <p className="font-body text-sm text-blue-800">
+                  {formData.employmentHistory.length > 0 
+                    ? "We've extracted your employment history from your CV. Please review and edit as needed."
+                    : "Tell us about your current and previous employment. This helps us match you with the right opportunities."}
                 </p>
               </div>
 
+              {/* Current Employment */}
+              <div className="border border-neutral-light rounded-lg p-4">
+                <div className="flex items-center mb-4">
+                  <input
+                    type="checkbox"
+                    id="currentlyEmployed"
+                    checked={formData.currentlyEmployed}
+                    onChange={(e) => updateFormData('currentlyEmployed', e.target.checked)}
+                    className="w-4 h-4 text-primary-red border-neutral-light rounded focus:ring-primary-red"
+                  />
+                  <label htmlFor="currentlyEmployed" className="ml-2 font-body font-medium text-charcoal">
+                    I am currently employed
+                  </label>
+                </div>
+
+                {formData.currentlyEmployed && (
+                  <div className="space-y-4 mt-4">
+                    <div>
+                      <label htmlFor="currentEmployer" className="block font-body font-medium text-charcoal mb-2">
+                        Current Employer
+                      </label>
+                      <input
+                        type="text"
+                        id="currentEmployer"
+                        value={formData.currentEmployer}
+                        onChange={(e) => updateFormData('currentEmployer', e.target.value)}
+                        className="w-full px-4 py-3 border border-neutral-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-red focus:border-transparent"
+                        placeholder="Company name"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="currentPosition" className="block font-body font-medium text-charcoal mb-2">
+                        Current Position
+                      </label>
+                      <input
+                        type="text"
+                        id="currentPosition"
+                        value={formData.currentPosition}
+                        onChange={(e) => updateFormData('currentPosition', e.target.value)}
+                        className="w-full px-4 py-3 border border-neutral-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-red focus:border-transparent"
+                        placeholder="Job title"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="currentStartDate" className="block font-body font-medium text-charcoal mb-2">
+                        Start Date
+                      </label>
+                      <input
+                        type="month"
+                        id="currentStartDate"
+                        value={formData.currentStartDate}
+                        onChange={(e) => updateFormData('currentStartDate', e.target.value)}
+                        className="w-full px-4 py-3 border border-neutral-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-red focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Previous Employment */}
+              <div className="border border-neutral-light rounded-lg p-4">
+                <h4 className="font-body font-medium text-charcoal mb-4">Previous Employment</h4>
+                {formData.employmentHistory.length === 0 ? (
+                  <p className="text-sm text-charcoal/60 text-center py-4">
+                    No previous employment history. {formData.cvFile ? "We couldn't find any in your CV." : "Upload a CV or add manually."}
+                  </p>
+                ) : (
+                  <div className="space-y-4">
+                    {formData.employmentHistory.map((job, index) => (
+                      <div key={index} className="border border-neutral-light rounded-lg p-4 bg-white">
+                        <div className="flex justify-between items-start mb-4">
+                          <h5 className="font-body font-medium text-charcoal">Job {index + 1}</h5>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newHistory = formData.employmentHistory.filter((_, i) => i !== index)
+                              updateFormData('employmentHistory', newHistory)
+                            }}
+                            className="text-red-600 hover:text-red-800 text-sm font-medium"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                        
+                        <div className="space-y-3">
+                          <div>
+                            <label className="block font-body text-sm font-medium text-charcoal mb-1">
+                              Company
+                            </label>
+                            <input
+                              type="text"
+                              value={job.company}
+                              onChange={(e) => {
+                                const newHistory = [...formData.employmentHistory]
+                                newHistory[index] = { ...job, company: e.target.value }
+                                updateFormData('employmentHistory', newHistory)
+                              }}
+                              className="w-full px-3 py-2 border border-neutral-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-red focus:border-transparent"
+                              placeholder="Company name"
+                            />
+                          </div>
+                          
+                          <div>
+                            <label className="block font-body text-sm font-medium text-charcoal mb-1">
+                              Position
+                            </label>
+                            <input
+                              type="text"
+                              value={job.position}
+                              onChange={(e) => {
+                                const newHistory = [...formData.employmentHistory]
+                                newHistory[index] = { ...job, position: e.target.value }
+                                updateFormData('employmentHistory', newHistory)
+                              }}
+                              className="w-full px-3 py-2 border border-neutral-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-red focus:border-transparent"
+                              placeholder="Job title"
+                            />
+                          </div>
+                          
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="block font-body text-sm font-medium text-charcoal mb-1">
+                                Start Date
+                              </label>
+                              <input
+                                type="text"
+                                value={job.startDate}
+                                onChange={(e) => {
+                                  const newHistory = [...formData.employmentHistory]
+                                  newHistory[index] = { ...job, startDate: e.target.value }
+                                  updateFormData('employmentHistory', newHistory)
+                                }}
+                                className="w-full px-3 py-2 border border-neutral-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-red focus:border-transparent"
+                                placeholder="e.g. Jan 2020"
+                              />
+                            </div>
+                            <div>
+                              <label className="block font-body text-sm font-medium text-charcoal mb-1">
+                                End Date
+                              </label>
+                              <input
+                                type="text"
+                                value={job.endDate}
+                                onChange={(e) => {
+                                  const newHistory = [...formData.employmentHistory]
+                                  newHistory[index] = { ...job, endDate: e.target.value }
+                                  updateFormData('employmentHistory', newHistory)
+                                }}
+                                className="w-full px-3 py-2 border border-neutral-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-red focus:border-transparent"
+                                placeholder="e.g. Dec 2022 or Present"
+                              />
+                            </div>
+                          </div>
+                          
+                          <div>
+                            <label className="block font-body text-sm font-medium text-charcoal mb-1">
+                              Description (Optional)
+                            </label>
+                            <textarea
+                              value={job.description || ''}
+                              onChange={(e) => {
+                                const newHistory = [...formData.employmentHistory]
+                                newHistory[index] = { ...job, description: e.target.value }
+                                updateFormData('employmentHistory', newHistory)
+                              }}
+                              rows={2}
+                              className="w-full px-3 py-2 border border-neutral-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-red focus:border-transparent"
+                              placeholder="Brief description of your role and responsibilities"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
@@ -930,5 +1265,14 @@ maxTravelDistance: '10',
         </form>
       </div>
     </main>
+  )
+}
+
+// Main page component with Suspense wrapper
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <RegistrationForm />
+    </Suspense>
   )
 }

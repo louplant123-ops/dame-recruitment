@@ -79,6 +79,7 @@ exports.handler = async (event, context) => {
       
       console.log('📋 Parsed form data:', formData);
       console.log('📁 Files to upload:', uploadedFiles.length);
+      console.log('📁 File details:', uploadedFiles.map(f => ({ name: f.fileName, size: f.size, type: f.mimeType })));
     } else {
       // Handle JSON data
       console.log('📦 Processing JSON data');
@@ -88,7 +89,10 @@ exports.handler = async (event, context) => {
     console.log('📋 Part 2 data:', {
       candidateId: formData.candidateId,
       hasContract: formData.contractAccepted,
-      rightToWorkMethod: formData.rightToWorkMethod
+      nationalityCategory: formData.nationalityCategory,
+      rightToWorkMethod: formData.rightToWorkMethod,
+      hasShareCode: !!formData.shareCode,
+      hasDateOfBirth: !!formData.dateOfBirth
     });
 
     console.log('📋 Full form data received:', formData);
@@ -96,18 +100,29 @@ exports.handler = async (event, context) => {
     // Upload files to DigitalOcean Spaces if any were uploaded
     let uploadedFileUrls = [];
     if (contentType.includes('multipart/form-data') && uploadedFiles && uploadedFiles.length > 0) {
-      console.log('📁 Processing file uploads...');
+      console.log('📁 Processing file uploads to DigitalOcean Spaces...');
+      console.log('📁 Number of files to upload:', uploadedFiles.length);
       try {
         for (const file of uploadedFiles) {
+          console.log('📤 Uploading file:', file.fileName, 'Size:', file.size, 'Type:', file.mimeType);
           const uploadResult = await uploadFileToSpaces(file.buffer, file.fileName, file.mimeType);
-          uploadedFileUrls.push(uploadResult);
-          console.log('✅ File uploaded:', uploadResult.fileName);
+          uploadedFileUrls.push({
+            ...uploadResult,
+            size: file.size
+          });
+          console.log('✅ File uploaded successfully:', uploadResult.fileName, 'URL:', uploadResult.url);
         }
-        console.log('✅ All files uploaded successfully');
+        console.log('✅ All files uploaded successfully to Spaces');
+        console.log('✅ Total files uploaded:', uploadedFileUrls.length);
       } catch (uploadError) {
-        console.error('❌ File upload failed:', uploadError);
+        console.error('❌ File upload to Spaces failed:', uploadError.message);
+        console.error('❌ Full upload error:', uploadError);
         // Continue with registration even if file upload fails
       }
+    } else {
+      console.log('⚠️ No files detected for upload');
+      console.log('⚠️ Content-Type:', contentType);
+      console.log('⚠️ uploadedFiles:', uploadedFiles);
     }
     
     // Store file URLs in form data for database storage
@@ -151,8 +166,10 @@ exports.handler = async (event, context) => {
           account_number VARCHAR(20),
           account_holder_name VARCHAR(255),
           ni_number VARCHAR(20),
+          nationality_category VARCHAR(50),
           right_to_work_method VARCHAR(50),
           share_code VARCHAR(50),
+          date_of_birth DATE,
           document_type VARCHAR(50),
           emergency_name VARCHAR(255),
           emergency_phone VARCHAR(20),
@@ -255,6 +272,7 @@ exports.handler = async (event, context) => {
         console.log('📁 Creating candidate_documents records for right-to-work files...');
         console.log('📁 Number of files to save:', uploadedFileUrls.length);
         console.log('📁 Candidate ID:', formData.candidateId);
+        console.log('📁 Uploaded file URLs:', JSON.stringify(uploadedFileUrls, null, 2));
         
         for (const file of uploadedFileUrls) {
           const documentId = `DOC_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
@@ -279,17 +297,26 @@ exports.handler = async (event, context) => {
             id: documentId,
             contact_id: formData.candidateId,
             name: file.fileName,
-            url: file.url
+            url: file.url,
+            size: file.size
           });
 
           try {
-            await client.query(insertDocumentQuery, documentValues);
+            const docResult = await client.query(insertDocumentQuery, documentValues);
             console.log('✅ Candidate document record created:', documentId);
+            console.log('✅ Document insert result:', docResult.rowCount, 'rows affected');
           } catch (docError) {
             console.error('❌ Failed to create candidate document record:', docError.message);
+            console.error('❌ Full error:', docError);
             console.error('❌ Document values:', documentValues);
+            console.error('❌ SQL Query:', insertDocumentQuery);
           }
         }
+        console.log('✅ Finished processing all document records');
+      } else {
+        console.log('⚠️ No files were uploaded or file upload failed');
+        console.log('⚠️ uploadedFiles array:', uploadedFiles);
+        console.log('⚠️ uploadedFileUrls array:', uploadedFileUrls);
       }
 
       // Update emergency contact fields and contract signature on the candidate contact record
@@ -329,19 +356,21 @@ exports.handler = async (event, context) => {
       const upsertQuery = `
         INSERT INTO candidate_registrations (
           candidate_id, sort_code, account_number, account_holder_name,
-          ni_number, right_to_work_method, share_code, document_type,
-          emergency_name, emergency_phone, contract_accepted, 
-          contract_signature, contract_date, registration_status, 
-          part2_completed_at, updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, 'work_ready', NOW(), NOW())
+          ni_number, nationality_category, right_to_work_method, share_code, 
+          date_of_birth, document_type, emergency_name, emergency_phone, 
+          contract_accepted, contract_signature, contract_date, 
+          registration_status, part2_completed_at, updated_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, 'work_ready', NOW(), NOW())
         ON CONFLICT (candidate_id) 
         DO UPDATE SET 
           sort_code = EXCLUDED.sort_code,
           account_number = EXCLUDED.account_number,
           account_holder_name = EXCLUDED.account_holder_name,
           ni_number = EXCLUDED.ni_number,
+          nationality_category = EXCLUDED.nationality_category,
           right_to_work_method = EXCLUDED.right_to_work_method,
           share_code = EXCLUDED.share_code,
+          date_of_birth = EXCLUDED.date_of_birth,
           document_type = EXCLUDED.document_type,
           emergency_name = EXCLUDED.emergency_name,
           emergency_phone = EXCLUDED.emergency_phone,
@@ -360,9 +389,11 @@ exports.handler = async (event, context) => {
       formData.accountNumber,
       formData.accountHolderName,
       formData.niNumber,
-      formData.rightToWorkMethod,
+      formData.nationalityCategory || null,
+      formData.rightToWorkMethod || 'pending',
       formData.shareCode || null,
-      formData.documentType,
+      formData.dateOfBirth || null,
+      formData.documentType || null,
       formData.emergencyName,
       formData.emergencyPhone,
       formData.contractAccepted,
@@ -378,6 +409,102 @@ exports.handler = async (event, context) => {
       }
       
       console.log('✅ Database updated successfully:', dbResult.rows[0]);
+      
+      // Create RTW check record if nationality category is provided
+      if (formData.nationalityCategory && formData.rightToWorkMethod) {
+        try {
+          console.log('📋 Creating RTW check record...');
+          const rtwCheckId = `RTW_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+          
+          let rtwStatus = 'pending';
+          if (formData.rightToWorkMethod === 'video_call') {
+            rtwStatus = 'scheduled';
+          }
+          
+          const rtwClient = new Client({
+            host: process.env.DB_HOST || 'damedesk-crm-production-do-user-27348714-0.j.db.ondigitalocean.com',
+            port: process.env.DB_PORT || 25060,
+            database: process.env.DB_NAME || 'defaultdb',
+            user: process.env.DB_USER || 'doadmin',
+            password: process.env.DB_PASSWORD || 'AVNS_wm_vFxOY5--ftSp64EL',
+            ssl: { rejectUnauthorized: false },
+            connectionTimeoutMillis: 10000
+          });
+          
+          await rtwClient.connect();
+          
+          // Check if RTW check already exists for this contact
+          const existingCheck = await rtwClient.query(
+            'SELECT id FROM rtw_checks WHERE contact_id = $1',
+            [formData.candidateId]
+          );
+          
+          let rtwResult;
+          if (existingCheck.rows.length > 0) {
+            // Update existing RTW check
+            const rtwUpdateQuery = `
+              UPDATE rtw_checks SET
+                check_type = $1,
+                nationality_category = $2,
+                status = $3,
+                share_code = $4,
+                share_code_dob = $5,
+                updated_at = NOW()
+              WHERE contact_id = $6
+              RETURNING id
+            `;
+            rtwResult = await rtwClient.query(rtwUpdateQuery, [
+              formData.rightToWorkMethod,
+              formData.nationalityCategory,
+              rtwStatus,
+              formData.shareCode || null,
+              formData.dateOfBirth || null,
+              formData.candidateId
+            ]);
+          } else {
+            // Insert new RTW check
+            const rtwInsertQuery = `
+              INSERT INTO rtw_checks (
+                id, contact_id, check_type, nationality_category, status,
+                share_code, share_code_dob, statutory_excuse,
+                created_at, updated_at
+              ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
+              RETURNING id
+            `;
+            rtwResult = await rtwClient.query(rtwInsertQuery, [
+              rtwCheckId,
+              formData.candidateId,
+              formData.rightToWorkMethod,
+              formData.nationalityCategory,
+              rtwStatus,
+              formData.shareCode || null,
+              formData.dateOfBirth || null,
+              false
+            ]);
+          }
+          
+          console.log('✅ RTW check created/updated:', rtwResult.rows[0]);
+          
+          const finalRtwCheckId = rtwResult.rows[0].id;
+          
+          // Update contact with RTW status
+          await rtwClient.query(
+            `UPDATE contacts 
+             SET rtw_status = $1, 
+                 rtw_check_id = $2,
+                 nationality_category = $3,
+                 rtw_last_checked = NOW()
+             WHERE id = $4`,
+            [rtwStatus, finalRtwCheckId, formData.nationalityCategory, formData.candidateId]
+          );
+          
+          console.log('✅ Contact RTW status updated');
+          await rtwClient.end();
+        } catch (rtwError) {
+          console.error('⚠️ Failed to create RTW check (non-critical):', rtwError.message);
+          // Don't fail the whole registration if RTW check creation fails
+        }
+      }
       
       // Generate signed contract document with signature block
       if (formData.contractAccepted && formData.contractSignature) {

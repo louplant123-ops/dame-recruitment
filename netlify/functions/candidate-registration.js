@@ -1,783 +1,9 @@
- // Netlify Function for Dame Recruitment Website Registration Integration
-const { Client } = require('pg');
-const mammoth = require('mammoth');
-const pdfParse = require('pdf-parse');
-const PDFDocument = require('pdfkit');
-
-// Parse CV file and extract text
-async function parseCVFile(fileBuffer, fileName, mimeType) {
-  try {
-    console.log('📄 Parsing CV file:', fileName, 'Type:', mimeType);
-    
-    let cvText = '';
-    
-    if (mimeType === 'application/pdf') {
-      const pdfData = await pdfParse(fileBuffer);
-      cvText = pdfData.text;
-    } else if (mimeType.includes('wordprocessingml') || mimeType.includes('msword')) {
-      const result = await mammoth.extractRawText({ buffer: fileBuffer });
-      cvText = result.value;
-    } else if (mimeType === 'text/plain') {
-      cvText = fileBuffer.toString('utf-8');
-    } else {
-      throw new Error(`Unsupported file type: ${mimeType}`);
-    }
-    
-    console.log('✅ CV text extracted, length:', cvText.length);
-    return cvText;
-    
-  } catch (error) {
-    console.error('❌ CV parsing error:', error);
-    throw error;
-  }
-}
-
-// Extract candidate data from CV text using AI (Claude API)
-async function extractCandidateDataFromCV(cvText) {
-  try {
-    console.log('🤖 Extracting candidate data from CV...');
-    
-    // For now, return a simple extraction - you can enhance this with Claude API later
-    const extractedData = {
-      skills: extractSkills(cvText),
-      experience: extractExperience(cvText),
-      education: extractEducation(cvText),
-      name: extractName(cvText),
-      email: extractEmail(cvText),
-      phone: extractPhone(cvText)
-    };
-    
-    console.log('✅ Candidate data extracted:', extractedData);
-    return extractedData;
-    
-  } catch (error) {
-    console.error('❌ Data extraction error:', error);
-    return null;
-  }
-}
-
-// Generate PDF from registration data
-async function generateRegistrationPDF(registrationData) {
-  return new Promise((resolve, reject) => {
-    try {
-      console.log('📄 Generating registration PDF...');
-      
-      const doc = new PDFDocument({ margin: 50 });
-      const chunks = [];
-      
-      // Collect PDF data
-      doc.on('data', chunk => chunks.push(chunk));
-      doc.on('end', () => {
-        const pdfBuffer = Buffer.concat(chunks);
-        console.log('✅ PDF generated, size:', pdfBuffer.length);
-        resolve(pdfBuffer);
-      });
-      doc.on('error', reject);
-      
-      // Header
-      doc.fontSize(20).fillColor('#DC2626').text('Dame Recruitment', { align: 'center' });
-      doc.fontSize(16).fillColor('#1F2937').text('Candidate Registration Form', { align: 'center' });
-      doc.moveDown();
-      doc.fontSize(10).fillColor('#6B7280').text(`Registration ID: ${registrationData.id}`, { align: 'center' });
-      doc.text(`Date: ${new Date(registrationData.timestamp).toLocaleDateString('en-GB')}`, { align: 'center' });
-      doc.moveDown(2);
-      
-      // Personal Details Section
-      doc.fontSize(14).fillColor('#DC2626').text('Personal Details');
-      doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke('#E5E7EB');
-      doc.moveDown(0.5);
-      
-      doc.fontSize(10).fillColor('#1F2937');
-      doc.text(`Name: ${registrationData.firstName} ${registrationData.lastName}`);
-      doc.text(`Email: ${registrationData.email}`);
-      doc.text(`Phone: ${registrationData.phone}`);
-      if (registrationData.dateOfBirth) doc.text(`Date of Birth: ${registrationData.dateOfBirth}`);
-      doc.text(`Address: ${registrationData.address}`);
-      doc.text(`Postcode: ${registrationData.postcode}`);
-      if (registrationData.gender) doc.text(`Gender: ${registrationData.gender}`);
-      if (registrationData.nationality) doc.text(`Nationality: ${registrationData.nationality}`);
-      doc.moveDown(1.5);
-      
-      // Right to Work Section
-      doc.fontSize(14).fillColor('#DC2626').text('Right to Work');
-      doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke('#E5E7EB');
-      doc.moveDown(0.5);
-      
-      doc.fontSize(10).fillColor('#1F2937');
-      doc.text(`Status: ${registrationData.rightToWork || 'Not specified'}`);
-      if (registrationData.visaType) doc.text(`Visa Type: ${registrationData.visaType}`);
-      if (registrationData.visaExpiry) doc.text(`Visa Expiry: ${registrationData.visaExpiry}`);
-      doc.moveDown(1.5);
-      
-      // Role Interests Section
-      doc.fontSize(14).fillColor('#DC2626').text('Role Interests');
-      doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke('#E5E7EB');
-      doc.moveDown(0.5);
-      
-      doc.fontSize(10).fillColor('#1F2937');
-      if (registrationData.jobTypes) {
-        const jobTypes = Array.isArray(registrationData.jobTypes) 
-          ? registrationData.jobTypes.join(', ') 
-          : registrationData.jobTypes;
-        doc.text(`Job Types: ${jobTypes}`);
-      }
-      if (registrationData.industries) {
-        const industries = Array.isArray(registrationData.industries) 
-          ? registrationData.industries.join(', ') 
-          : registrationData.industries;
-        doc.text(`Industries: ${industries}`);
-      }
-      if (registrationData.yearsOfExperience) doc.text(`Years of Experience: ${registrationData.yearsOfExperience}`);
-      if (registrationData.expectedHourlyRate) doc.text(`Expected Hourly Rate: £${registrationData.expectedHourlyRate}/hour`);
-      if (registrationData.experience) {
-        doc.text('Experience Summary:', { continued: false });
-        doc.fontSize(9).fillColor('#6B7280').text(registrationData.experience, { width: 500 });
-        doc.fontSize(10).fillColor('#1F2937');
-      }
-      doc.moveDown(1.5);
-      
-      // Availability Section
-      doc.fontSize(14).fillColor('#DC2626').text('Availability & Shifts');
-      doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke('#E5E7EB');
-      doc.moveDown(0.5);
-      
-      doc.fontSize(10).fillColor('#1F2937');
-      if (registrationData.shifts) {
-        const shifts = Array.isArray(registrationData.shifts) 
-          ? registrationData.shifts.join(', ') 
-          : registrationData.shifts;
-        doc.text(`Shift Preferences: ${shifts}`);
-      }
-      if (registrationData.availability) doc.text(`Available From: ${registrationData.availability}`);
-      doc.moveDown(1.5);
-      
-      // Transport Section
-      doc.fontSize(14).fillColor('#DC2626').text('Transport');
-      doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke('#E5E7EB');
-      doc.moveDown(0.5);
-      
-      doc.fontSize(10).fillColor('#1F2937');
-      doc.text(`Transport Method: ${registrationData.transport || 'Not specified'}`);
-      if (registrationData.maxTravelDistance) doc.text(`Maximum Travel Distance: ${registrationData.maxTravelDistance} miles`);
-      doc.moveDown(1.5);
-      
-      // Medical Information Section (if provided)
-      if (registrationData.medicalConditions || registrationData.disabilityInfo || registrationData.reasonableAdjustments) {
-        doc.fontSize(14).fillColor('#DC2626').text('Medical & Disability Information');
-        doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke('#E5E7EB');
-        doc.moveDown(0.5);
-        
-        doc.fontSize(10).fillColor('#1F2937');
-        if (registrationData.medicalConditions) doc.text(`Medical Conditions: ${registrationData.medicalConditions}`);
-        if (registrationData.disabilityInfo) doc.text(`Disability Info: ${registrationData.disabilityInfo}`);
-        if (registrationData.reasonableAdjustments) doc.text(`Reasonable Adjustments: ${registrationData.reasonableAdjustments}`);
-        doc.moveDown(1.5);
-      }
-      
-      // CV Information
-      if (registrationData.cvFileName) {
-        doc.fontSize(14).fillColor('#DC2626').text('CV Information');
-        doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke('#E5E7EB');
-        doc.moveDown(0.5);
-        
-        doc.fontSize(10).fillColor('#1F2937');
-        doc.text(`CV File: ${registrationData.cvFileName}`);
-        doc.moveDown(1.5);
-      }
-      
-      // Footer
-      doc.fontSize(8).fillColor('#9CA3AF');
-      doc.text('This document was automatically generated by Dame Recruitment CRM system.', 50, doc.page.height - 50, {
-        align: 'center',
-        width: 500
-      });
-      
-      doc.end();
-      
-    } catch (error) {
-      console.error('❌ PDF generation error:', error);
-      reject(error);
-    }
-  });
-}
-
-// Simple text extraction functions (can be enhanced with AI later)
-function extractSkills(text) {
-  const skillKeywords = [
-    'warehouse', 'forklift', 'picker', 'packer', 'logistics', 'inventory',
-    'health and safety', 'manual handling', 'reach truck', 'counterbalance',
-    'order picking', 'dispatch', 'goods in', 'goods out', 'stock control'
-  ];
-  
-  const foundSkills = skillKeywords.filter(skill => 
-    text.toLowerCase().includes(skill.toLowerCase())
-  );
-  
-  return foundSkills.join(', ');
-}
-
-function extractExperience(text) {
-  const experiencePatterns = [
-    /(\d+)\s*years?\s*(of\s*)?experience/i,
-    /(\d+)\s*years?\s*in\s*warehouse/i,
-    /(\d+)\s*years?\s*warehouse/i
-  ];
-  
-  for (const pattern of experiencePatterns) {
-    const match = text.match(pattern);
-    if (match) {
-      return `${match[1]} years`;
-    }
-  }
-  
-  return 'Experience level not specified';
-}
-
-function extractEducation(text) {
-  const educationKeywords = ['gcse', 'a-level', 'degree', 'diploma', 'certificate', 'qualification'];
-  const foundEducation = educationKeywords.filter(edu => 
-    text.toLowerCase().includes(edu)
-  );
-  
-  return foundEducation.length > 0 ? foundEducation.join(', ') : 'Education not specified';
-}
-
-function extractName(text) {
-  // Simple name extraction - look for patterns at the beginning
-  const lines = text.split('\n').filter(line => line.trim());
-  if (lines.length > 0) {
-    const firstLine = lines[0].trim();
-    if (firstLine.length < 50 && firstLine.split(' ').length <= 4) {
-      return firstLine;
-    }
-  }
-  return null;
-}
-
-function extractEmail(text) {
-  const emailPattern = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
-  const matches = text.match(emailPattern);
-  return matches ? matches[0] : null;
-}
-
-function extractPhone(text) {
-  const phonePatterns = [
-    /(\+44\s?)?(\(0\)\s?)?(\d{4}\s?\d{3}\s?\d{3})/g,
-    /(\+44\s?)?(\d{5}\s?\d{6})/g,
-    /(\d{3}\s?\d{4}\s?\d{4})/g
-  ];
-  
-  for (const pattern of phonePatterns) {
-    const matches = text.match(pattern);
-    if (matches) {
-      return matches[0].replace(/\s+/g, ' ').trim();
-    }
-  }
-  return null;
-}
-
-// Store registration in database
-async function storeInDatabase(registrationData) {
-  try {
-    console.log('🔄 Storing registration in database...');
-    
-    const client = new Client({
-      host: process.env.DB_HOST || 'damedesk-crm-production-do-user-27348714-0.j.db.ondigitalocean.com',
-      port: process.env.DB_PORT || 25060,
-      database: process.env.DB_NAME || 'defaultdb',
-      user: process.env.DB_USER || 'doadmin',
-      password: process.env.DB_PASSWORD,
-      ssl: {
-        rejectUnauthorized: false
-      },
-      connectionTimeoutMillis: 10000
-    });
-
-    await client.connect();
-    console.log('✅ Connected to database');
-
-    // Create contacts table if it doesn't exist
-    const createContactsTableQuery = `
-      CREATE TABLE IF NOT EXISTS contacts (
-        id VARCHAR(255) PRIMARY KEY,
-        name VARCHAR(255),
-        email VARCHAR(255),
-        phone VARCHAR(20),
-        mobile VARCHAR(20),
-        address TEXT,
-        postcode VARCHAR(20),
-        date_of_birth DATE,
-        gender VARCHAR(20),
-        nationality VARCHAR(100),
-        type VARCHAR(50) DEFAULT 'candidate',
-        status VARCHAR(50) DEFAULT 'active',
-        temperature VARCHAR(20) DEFAULT 'warm',
-        right_to_work VARCHAR(50),
-        transport VARCHAR(50),
-        medical_conditions TEXT,
-        disability_info TEXT,
-        reasonable_adjustments TEXT,
-        cv_text TEXT,
-        cv_filename VARCHAR(255),
-        cv_extracted_data TEXT,
-        registration_pdf BYTEA,
-        registration_pdf_filename VARCHAR(255),
-        notes TEXT,
-        source VARCHAR(50) DEFAULT 'website_part1',
-        created_at TIMESTAMP DEFAULT NOW(),
-        updated_at TIMESTAMP DEFAULT NOW()
-      )
-    `;
-    
-    await client.query(createContactsTableQuery);
-    console.log('✅ Contacts table ready');
-
-    // Insert candidate into contacts table
-    const insertQuery = `
-      INSERT INTO contacts (
-        id, name, email, phone, mobile, address, postcode,
-        date_of_birth, gender, nationality, type, status, temperature,
-        right_to_work, right_to_work_status, transport_method, medical_conditions, disability_info,
-        reasonable_adjustments, cv_text, cv_filename, cv_extracted_data,
-        registration_pdf, registration_pdf_filename, notes, source,
-        skills, years_of_experience, preferred_job_types, hourly_rate,
-        availability_status, available_from, max_commute_distance
-      ) VALUES (
-        $1, $2, $3, $4, $5, $6, $7,
-        $8, $9, $10, 'candidate', 'active', 'hot',
-        $11, $12, $13, $14, $15,
-        $16, $17, $18, $19,
-        $20, $21, $22, 'website_part1',
-        $23, $24, $25, $26,
-        $27, $28, $29
-      )
-      ON CONFLICT (id)
-      DO UPDATE SET
-        name = EXCLUDED.name,
-        email = EXCLUDED.email,
-        phone = EXCLUDED.phone,
-        mobile = EXCLUDED.mobile,
-        address = EXCLUDED.address,
-        postcode = EXCLUDED.postcode,
-        date_of_birth = EXCLUDED.date_of_birth,
-        gender = EXCLUDED.gender,
-        nationality = EXCLUDED.nationality,
-        right_to_work = EXCLUDED.right_to_work,
-        right_to_work_status = EXCLUDED.right_to_work_status,
-
-        medical_conditions = EXCLUDED.medical_conditions,
-        disability_info = EXCLUDED.disability_info,
-        reasonable_adjustments = EXCLUDED.reasonable_adjustments,
-        cv_text = EXCLUDED.cv_text,
-        cv_filename = EXCLUDED.cv_filename,
-        cv_extracted_data = EXCLUDED.cv_extracted_data,
-        registration_pdf = EXCLUDED.registration_pdf,
-        registration_pdf_filename = EXCLUDED.registration_pdf_filename,
-        notes = EXCLUDED.notes,
-        skills = EXCLUDED.skills,
-        years_of_experience = EXCLUDED.years_of_experience,
-        preferred_job_types = EXCLUDED.preferred_job_types,
-        hourly_rate = EXCLUDED.hourly_rate,
-        availability_status = EXCLUDED.availability_status,
-        available_from = EXCLUDED.available_from,
-        max_commute_distance = EXCLUDED.max_commute_distance,
-        transport_method = EXCLUDED.transport_method,
-        updated_at = NOW()
-      RETURNING id, name
-    `;
-
-    const summaryParts = [];
-
-    // Normalise jobTypes and industries so they can be arrays or single values
-    // Normalise jobTypes so we handle real arrays, JSON strings like '["temporary"]',
-    // or single scalar values like 'temporary'
-    let jobTypesArray = [];
-    if (Array.isArray(registrationData.jobTypes)) {
-      jobTypesArray = registrationData.jobTypes;
-    } else if (registrationData.jobTypes) {
-      const rawJobTypes = registrationData.jobTypes;
-      if (typeof rawJobTypes === 'string' && rawJobTypes.trim().startsWith('[')) {
-        try {
-          const parsed = JSON.parse(rawJobTypes);
-          jobTypesArray = Array.isArray(parsed) ? parsed : [String(rawJobTypes)];
-        } catch (e) {
-          // If JSON.parse fails, fall back to treating as a single value
-          jobTypesArray = [String(rawJobTypes)];
-        }
-      } else {
-        jobTypesArray = [String(rawJobTypes)];
-      }
-    }
-
-    const industriesArray = Array.isArray(registrationData.industries)
-      ? registrationData.industries
-      : registrationData.industries
-        ? [registrationData.industries]
-        : [];
-
-    const shiftsArray = Array.isArray(registrationData.shifts)
-      ? registrationData.shifts
-      : registrationData.shifts
-        ? [registrationData.shifts]
-        : [];
-
-    // Map raw transport string from form into a valid transport_method enum
-    // Allowed values in DameDesk DB: 'car', 'bus', 'cycling', 'walking', 'mixed', 'none'
-    let transportMethod = null;
-    if (registrationData.transport) {
-      const raw = String(registrationData.transport).toLowerCase();
-      if (raw.includes('own car')) {
-        transportMethod = 'car';
-      } else if (raw.includes('public_transport') || raw.includes('public transport') || raw.includes('bus')) {
-        transportMethod = 'bus';
-      } else if (raw.includes('bicycle') || raw.includes('cycle') || raw.includes('bike')) {
-        transportMethod = 'cycling';
-      } else if (raw.includes('walking') || raw.includes('walk')) {
-        transportMethod = 'walking';
-      } else if (raw.includes('motorbike') || raw.includes('scooter') || raw.includes('lift share') || raw.includes('lift_share')) {
-        // Treat motorbike/scooter and lift share as mixed transport
-        transportMethod = 'mixed';
-      } else if (raw.includes('mixed')) {
-        transportMethod = 'mixed';
-      } else if (raw.includes('none') || raw.includes('no_transport')) {
-        transportMethod = 'none';
-      }
-    }
-
-    if (registrationData.experience) summaryParts.push(`Experience: ${registrationData.experience}`);
-    if (jobTypesArray.length)
-      summaryParts.push(`Job types: ${jobTypesArray.join(', ')}`);
-    if (industriesArray.length)
-      summaryParts.push(`Industries: ${industriesArray.join(', ')}`);
-    if (registrationData.transport) summaryParts.push(`Transport: ${registrationData.transport}`);
-    if (shiftsArray.length)
-      summaryParts.push(`Shifts: ${shiftsArray.join(', ')}`);
-    if (registrationData.availability) summaryParts.push(`Availability: ${registrationData.availability}`);
-
-    const notesSummary = summaryParts.length
-      ? `Part 1 registration – ${summaryParts.join(' | ')}`
-      : 'Part 1 registration';
-
-    // Map website "Tell us about your experience" box directly into Skills
-    let skillsFromForm = null;
-    if (registrationData.experience) {
-      skillsFromForm = registrationData.experience;
-    } else if (industriesArray.length) {
-      // Fallback: if no free-text experience, at least store industries as skills
-      skillsFromForm = industriesArray.join(', ');
-    }
-
-    // Map website jobTypes (e.g. "temporary") into DameDesk preferred_job_types codes
-    // DameDesk expects: 'temp', 'perm', 'contract', or comma-separated combos
-    const typeSet = new Set(
-      jobTypesArray.map((t) => String(t).toLowerCase())
-    );
-    const hasTemp = typeSet.has('temporary') || typeSet.has('temp');
-    const hasPerm = typeSet.has('permanent') || typeSet.has('perm');
-    const hasContract = typeSet.has('contract');
-
-    let preferredJobTypes = null;
-    if (hasTemp || hasPerm || hasContract) {
-      const codes = [];
-      if (hasTemp) codes.push('temp');
-      if (hasPerm) codes.push('perm');
-      if (hasContract) codes.push('contract');
-      preferredJobTypes = codes.join(',');
-    }
-
-    // Normalise yearsOfExperience so the DB INTEGER column doesn't receive ranges like "1-2"
-    let yearsOfExperienceValue = null;
-    if (registrationData.yearsOfExperience !== undefined && registrationData.yearsOfExperience !== null && registrationData.yearsOfExperience !== '') {
-      if (typeof registrationData.yearsOfExperience === 'number') {
-        yearsOfExperienceValue = registrationData.yearsOfExperience;
-      } else if (typeof registrationData.yearsOfExperience === 'string') {
-        // Handle ranges like "1-2" by taking the first number
-        const rangeMatch = registrationData.yearsOfExperience.match(/(\d+)/);
-        if (rangeMatch) {
-          yearsOfExperienceValue = parseInt(rangeMatch[1], 10);
-        } else {
-          const parsed = parseInt(registrationData.yearsOfExperience, 10);
-          yearsOfExperienceValue = Number.isNaN(parsed) ? null : parsed;
-        }
-      }
-    }
-
-    // Derive a simple experience level bucket from yearsOfExperienceValue for DameDesk UI
-    let experienceLevel = '';
-    if (typeof yearsOfExperienceValue === 'number' && !Number.isNaN(yearsOfExperienceValue)) {
-      if (yearsOfExperienceValue <= 2) {
-        experienceLevel = 'entry'; // Entry Level (0-2 years)
-      } else if (yearsOfExperienceValue <= 5) {
-        experienceLevel = 'mid';   // Mid Level (2-5 years)
-      } else if (yearsOfExperienceValue <= 10) {
-        experienceLevel = 'senior'; // Senior (5-10 years)
-      } else {
-        experienceLevel = 'lead';   // Lead/Expert (10+ years)
-      }
-    }
-
-    // Optional notice period from website (in days). The form should ideally send
-    // a numeric number of days as noticePeriodDays.
-    let noticePeriodDaysValue = null;
-    if (registrationData.noticePeriodDays !== undefined && registrationData.noticePeriodDays !== null && registrationData.noticePeriodDays !== '') {
-      const parsedNotice = parseInt(String(registrationData.noticePeriodDays), 10);
-      if (!Number.isNaN(parsedNotice)) {
-        noticePeriodDaysValue = parsedNotice;
-      }
-    }
-
-    // Normalise availability for available_from (DATE). Only accept ISO dates (YYYY-MM-DD),
-    // and keep free-text values like "immediately" out of the DATE column.
-    let availableFromValue = null;
-    let availabilityStatusValue = 'active'; // default enum for DB constraint
-    if (registrationData.availability) {
-      if (typeof registrationData.availability === 'string') {
-        const rawAvailability = registrationData.availability.trim().toLowerCase();
-
-        // If it's an ISO date, use it for available_from and treat as actively looking
-        const isoDateMatch = rawAvailability.match(/^\d{4}-\d{2}-\d{2}$/);
-        if (isoDateMatch) {
-          availableFromValue = rawAvailability;
-          availabilityStatusValue = 'active';
-        } else if (
-          rawAvailability === 'unavailable' ||
-          rawAvailability === 'not_available' ||
-          rawAvailability === 'not available'
-        ) {
-          // Only explicitly unavailable values should be stored as 'unavailable'.
-          // Everything else from the website (e.g. "immediately", "1_week") is treated as active
-          // so we don't confuse candidates by auto-marking them as passive.
-          availabilityStatusValue = 'unavailable';
-        } else {
-          availabilityStatusValue = 'active';
-        }
-      }
-    }
-
-    // Try to find an existing candidate by email to avoid duplicate rows for retries
-    let contactId = registrationData.id;
-    try {
-      if (registrationData.email) {
-        const existingResult = await client.query(
-          'SELECT id FROM contacts WHERE email = $1 AND type = $2 LIMIT 1',
-          [registrationData.email, 'candidate']
-        );
-        if (existingResult.rows.length > 0) {
-          contactId = existingResult.rows[0].id;
-          console.log('ℹ️ Reusing existing contact id for email', registrationData.email, '->', contactId);
-        }
-      }
-    } catch (lookupError) {
-      console.error('⚠️ Failed to lookup existing contact by email, proceeding with new id:', lookupError);
-    }
-    const values = [
-      contactId,
-      `${registrationData.firstName} ${registrationData.lastName}`,
-      registrationData.email,
-      registrationData.phone,
-      registrationData.mobile, // Same as phone
-      registrationData.address,
-      registrationData.postcode,
-      registrationData.dateOfBirth || null,
-      registrationData.gender,
-      registrationData.nationality,
-      registrationData.rightToWork,
-      registrationData.rightToWork, // mirror into right_to_work_status for DameDesk UI
-      transportMethod,
-      registrationData.medicalConditions,
-      registrationData.disabilityInfo,
-      registrationData.reasonableAdjustments,
-      registrationData.cvText,
-      registrationData.cvFileName,
-      registrationData.cvExtractedData ? JSON.stringify(registrationData.cvExtractedData) : null,
-      registrationData.registrationPDF || null,
-      registrationData.registrationPDFFilename || null,
-      notesSummary,
-      skillsFromForm,
-      yearsOfExperienceValue,
-      preferredJobTypes,
-      registrationData.expectedHourlyRate || null,
-      availabilityStatusValue,
-      availableFromValue,
-      registrationData.maxTravelDistance || null
-    ];
-
-    const result = await client.query(insertQuery, values);
-
-    // Update experience_level, notice_period_days, and industry after insert so we
-    // don't have to modify the main INSERT column list.
-    try {
-      const contactRowId = result.rows[0]?.id;
-      const hasIndustry = industriesArray.length > 0;
-      const hasNotice = noticePeriodDaysValue !== null;
-      const hasExperienceLevel = !!experienceLevel;
-
-      if (contactRowId && (hasIndustry || hasNotice || hasExperienceLevel)) {
-        const setClauses = [];
-        const params = [contactRowId];
-        let paramIndex = 2;
-
-        if (hasExperienceLevel) {
-          setClauses.push(`experience_level = $${paramIndex}`);
-          params.push(experienceLevel);
-          paramIndex++;
-        }
-        if (hasNotice) {
-          setClauses.push(`notice_period_days = $${paramIndex}`);
-          params.push(noticePeriodDaysValue);
-          paramIndex++;
-        }
-        if (hasIndustry) {
-          setClauses.push(`industry = $${paramIndex}`);
-          params.push(industriesArray.join(', '));
-          paramIndex++;
-        }
-
-        if (setClauses.length > 0) {
-          const updateQuery = `UPDATE contacts SET ${setClauses.join(', ')} WHERE id = $1`;
-          await client.query(updateQuery, params);
-          console.log('✅ Updated contact extra fields for', contactRowId, {
-            experienceLevel,
-            noticePeriodDaysValue,
-            industries: hasIndustry ? industriesArray.join(', ') : undefined
-          });
-        }
-      }
-    } catch (expLevelError) {
-      console.error('⚠️ Failed to update extra contact fields, continuing without them:', expLevelError);
-    }
-
-    // Save CV file into candidate_documents so it appears under the Documents tab
-    try {
-      if (registrationData.cvFileBase64 && contactId) {
-
-        const documentId = `DOC_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        await client.query(
-          `INSERT INTO candidate_documents (
-             id, contact_id, type, name, file_path, file_content, file_size,
-             uploaded_date, uploaded_by, notes
-           ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-           ON CONFLICT (id) DO NOTHING`,
-          [
-            documentId,
-            contactId,
-
-            'cv',
-            registrationData.cvFileName || 'CV from website',
-            null,
-            registrationData.cvFileBase64,
-            registrationData.cvFileSize || null,
-            new Date().toISOString(),
-            'website',
-            'CV uploaded via website registration'
-          ]
-        );
-        console.log('✅ CV saved to candidate_documents for contact:', contactId);
-
-      } else {
-        console.log('ℹ️ No CV file data available to save to candidate_documents');
-
-      }
-    } catch (cvDocError) {
-      console.error('⚠️ Failed to save CV to candidate_documents:', cvDocError);
-      // Do not throw – we don't want to fail the registration if document save fails
-    }
-
-    // 🔹 Log unified Activity in DameDesk CRM for website registration
-    try {
-      const candidateId = result.rows[0]?.id;
-
-      if (candidateId) {
-        // Generate a simple unique id for the activity row
-        const activityId = `ACT_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
-        await client.query(
-          `INSERT INTO activities (
-             id,
-             subject_type,
-             subject_id,
-             type,
-             summary,
-             details,
-             channel,
-             direction,
-             user_name
-           ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-          [
-            activityId,                          // id
-            'candidate',                         // subject_type
-            candidateId,                         // subject_id from contacts.id
-            'registration',                      // type
-            'Registered via website (Part 1)',   // summary
-            JSON.stringify({
-              source: 'website_candidate_registration',
-              formVersion: 'part1',
-              email: registrationData.email,
-              name: `${registrationData.firstName} ${registrationData.lastName}`
-            }),
-            'web',                               // channel
-            'inbound',                           // direction
-            'website'                            // user_name / system actor
-          ]
-        );
-        console.log('✅ Activity logged for website registration:', candidateId, 'activityId:', activityId);
-      } else {
-        console.warn('⚠️ No candidateId returned from contacts insert, skipping Activity log');
-      }
-    } catch (activityError) {
-      console.error('⚠️ Failed to log registration activity:', activityError);
-      // Do not throw - we don't want to break registration if Activity logging fails
-    }
-
-    // Create timeline event for Part 1 registration completion
-    try {
-      const candidateId = result.rows[0]?.id;
-      if (candidateId) {
-        const historyId = `HIST_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        const insertHistoryQuery = `
-          INSERT INTO client_history (
-            id, client_id, event_type, event_action, event_date,
-            user_name, description, metadata, created_at
-          ) VALUES ($1, $2, 'registration', 'part1_completed', NOW(), $3, $4, $5, NOW())
-        `;
-
-        const historyValues = [
-          historyId,
-          candidateId,
-          `${registrationData.firstName} ${registrationData.lastName}`,
-          `Part 1 registration completed - Candidate registered via website`,
-          JSON.stringify({
-            registration_type: 'part1',
-            email: registrationData.email,
-            phone: registrationData.phone,
-            postcode: registrationData.postcode,
-            cv_uploaded: !!registrationData.cvFileBase64,
-            job_types: jobTypesArray,
-            industries: industriesArray,
-            completed_at: new Date().toISOString()
-          })
-        ];
-
-        await client.query(insertHistoryQuery, historyValues);
-        console.log('✅ Timeline event created for Part 1 registration');
-      }
-    } catch (historyError) {
-      console.error('⚠️ Failed to create timeline event:', historyError);
-      // Continue anyway - registration is complete
-    }
-
-    await client.end();
-    
-    console.log('✅ Registration stored in database:', result.rows[0]);
-    
-  } catch (error) {
-    console.error('❌ Database storage error:', error);
-    // Don't throw - continue with webhook even if DB fails
-  }
-}
+// Netlify Function for Dame Recruitment Website Registration Integration
+const https = require('https');
+const http = require('http');
+const crypto = require('crypto');
 
 exports.handler = async (event, context) => {
-  console.log('🌟 candidate-registration handler VERSION: multipart-scope-fix-1');
   // Only allow POST requests
   if (event.httpMethod !== 'POST') {
     return {
@@ -804,166 +30,195 @@ exports.handler = async (event, context) => {
     };
   }
 
-   try {
+  try {
     console.log('🌉 Netlify Function: Received registration from website');
-    console.log('📥 Raw event body:', event.body);
-    console.log('📋 Event headers:', event.headers);
     
-    // Parse the request body - handle both JSON and multipart/form-data
-    let body;
-    let cvData = null; // Make CV extraction data available when building registrationData later
+    // Parse FormData from the request
     const contentType = event.headers['content-type'] || '';
+    let body = {};
+    let uploadedFiles = [];
     
     if (contentType.includes('multipart/form-data')) {
-      console.log('📦 Processing multipart/form-data');
-      // For multipart data, we need to parse it differently
-      // Netlify automatically parses multipart data, but we need to handle it
-      const formData = event.body;
+      console.log('📦 Processing multipart/form-data with file uploads');
       
-      // Decode base64 using a binary-safe encoding so file bytes are preserved.
-      // We later reconstruct file buffers with Buffer.from(part, 'binary'), so
-      // this must use the matching encoding rather than UTF-8.
-      let decodedBody;
-      try {
-        decodedBody = Buffer.from(formData, 'base64').toString('binary');
-        console.log('📝 Decoded multipart body (binary length):', decodedBody.length);
-      } catch (decodeError) {
-        console.error('❌ Base64 decode error:', decodeError);
-        throw new Error('Failed to decode multipart data');
-      }
+      // Use busboy to parse multipart form data with files
+      const busboy = require('busboy');
+      const parseResult = await new Promise((resolve, reject) => {
+        const fields = {};
+        const files = [];
+        
+        const bb = busboy({ headers: event.headers });
+        
+        // Handle form fields
+        bb.on('field', (fieldname, val) => {
+          fields[fieldname] = val;
+        });
+        
+        // Handle file uploads
+        bb.on('file', (fieldname, file, info) => {
+          const { filename, encoding, mimeType } = info;
+          console.log(`📁 File upload detected: ${fieldname} = ${filename} (${mimeType})`);
+          
+          const chunks = [];
+          file.on('data', (data) => {
+            chunks.push(data);
+          });
+          
+          file.on('end', () => {
+            const fileBuffer = Buffer.concat(chunks);
+            files.push({
+              fieldName: fieldname,
+              fileName: filename,
+              mimeType: mimeType,
+              buffer: fileBuffer,
+              size: fileBuffer.length
+            });
+            console.log(`✅ File buffered: ${filename} (${fileBuffer.length} bytes)`);
+          });
+        });
+        
+        bb.on('finish', () => {
+          resolve({ formData: fields, files });
+        });
+        
+        bb.on('error', reject);
+        
+        // Write the body to busboy
+        bb.end(Buffer.from(event.body, event.isBase64Encoded ? 'base64' : 'utf8'));
+      });
       
-      // Parse multipart form data with file handling
-      const parseResult = await parseMultipartFormDataWithFiles(decodedBody);
       body = parseResult.formData;
-      const uploadedFiles = parseResult.files;
+      uploadedFiles = parseResult.files || [];
       
-      console.log('✅ Successfully parsed multipart body:', body);
-      console.log('📁 Files uploaded:', uploadedFiles.length);
-      console.log('🔍 Sample field values:');
-      console.log('  firstName:', body.firstName);
-      console.log('  email:', body.email);
-      console.log('  jobTypes:', body.jobTypes);
-
-      // Process CV file if uploaded (keep inside this block so uploadedFiles is in scope)
-      if (uploadedFiles && uploadedFiles.length > 0) {
-        console.log('📄 Processing CV files...');
-        const cvFile = uploadedFiles.find(file => file.fieldName === 'cv');
-        if (cvFile) {
-          console.log('📄 Found CV file:', cvFile.fileName);
-
-          // Always store metadata and base64 so the file is saved even if text parsing fails
-          body.cvFileName = cvFile.fileName;
-          body.cvMimeType = cvFile.mimeType;
-          body.cvFileSize = cvFile.size;
-          try {
-            const base64Content = `data:${cvFile.mimeType};base64,${cvFile.buffer.toString('base64')}`;
-            body.cvFileBase64 = base64Content;
-            console.log('📄 CV base64 content length:', base64Content.length);
-          } catch (base64Error) {
-            console.error('⚠️ Failed to convert CV to base64, will continue without file_content:', base64Error);
-          }
-
-          // Best-effort text extraction for CV parsing and AI enrichment
-          try {
-            const cvText = await parseCVFile(cvFile.buffer, cvFile.fileName, cvFile.mimeType);
-            cvData = await extractCandidateDataFromCV(cvText);
-            console.log('✅ CV data extracted:', cvData);
-
-            // Store extracted text on the body (optional but useful for search/summary)
-            body.cvText = cvText;
-          } catch (cvError) {
-            console.error('❌ CV processing error (file will still be saved):', cvError);
-            // Continue with registration even if CV parsing fails
-          }
-        }
+      console.log('📋 Parsed FormData fields:', Object.keys(body));
+      console.log('� FormData values:', JSON.stringify(body, null, 2));
+      console.log('�📁 Files detected:', uploadedFiles.length);
+      if (uploadedFiles.length > 0) {
+        uploadedFiles.forEach(f => console.log(`   - ${f.fieldName}: ${f.fileName} (${f.size} bytes)`));
       }
     } else {
-      // Handle JSON data
-      try {
-        body = JSON.parse(event.body);
-        console.log('✅ Successfully parsed JSON body:', body);
-      } catch (parseError) {
-        console.error('❌ JSON parse error:', parseError);
-        throw new Error('Invalid JSON in request body');
-      }
+      // Fallback to JSON parsing
+      body = JSON.parse(event.body);
     }
-
-    // Create registration data
+    
+    // Get candidate ID from query parameters (if updating existing candidate)
+    const candidateId = event.queryStringParameters?.id || body.candidateId;
+    
+    // Create registration data with ALL fields
     const registrationData = {
-      id: `REG_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      candidateId: candidateId, // The actual candidate ID to update
+      isUpdate: !!candidateId, // Flag to indicate this is updating an existing candidate
       timestamp: new Date().toISOString(),
       firstName: body.firstName,
       lastName: body.lastName,
       email: body.email,
       phone: body.phone,
-      mobile: body.phone, // Map single phone field to both phone and mobile
       dateOfBirth: body.dateOfBirth,
       address: body.address,
       postcode: body.postcode,
       gender: body.gender,
       nationality: body.nationality,
-      medicalConditions: body.medicalConditions,
-      disabilityInfo: body.disabilityInfo,
-      reasonableAdjustments: body.reasonableAdjustments,
       rightToWork: body.rightToWork,
       visaType: body.visaType,
       visaExpiry: body.visaExpiry,
       jobTypes: body.jobTypes,
       industries: body.industries,
       experience: body.experience,
-      yearsOfExperience: body.yearsOfExperience, // NEW
-      expectedHourlyRate: body.expectedHourlyRate ? parseFloat(body.expectedHourlyRate) : null, // NEW
+      yearsOfExperience: body.yearsOfExperience || body.years_of_experience,
+      expectedHourlyRate: body.expectedHourlyRate || body.expected_hourly_rate,
       shifts: body.shifts,
-      availability: body.availability,
+      availability: body.availability || body.start_availability || body.whenCanYouStart,
       transport: body.transport,
-      maxTravelDistance: body.maxTravelDistance ? parseInt(body.maxTravelDistance) : 10, // NEW
-      drivingLicense: body.drivingLicense === 'true',
-      ownVehicle: body.ownVehicle === 'true',
+      maxTravelDistance: body.maxTravelDistance,
       fltLicense: body.fltLicense === 'true',
       fltTypes: body.fltTypes,
       otherLicenses: body.otherLicenses,
+      medicalConditions: body.medicalConditions,
+      disabilityInfo: body.disabilityInfo,
+      reasonableAdjustments: body.reasonableAdjustments,
+      currentlyEmployed: body.currentlyEmployed === 'true',
+      currentEmployer: body.currentEmployer,
+      currentPosition: body.currentPosition,
+      currentStartDate: body.currentStartDate,
+      employmentHistory: body.employmentHistory,
       registrationType: body.registrationType || 'temp',
-      source: 'netlify_function',
-      processed: false,
-      // CV-related fields
-      cvText: body.cvText || null,
-      cvFileName: body.cvFileName || null,
-      cvExtractedData: cvData || null,
-      cvFileBase64: body.cvFileBase64 || null,
-      cvFileSize: body.cvFileSize || null,
-      cvMimeType: body.cvMimeType || null
+      source: body.source || 'website_registration',
+      processed: false
     };
+    
+    console.log(candidateId ? `📝 Updating existing candidate: ${candidateId}` : '✨ Creating new candidate registration');
+    console.log('📋 Registration Data Fields:', {
+      availability: registrationData.availability,
+      jobTypes: registrationData.jobTypes,
+      yearsOfExperience: registrationData.yearsOfExperience,
+      experience: registrationData.experience,
+      expectedHourlyRate: registrationData.expectedHourlyRate,
+      shifts: registrationData.shifts,
+      transport: registrationData.transport
+    });
 
-    console.log('📤 About to forward to DameDesk:', registrationData);
-    
-    // Generate registration PDF
-    let registrationPDF = null;
-    try {
-      registrationPDF = await generateRegistrationPDF(registrationData);
-      registrationData.registrationPDF = registrationPDF;
-      registrationData.registrationPDFFilename = `Registration_${registrationData.firstName}_${registrationData.lastName}_${Date.now()}.pdf`;
-      console.log('✅ Registration PDF generated:', registrationData.registrationPDFFilename);
-    } catch (pdfError) {
-      console.error('⚠️ PDF generation failed, continuing without PDF:', pdfError);
-    }
-    
-    // First, try to forward to DameDesk to get the canonical candidateId
-    let dameDeskResult = null;
-    try {
-      dameDeskResult = await forwardToDameDesk(registrationData);
-      if (dameDeskResult && dameDeskResult.candidateId) {
-        console.log('🔗 Using DameDesk candidateId for contacts.id:', dameDeskResult.candidateId);
-        registrationData.id = dameDeskResult.candidateId;
-      } else {
-        console.warn('⚠️ DameDesk response did not include candidateId, keeping local REG id');
+    // Process CV file if provided (store as base64 in database - NO cloud storage needed)
+    let cvFileData = null;
+    if (uploadedFiles && uploadedFiles.length > 0) {
+      console.log('📁 Processing CV file...');
+      const cvFile = uploadedFiles.find(f => f.fieldName === 'cv');
+      if (cvFile) {
+        cvFileData = {
+          fileName: cvFile.fileName,
+          mimeType: cvFile.mimeType,
+          size: cvFile.size,
+          content: cvFile.buffer.toString('base64'), // Store as base64 in database
+          uploadedAt: new Date().toISOString()
+        };
+        console.log('✅ CV file prepared:', cvFile.fileName, `(${cvFile.size} bytes)`);
+        
+        // Parse CV to extract text
+        try {
+          console.log('🔄 Starting CV text extraction...');
+          const parsedCV = await parseCVFile(cvFile.buffer, cvFile.mimeType, cvFile.fileName);
+          console.log('📊 Parsing result:', { hasText: !!parsedCV.text, wordCount: parsedCV.wordCount });
+          
+          if (parsedCV.text) {
+            cvFileData.extractedText = parsedCV.text;
+            cvFileData.wordCount = parsedCV.wordCount;
+            console.log('✅ CV text extracted:', parsedCV.wordCount, 'words');
+            console.log('📄 CV Preview (first 200 chars):', parsedCV.text.substring(0, 200) + '...');
+            
+            // Use AI to extract structured data from CV text
+            if (process.env.OPENAI_API_KEY) {
+              try {
+                console.log('🤖 Starting AI extraction...');
+                const aiData = await parseWithAI(parsedCV.text);
+                cvFileData.aiExtractedData = aiData;
+                console.log('✅ AI extraction successful');
+                console.log('📊 Extracted data:', {
+                  name: aiData.name,
+                  email: aiData.email,
+                  phone: aiData.phone,
+                  skills: aiData.skills?.substring(0, 50) + '...',
+                  experience_level: aiData.experience_level,
+                  years_of_experience: aiData.years_of_experience
+                });
+              } catch (aiError) {
+                console.error('⚠️ AI extraction failed:', aiError.message);
+                // Continue without AI data - text extraction still worked
+              }
+            } else {
+              console.warn('⚠️ OPENAI_API_KEY not set - skipping AI extraction');
+            }
+          } else {
+            console.warn('⚠️ No text extracted from CV');
+          }
+        } catch (parseError) {
+          console.error('❌ CV parsing failed:', parseError);
+          console.error('Error details:', parseError.message, parseError.stack);
+          // Continue anyway - file is still saved
+        }
       }
-    } catch (forwardError) {
-      console.error('⚠️ Forwarding to DameDesk failed, will still store locally:', forwardError);
-      // Do not throw - we still want to store in DB and return 200
     }
 
-    // Store in database (using DameDesk candidateId if available)
-    await storeInDatabase(registrationData);
+    // Forward to your local DameDesk via webhook
+    await forwardToDameDesk(registrationData, cvFileData, candidateId || `CAND_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
     
     console.log('✅ Netlify Function: Registration processed successfully');
     
@@ -975,8 +230,9 @@ exports.handler = async (event, context) => {
       },
       body: JSON.stringify({
         success: true,
-        message: 'Registration received and queued for processing',
-        registrationId: registrationData.id
+        message: candidateId ? 'Registration updated successfully' : 'Registration received and queued for processing',
+        candidateId: candidateId,
+        isUpdate: !!candidateId
       })
     };
     
@@ -997,101 +253,480 @@ exports.handler = async (event, context) => {
   }
 };
 
-// Parse multipart form data
-function parseMultipartFormData(body) {
-  const data = {};
+// Save registration directly to database
+async function forwardToDameDesk(registrationData, cvFileData, candidateId) {
+  const { Client } = require('pg');
   
-  // Split by boundary and filter out empty parts and boundary markers
-  const boundaryMatch = body.match(/------WebKitFormBoundary[a-zA-Z0-9]+/);
-  if (!boundaryMatch) return data;
-  
-  const boundary = boundaryMatch[0];
-  const parts = body.split(boundary).filter(part => part.trim() && !part.includes('--'));
-  
-  parts.forEach(part => {
-    // Extract field name from Content-Disposition header
-    const nameMatch = part.match(/name="([^"]+)"/);
-    if (!nameMatch) return;
-    
-    const fieldName = nameMatch[1];
-    
-    // Find the double CRLF that separates headers from content
-    const headerEndIndex = part.indexOf('\r\n\r\n');
-    if (headerEndIndex === -1) return;
-    
-    // Extract content after headers
-    let value = part.substring(headerEndIndex + 4).trim();
-    
-    // Skip empty values
-    if (!value) {
-      data[fieldName] = '';
-      return;
+  const client = new Client({
+    host: 'damedesk-crm-production-do-user-27348714-0.j.db.ondigitalocean.com',
+    port: 25060,
+    user: 'doadmin',
+    password: 'AVNS_wm_vFxOY5--ftSp64EL',
+    database: 'defaultdb',
+    ssl: {
+      rejectUnauthorized: false
     }
-    
-    // Parse JSON strings for arrays
-    if (value.startsWith('[') && value.endsWith(']')) {
-      try {
-        value = JSON.parse(value);
-      } catch (e) {
-        // Keep as string if JSON parse fails
-      }
-    }
-    
-    // Convert string booleans to actual booleans
-    if (value === 'true') value = true;
-    if (value === 'false') value = false;
-    
-    data[fieldName] = value;
   });
-  
-  return data;
-}
 
-// Forward registration to your local DameDesk
-async function forwardToDameDesk(registrationData) {
-  // Option 1: Use ngrok to expose your local DameDesk
-  const DAMEDESK_WEBHOOK_URL = process.env.DAMEDESK_WEBHOOK_URL;
-  
-  console.log('🔗 DAMEDESK_WEBHOOK_URL:', DAMEDESK_WEBHOOK_URL);
-  console.log('🕐 Environment check timestamp:', new Date().toISOString());
-  
-  if (DAMEDESK_WEBHOOK_URL) {
-    try {
-      console.log('📡 Attempting to forward to DameDesk...');
-      const response = await fetch(DAMEDESK_WEBHOOK_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-API-Key': 'netlify-function-key'
-        },
-        body: JSON.stringify(registrationData)
-      });
+  try {
+    await client.connect();
+    console.log('📊 Connected to database');
+    
+    const isUpdate = registrationData.isUpdate && candidateId;
+    
+    console.log(`🎯 Will ${isUpdate ? 'UPDATE' : 'CREATE'} candidate with ID: ${candidateId}`);
+    
+    if (isUpdate) {
+      // Update existing candidate in contacts table with ALL Part 1 fields
+      const updateQuery = `
+        UPDATE contacts SET
+          name = $1,
+          email = $2,
+          phone = $3,
+          date_of_birth = $4,
+          address = $5,
+          postcode = $6,
+          location = $7,
+          gender = $8,
+          nationality = $9,
+          right_to_work = $10,
+          visa_type = $11,
+          visa_expiry = $12,
+          industries = $13,
+          availability = $14,
+          shifts = $15,
+          transport = $16,
+          max_travel_distance = $17,
+          experience_summary = $18,
+          years_of_experience = $19,
+          experience_level = $20,
+          hourly_rate = $21,
+          preferred_job_types = $22,
+          flt_license = $23,
+          flt_types = $24,
+          other_licenses = $25,
+          medical_conditions = $26,
+          disability_info = $27,
+          reasonable_adjustments = $28,
+          driving_license = $29,
+          skills = $30,
+          employment_history = $31,
+          updated_at = CURRENT_TIMESTAMP
+        WHERE id = $32 AND type = 'candidate'
+        RETURNING id
+      `;
       
-      console.log('📊 DameDesk response status:', response.status);
-      console.log('📊 DameDesk response headers:', response.headers);
+      // Merge AI-extracted data with form data (form data takes priority)
+      const aiData = cvFileData?.aiExtractedData || {};
       
-      const responseText = await response.text();
-      let parsed = null;
-      try {
-        parsed = JSON.parse(responseText);
-      } catch (e) {
-        console.warn('⚠️ DameDesk response was not valid JSON, raw text:', responseText);
+      // Convert years_of_experience string to number (e.g., "2-5" -> 3) and calculate experience_level
+      let yearsExp = null;
+      let experienceLevel = null;
+      const yearsStr = registrationData.yearsOfExperience || aiData.years_of_experience;
+      
+      if (yearsStr) {
+        if (yearsStr === '0-1') {
+          yearsExp = 0;
+          experienceLevel = 'entry';
+        } else if (yearsStr === '1-2') {
+          yearsExp = 1;
+          experienceLevel = 'entry';
+        } else if (yearsStr === '2-5' || yearsStr === '0-2' || yearsStr === '3-5') {
+          yearsExp = 3;
+          experienceLevel = 'mid';
+        } else if (yearsStr === '5-10' || yearsStr === '6-10') {
+          yearsExp = 7;
+          experienceLevel = 'senior';
+        } else if (yearsStr === '10+') {
+          yearsExp = 12;
+          experienceLevel = 'lead';
+        } else {
+          yearsExp = parseInt(yearsStr) || null;
+          // Calculate experience level from numeric value
+          if (yearsExp !== null) {
+            if (yearsExp < 2) experienceLevel = 'entry';
+            else if (yearsExp < 5) experienceLevel = 'mid';
+            else if (yearsExp < 10) experienceLevel = 'senior';
+            else experienceLevel = 'lead';
+          }
+        }
       }
-
-      if (response.ok) {
-        console.log('✅ Successfully forwarded to DameDesk, response:', responseText);
-        return parsed || { raw: responseText };
+      
+      // Merge employment history from form and AI (UPDATE path)
+      let employmentHistoryUpdate = registrationData.employmentHistory || aiData.employmentHistory || null;
+      if (typeof employmentHistoryUpdate === 'string') {
+        try {
+          employmentHistoryUpdate = JSON.parse(employmentHistoryUpdate);
+        } catch (e) {
+          console.warn('Could not parse employment history:', e);
+          employmentHistoryUpdate = null;
+        }
+      }
+      
+      const result = await client.query(updateQuery, [
+        `${registrationData.firstName} ${registrationData.lastName}`,
+        registrationData.email || aiData.email,
+        registrationData.phone || aiData.phone,
+        registrationData.dateOfBirth || null,
+        registrationData.address || aiData.location,
+        registrationData.postcode || aiData.postcode,
+        `${registrationData.address || aiData.location}, ${registrationData.postcode || aiData.postcode}`,
+        registrationData.gender,
+        registrationData.nationality,
+        registrationData.rightToWork,
+        registrationData.visaType || null,
+        registrationData.visaExpiry || null,
+        registrationData.industries || aiData.industries || null,
+        registrationData.availability || null,
+        registrationData.shifts || aiData.shifts?.join(', ') || null,
+        registrationData.transport || null,
+        registrationData.maxTravelDistance || null,
+        registrationData.experience || aiData.experience || null,
+        yearsExp,
+        experienceLevel,
+        registrationData.expectedHourlyRate || null,
+        registrationData.jobTypes || aiData.job_types || null,
+        registrationData.fltLicense || false,
+        registrationData.fltTypes || null,
+        registrationData.otherLicenses || null,
+        registrationData.medicalConditions || null,
+        registrationData.disabilityInfo || null,
+        registrationData.reasonableAdjustments || null,
+        registrationData.drivingLicense || null,
+        aiData.skills || null,
+        employmentHistoryUpdate ? JSON.stringify(employmentHistoryUpdate) : null,
+        candidateId
+      ]);
+      
+      // Save CV document if uploaded (UPDATE path)
+      if (result.rowCount > 0 && cvFileData) {
+        try {
+          const docId = `DOC_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
+          
+          // Build notes with parsing info
+          let notes = 'CV uploaded via Part 1 registration (update)';
+          if (cvFileData.extractedText) {
+            notes += ` | Parsed: ${cvFileData.wordCount} words extracted`;
+          }
+          
+          // Check if CV already exists for this candidate
+          const existingCV = await client.query(
+            'SELECT id FROM candidate_documents WHERE contact_id = $1 AND type = $2',
+            [candidateId, 'cv']
+          );
+          
+          if (existingCV.rows.length > 0) {
+            // Update existing CV
+            await client.query(`
+              UPDATE candidate_documents 
+              SET name = $1, content = $2, file_size = $3, uploaded_date = NOW(), notes = $4
+              WHERE contact_id = $5 AND type = 'cv'
+            `, [
+              cvFileData.fileName,
+              cvFileData.content,
+              cvFileData.size,
+              notes,
+              candidateId
+            ]);
+            console.log('✅ CV document updated in database:', cvFileData.fileName);
+          } else {
+            // Insert new CV
+            await client.query(`
+              INSERT INTO candidate_documents (
+                id, contact_id, type, name, content, file_size, uploaded_date, uploaded_by, notes, created_at
+              ) VALUES ($1, $2, 'cv', $3, $4, $5, NOW(), 'website_part1', $6, NOW())
+            `, [
+              docId,
+              candidateId,
+              cvFileData.fileName,
+              cvFileData.content,
+              cvFileData.size,
+              notes
+            ]);
+            console.log('✅ CV document saved to database:', cvFileData.fileName);
+          }
+          
+          // Also save extracted text and AI data to contact record if available
+          if (cvFileData.extractedText || cvFileData.aiExtractedData) {
+            try {
+              let cvNotes = '';
+              if (cvFileData.aiExtractedData) {
+                const ai = cvFileData.aiExtractedData;
+                cvNotes = `CV AI-Extracted Data:\n\n`;
+                if (ai.skills) cvNotes += `Skills: ${ai.skills}\n`;
+                if (ai.experience) cvNotes += `Experience: ${ai.experience}\n`;
+                if (ai.education) cvNotes += `Education: ${ai.education}\n`;
+                
+                if (ai.employmentHistory && ai.employmentHistory.length > 0) {
+                  cvNotes += `\nPrevious Employment:\n`;
+                  ai.employmentHistory.forEach((job, i) => {
+                    cvNotes += `\n${i + 1}. ${job.position} at ${job.company}\n`;
+                    cvNotes += `   ${job.startDate} - ${job.endDate}\n`;
+                    if (job.description) cvNotes += `   ${job.description}\n`;
+                  });
+                }
+                
+                if (ai.key_achievements && ai.key_achievements.length > 0) {
+                  cvNotes += `\nKey Achievements:\n${ai.key_achievements.map((a, i) => `${i + 1}. ${a}`).join('\n')}`;
+                }
+              }
+              
+              await client.query(`
+                UPDATE contacts 
+                SET cv_text = $1, cv_parsed_at = NOW(), notes = COALESCE(notes || E'\n\n', '') || $2
+                WHERE id = $3
+              `, [cvFileData.extractedText, cvNotes, candidateId]);
+              console.log('✅ CV text and AI data saved to contact record');
+            } catch (textError) {
+              console.warn('⚠️ Could not save CV text to contact:', textError.message);
+            }
+          }
+        } catch (cvError) {
+          console.error('⚠️ Failed to save CV document:', cvError);
+        }
+      }
+      
+      // Also create/update registration record in candidate_registrations table
+      if (result.rowCount > 0) {
+        await client.query(`
+          INSERT INTO candidate_registrations (
+            candidate_id, registration_status, created_at, updated_at
+          ) VALUES ($1, 'registered', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+          ON CONFLICT (candidate_id) 
+          DO UPDATE SET 
+            registration_status = 'registered',
+            updated_at = CURRENT_TIMESTAMP
+        `, [candidateId]);
+        
+        // Log activity for Part 1 completion
+        const activityId = `ACT_${Date.now()}_${Math.random().toString(36).substr(2, 8)}`;
+        await client.query(`
+          INSERT INTO activities (
+            id, subject_type, subject_id, type, summary, details, created_at
+          ) VALUES ($1, 'candidate', $2, 'part1_completed', 'Part 1 registration completed via website', $3, CURRENT_TIMESTAMP)
+        `, [
+          activityId,
+          candidateId,
+          JSON.stringify({
+            completed_at: new Date().toISOString(),
+            source: 'website'
+          })
+        ]);
+      }
+      
+      if (result.rowCount > 0) {
+        console.log('✅ Successfully updated candidate:', candidateId);
       } else {
-        console.error('❌ DameDesk responded with error:', response.status, responseText);
-        throw new Error(`DameDesk error: ${response.status} - ${responseText}`);
+        console.warn('⚠️ No candidate found to update, ID:', candidateId);
       }
-    } catch (error) {
-      console.error('⚠️ Failed to forward to DameDesk:', error.message);
-      throw error; // Re-throw to trigger the main catch block
+    } else {
+      console.log('✨ Creating new candidate from website registration');
+      
+      // Generate new candidate ID
+      const newCandidateId = `CAND_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      // Insert new candidate into contacts table with ALL Part 1 fields
+      const insertQuery = `
+        INSERT INTO contacts (
+          id, name, email, phone, date_of_birth, address, postcode, location,
+          gender, nationality, right_to_work, visa_type, visa_expiry,
+          industries, availability, shifts, transport, max_travel_distance,
+          experience_summary, years_of_experience, experience_level, hourly_rate, preferred_job_types,
+          flt_license, flt_types, other_licenses,
+          medical_conditions, disability_info, reasonable_adjustments,
+          skills, employment_history,
+          type, source, status, created_at, updated_at
+        ) VALUES (
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13,
+          $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31,
+          'candidate', 'website_registration', 'active', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+        )
+        RETURNING id
+      `;
+      
+      // Merge AI-extracted data with form data (form data takes priority)
+      const aiData = cvFileData?.aiExtractedData || {};
+      
+      // Convert years_of_experience string to number (e.g., "2-5" -> 3) and calculate experience_level (INSERT)
+      let yearsExpInsert = null;
+      let experienceLevelInsert = null;
+      const yearsStrInsert = registrationData.yearsOfExperience || aiData.years_of_experience;
+      
+      if (yearsStrInsert) {
+        if (yearsStrInsert === '0-1') {
+          yearsExpInsert = 0;
+          experienceLevelInsert = 'entry';
+        } else if (yearsStrInsert === '1-2') {
+          yearsExpInsert = 1;
+          experienceLevelInsert = 'entry';
+        } else if (yearsStrInsert === '2-5' || yearsStrInsert === '0-2' || yearsStrInsert === '3-5') {
+          yearsExpInsert = 3;
+          experienceLevelInsert = 'mid';
+        } else if (yearsStrInsert === '5-10' || yearsStrInsert === '6-10') {
+          yearsExpInsert = 7;
+          experienceLevelInsert = 'senior';
+        } else if (yearsStrInsert === '10+') {
+          yearsExpInsert = 12;
+          experienceLevelInsert = 'lead';
+        } else {
+          yearsExpInsert = parseInt(yearsStrInsert) || null;
+          // Calculate experience level from numeric value
+          if (yearsExpInsert !== null) {
+            if (yearsExpInsert < 2) experienceLevelInsert = 'entry';
+            else if (yearsExpInsert < 5) experienceLevelInsert = 'mid';
+            else if (yearsExpInsert < 10) experienceLevelInsert = 'senior';
+            else experienceLevelInsert = 'lead';
+          }
+        }
+      }
+      
+      // Merge employment history from form and AI (INSERT path)
+      let employmentHistoryInsert = registrationData.employmentHistory || aiData.employmentHistory || null;
+      if (typeof employmentHistoryInsert === 'string') {
+        try {
+          employmentHistoryInsert = JSON.parse(employmentHistoryInsert);
+        } catch (e) {
+          console.warn('Could not parse employment history:', e);
+          employmentHistoryInsert = null;
+        }
+      }
+      
+      const insertResult = await client.query(insertQuery, [
+        newCandidateId,
+        `${registrationData.firstName} ${registrationData.lastName}`,
+        registrationData.email || aiData.email,
+        registrationData.phone || aiData.phone,
+        registrationData.dateOfBirth || null,
+        registrationData.address || aiData.location,
+        registrationData.postcode || aiData.postcode,
+        `${registrationData.address || aiData.location}, ${registrationData.postcode || aiData.postcode}`,
+        registrationData.gender,
+        registrationData.nationality,
+        registrationData.rightToWork,
+        registrationData.visaType || null,
+        registrationData.visaExpiry || null,
+        registrationData.industries || aiData.industries || null,
+        registrationData.availability || null,
+        registrationData.shifts || aiData.shifts?.join(', ') || null,
+        registrationData.transport || null,
+        registrationData.maxTravelDistance || null,
+        registrationData.experience || aiData.experience || null,
+        yearsExpInsert,
+        experienceLevelInsert,
+        registrationData.expectedHourlyRate || aiData.hourly_rate || null,
+        registrationData.jobTypes || aiData.job_types || null,
+        registrationData.fltLicense || false,
+        registrationData.fltTypes || null,
+        registrationData.otherLicenses || null,
+        registrationData.medicalConditions || null,
+        registrationData.disabilityInfo || null,
+        registrationData.reasonableAdjustments || null,
+        aiData.skills || null,
+        employmentHistoryInsert ? JSON.stringify(employmentHistoryInsert) : null
+      ]);
+      
+      if (insertResult.rowCount > 0) {
+        console.log('✅ Successfully created new candidate:', newCandidateId);
+        
+        // Save CV document if uploaded (stored as base64 in database)
+        if (cvFileData) {
+          try {
+            const docId = `DOC_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
+            
+            // Build notes with parsing info
+            let notes = 'CV uploaded via Part 1 registration';
+            if (cvFileData.extractedText) {
+              notes += ` | Parsed: ${cvFileData.wordCount} words extracted`;
+            }
+            
+            await client.query(`
+              INSERT INTO candidate_documents (
+                id, contact_id, type, name, content, file_size, uploaded_date, uploaded_by, notes, created_at
+              ) VALUES ($1, $2, 'cv', $3, $4, $5, NOW(), 'website_part1', $6, NOW())
+            `, [
+              docId,
+              newCandidateId,
+              cvFileData.fileName,
+              cvFileData.content, // Base64 encoded file content
+              cvFileData.size,
+              notes
+            ]);
+            console.log('✅ CV document saved to database:', cvFileData.fileName, `(${cvFileData.size} bytes)`);
+            
+            // Also save extracted text and AI data to contact record if available
+            if (cvFileData.extractedText || cvFileData.aiExtractedData) {
+              try {
+                // Build notes with AI-extracted data
+                let cvNotes = '';
+                if (cvFileData.aiExtractedData) {
+                  const ai = cvFileData.aiExtractedData;
+                  cvNotes = `CV AI-Extracted Data:\n\n`;
+                  if (ai.skills) cvNotes += `Skills: ${ai.skills}\n`;
+                  if (ai.experience) cvNotes += `Experience: ${ai.experience}\n`;
+                  if (ai.education) cvNotes += `Education: ${ai.education}\n`;
+                  
+                  // Add employment history
+                  if (ai.employmentHistory && ai.employmentHistory.length > 0) {
+                    cvNotes += `\nPrevious Employment:\n`;
+                    ai.employmentHistory.forEach((job, i) => {
+                      cvNotes += `\n${i + 1}. ${job.position} at ${job.company}\n`;
+                      cvNotes += `   ${job.startDate} - ${job.endDate}\n`;
+                      if (job.description) cvNotes += `   ${job.description}\n`;
+                    });
+                  }
+                  
+                  if (ai.key_achievements && ai.key_achievements.length > 0) {
+                    cvNotes += `\nKey Achievements:\n${ai.key_achievements.map((a, i) => `${i + 1}. ${a}`).join('\n')}`;
+                  }
+                }
+                
+                await client.query(`
+                  UPDATE contacts 
+                  SET cv_text = $1, cv_parsed_at = NOW(), notes = COALESCE(notes || E'\n\n', '') || $2
+                  WHERE id = $3
+                `, [cvFileData.extractedText, cvNotes, newCandidateId]);
+                console.log('✅ CV text and AI data saved to contact record');
+              } catch (textError) {
+                console.warn('⚠️ Could not save CV text to contact (column may not exist):', textError.message);
+              }
+            }
+          } catch (cvError) {
+            console.error('⚠️ Failed to save CV document:', cvError);
+          }
+        }
+        
+        // Create registration record
+        await client.query(`
+          INSERT INTO candidate_registrations (
+            candidate_id, registration_status, created_at, updated_at
+          ) VALUES ($1, 'registered', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        `, [newCandidateId]);
+        
+        // Log activity for new registration
+        const activityId = `ACT_${Date.now()}_${Math.random().toString(36).substr(2, 8)}`;
+        await client.query(`
+          INSERT INTO activities (
+            id, subject_type, subject_id, type, summary, details, created_at
+          ) VALUES ($1, 'candidate', $2, 'registration', 'Candidate registered via website', $3, CURRENT_TIMESTAMP)
+        `, [
+          activityId,
+          newCandidateId,
+          JSON.stringify({
+            completed_at: new Date().toISOString(),
+            source: 'website',
+            email: registrationData.email
+          })
+        ]);
+      }
     }
-  } else {
-    console.warn('⚠️ No DAMEDESK_WEBHOOK_URL configured');
-    throw new Error('DAMEDESK_WEBHOOK_URL not configured');
+    
+    await client.end();
+    console.log('✅ Successfully saved to database');
+    
+  } catch (error) {
+    console.error('❌ Database error:', error);
+    await client.end();
+    throw error;
   }
 }
 
@@ -1120,77 +755,124 @@ async function sendEmailNotification(registrationData) {
   }
 }
 
-// Parse multipart form data with file handling
-async function parseMultipartFormDataWithFiles(body) {
-  const formData = {};
-  const files = [];
+// Parse CV file to extract text
+async function parseCVFile(buffer, mimeType, fileName) {
+  console.log('🔍 Parsing CV:', fileName, mimeType);
   
-  // Split by boundary and filter out empty parts and boundary markers
-  const boundaryMatch = body.match(/------WebKitFormBoundary[a-zA-Z0-9]+/);
-  if (!boundaryMatch) return { formData, files };
-  
-  const boundary = boundaryMatch[0];
-  const parts = body.split(boundary).filter(part => part.trim() && !part.includes('--'));
-  
-  parts.forEach(part => {
-    // Extract field name from Content-Disposition header
-    const nameMatch = part.match(/name="([^"]+)"/);
-    if (!nameMatch) return;
+  try {
+    let extractedText = '';
     
-    const fieldName = nameMatch[1];
-    
-    // Check if this is a file upload
-    const filenameMatch = part.match(/filename="([^"]+)"/);
-    if (filenameMatch && filenameMatch[1]) {
-      // This is a file upload
-      const fileName = filenameMatch[1];
-      console.log(`📁 File upload detected: ${fieldName} = ${fileName}`);
-      
-      // Extract content type
-      const contentTypeMatch = part.match(/Content-Type:\s*([^\r\n]+)/);
-      const mimeType = contentTypeMatch ? contentTypeMatch[1].trim() : 'application/octet-stream';
-      
-      // Find the double CRLF that separates headers from content
-      const headerEndIndex = part.indexOf('\r\n\r\n');
-      if (headerEndIndex === -1) return;
-      
-      // Extract file content (binary data)
-      const fileContent = part.substring(headerEndIndex + 4);
-      
-      // Convert to buffer (handle binary data properly)
-      const fileBuffer = Buffer.from(fileContent, 'binary');
-      
-      files.push({
-        fieldName,
-        fileName,
-        mimeType,
-        buffer: fileBuffer,
-        size: fileBuffer.length
-      });
-      
-      return;
+    // Parse PDF files
+    if (mimeType === 'application/pdf' || fileName.toLowerCase().endsWith('.pdf')) {
+      const pdfParse = require('pdf-parse');
+      const data = await pdfParse(buffer);
+      extractedText = data.text;
+      console.log('📄 PDF parsed:', data.numpages, 'pages');
+    }
+    // Parse Word documents (.docx)
+    else if (mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || fileName.toLowerCase().endsWith('.docx')) {
+      const mammoth = require('mammoth');
+      const result = await mammoth.extractRawText({ buffer: buffer });
+      extractedText = result.value;
+      console.log('📄 DOCX parsed');
+    }
+    // Parse old Word documents (.doc)
+    else if (mimeType === 'application/msword' || fileName.toLowerCase().endsWith('.doc')) {
+      console.log('⚠️ .doc files require special parsing - extracting as text');
+      // .doc files are binary and harder to parse - would need textract or similar
+      extractedText = 'DOC file uploaded - text extraction not available for .doc format. Please use .docx or PDF.';
+    }
+    else {
+      console.log('⚠️ Unsupported file type for parsing:', mimeType);
+      extractedText = 'File uploaded - text extraction not available for this file type.';
     }
     
-    // Regular form field
-    // Find the double CRLF that separates headers from content
-    const headerEndIndex = part.indexOf('\r\n\r\n');
-    if (headerEndIndex === -1) return;
+    // Clean up text
+    extractedText = extractedText.trim();
+    const wordCount = extractedText.split(/\s+/).length;
     
-    // Extract content after headers
-    let value = part.substring(headerEndIndex + 4).trim();
-    
-    // Skip empty values
-    if (!value) {
-      formData[fieldName] = '';
-      return;
-    }
-    
-    // Convert string booleans to actual booleans
-    if (value === 'true') value = true;
-    if (value === 'false') value = false;
-    
-    formData[fieldName] = value;
+    return {
+      text: extractedText,
+      wordCount: wordCount,
+      success: true
+    };
+  } catch (error) {
+    console.error('❌ CV parsing error:', error);
+    throw error;
+  }
+}
+
+// Use AI to extract structured data from CV text
+async function parseWithAI(cvText) {
+  const OpenAI = require('openai');
+  const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY
   });
+
+  console.log('🤖 Calling OpenAI to extract structured data...');
   
-  return { formData, files };
+  const prompt = `Extract the following information from this CV/resume. Return ONLY valid JSON with no markdown formatting or code blocks.
+
+CV Text:
+${cvText.substring(0, 15000)}
+
+Return JSON in this exact format:
+{
+  "name": "Full name",
+  "email": "Email address",
+  "phone": "Phone number",
+  "location": "City/area",
+  "postcode": "Postcode if available",
+  "skills": "Comma-separated list of key skills",
+  "experience_level": "Entry/Mid/Senior",
+  "years_of_experience": "Number of years as integer",
+  "industries": "Comma-separated industries worked in",
+  "job_types": "Comma-separated job types (e.g. Warehouse, Manufacturing, Logistics)",
+  "hourly_rate": "Expected hourly rate as number or null",
+  "expected_annual_salary": "Expected salary as number or null",
+  "notice_period_days": "Notice period in days as integer or null",
+  "experience_summary": "Brief 2-3 sentence summary of experience",
+  "education": "Highest qualification",
+  "key_achievements": "Top 3-5 achievements as array",
+  "employmentHistory": "Array of previous jobs with company, position, startDate, endDate, description"
+}
+
+Use "N/A" for missing text fields, null for missing numbers, and empty array for missing arrays.`;
+
+  try {
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a CV parsing assistant. Extract structured data from CVs and return valid JSON only, with no markdown formatting.'
+        },
+        {
+          role: 'user',
+          content: prompt
+        }
+      ],
+      temperature: 0.3,
+      max_tokens: 1000
+    });
+
+    const responseText = completion.choices[0].message.content.trim();
+    console.log('🤖 OpenAI response:', responseText.substring(0, 200) + '...');
+    
+    // Remove markdown code blocks if present
+    let jsonText = responseText;
+    if (jsonText.startsWith('```json')) {
+      jsonText = jsonText.replace(/```json\n?/g, '').replace(/```\n?/g, '');
+    } else if (jsonText.startsWith('```')) {
+      jsonText = jsonText.replace(/```\n?/g, '');
+    }
+    
+    const parsedData = JSON.parse(jsonText);
+    console.log('✅ AI parsing successful:', Object.keys(parsedData));
+    
+    return parsedData;
+  } catch (error) {
+    console.error('❌ AI parsing failed:', error);
+    throw error;
+  }
 }

@@ -24,8 +24,10 @@ export default function RegisterPart2Page() {
     accountNumber: '',
     accountHolderName: '',
     niNumber: '',
-    rightToWorkMethod: '',
+    nationalityCategory: '', // 'british_irish', 'eu_eea_swiss', 'non_eu'
+    rightToWorkMethod: '', // 'yoti_digital', 'share_code', 'physical_document'
     shareCode: '',
+    dateOfBirth: '',
     documentType: '',
     emergencyName: '',
     emergencyPhone: '',
@@ -34,23 +36,13 @@ export default function RegisterPart2Page() {
     rightToWorkConfirmation: false,
     contractAccepted: false,
     contractSignature: '',
-    contractDate: new Date().toISOString().split('T')[0],
-    cvUploadMethod: 'upload', // 'upload' or 'manual'
-    employmentHistory: [] as Array<{
-      company: string;
-      position: string;
-      startDate: string;
-      endDate: string;
-      description: string;
-    }>
+    contractDate: new Date().toISOString().split('T')[0]
   })
   
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
-  const [cvFile, setCvFile] = useState<File | null>(null)
   const [uploadError, setUploadError] = useState('')
-  const [cvUploadError, setCvUploadError] = useState('')
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target
@@ -92,57 +84,6 @@ export default function RegisterPart2Page() {
     setUploadedFiles(prev => prev.filter((_, i) => i !== index))
   }
 
-  const handleCVUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    setCvUploadError('')
-    
-    if (file) {
-      const validTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
-      const maxSize = 5 * 1024 * 1024 // 5MB
-      
-      if (!validTypes.includes(file.type)) {
-        setCvUploadError('Only PDF and Word documents are allowed')
-        return
-      }
-      
-      if (file.size > maxSize) {
-        setCvUploadError('CV must be smaller than 5MB')
-        return
-      }
-      
-      setCvFile(file)
-    }
-  }
-
-  const removeCVFile = () => {
-    setCvFile(null)
-  }
-
-  const addEmploymentEntry = () => {
-    setFormData(prev => ({
-      ...prev,
-      employmentHistory: [
-        ...prev.employmentHistory,
-        { company: '', position: '', startDate: '', endDate: '', description: '' }
-      ]
-    }))
-  }
-
-  const removeEmploymentEntry = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      employmentHistory: prev.employmentHistory.filter((_, i) => i !== index)
-    }))
-  }
-
-  const updateEmploymentEntry = (index: number, field: string, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      employmentHistory: prev.employmentHistory.map((entry, i) => 
-        i === index ? { ...entry, [field]: value } : entry
-      )
-    }))
-  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -163,11 +104,6 @@ export default function RegisterPart2Page() {
           formDataToSend.append(key, value.toString());
         }
       });
-      
-      // Add CV file if uploaded
-      if (cvFile) {
-        formDataToSend.append('cvFile', cvFile);
-      }
       
       // Add uploaded Right to Work files
       uploadedFiles.forEach((file, index) => {
@@ -349,104 +285,274 @@ export default function RegisterPart2Page() {
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Right to Work Verification</h2>
               
               <div className="space-y-6">
+                {/* Step 1: Nationality Category */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Verification Method *
+                    What is your nationality? *
                   </label>
                   <select
-                    name="rightToWorkMethod"
-                    value={formData.rightToWorkMethod}
+                    name="nationalityCategory"
+                    value={formData.nationalityCategory}
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
                     required
                   >
-                    <option value="">Select verification method</option>
-                    <option value="share_code">Digital Share Code (Recommended)</option>
-                    <option value="physical_document">Physical Document Upload</option>
+                    <option value="">Select your nationality</option>
+                    <option value="british_irish">🇬🇧 British or Irish</option>
+                    <option value="eu_eea_swiss">🇪🇺 EU, EEA, or Swiss</option>
+                    <option value="non_eu">🌍 Other (Non-EU)</option>
                   </select>
                 </div>
 
-                {formData.rightToWorkMethod === 'share_code' && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Share Code *
-                    </label>
-                    <input
-                      type="text"
-                      name="shareCode"
-                      value={formData.shareCode}
-                      onChange={handleInputChange}
-                      placeholder="ABC123DEF"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-                      required
-                    />
-                    <p className="text-sm text-gray-500 mt-1">
-                      Get your share code from <a href="https://www.gov.uk/prove-right-to-work" target="_blank" className="text-red-600 hover:underline">gov.uk/prove-right-to-work</a>
-                    </p>
-                  </div>
-                )}
-
-                {formData.rightToWorkMethod === 'physical_document' && (
+                {/* British/Irish - Yoti Digital Check OR Manual Video Call */}
+                {formData.nationalityCategory === 'british_irish' && (
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Document Type *
+                        Verification Method *
                       </label>
                       <select
-                        name="documentType"
-                        value={formData.documentType}
+                        name="rightToWorkMethod"
+                        value={formData.rightToWorkMethod}
                         onChange={handleInputChange}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
                         required
                       >
-                        <option value="">Select document type</option>
-                        <option value="passport">British/Irish Passport</option>
-                        <option value="visa">Non-EEA Passport with Visa</option>
-                        <option value="brp">Biometric Residence Permit</option>
-                        <option value="birth_cert">Birth Certificate + NI Document</option>
+                        <option value="">Select verification method</option>
+                        <option value="yoti_digital">🤖 Digital Check (Yoti) - Fastest</option>
+                        <option value="video_call">📹 Video Call with Consultant</option>
                       </select>
                     </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Upload Documents *
-                      </label>
-                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-red-400 transition-colors">
-                        <input
-                          type="file"
-                          id="rightToWorkFiles"
-                          multiple
-                          accept=".pdf,.jpg,.jpeg,.png"
-                          onChange={handleFileUpload}
-                          className="hidden"
-                        />
-                        <label htmlFor="rightToWorkFiles" className="cursor-pointer">
-                          <div className="text-4xl text-gray-400 mb-2">📄</div>
-                          <div className="text-gray-600 mb-2">
-                            Click to upload your documents
+                    {formData.rightToWorkMethod === 'yoti_digital' && (
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-4 space-y-4">
+                        <div className="flex items-start space-x-3">
+                          <div className="text-2xl">✅</div>
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-green-900 mb-2">Digital Right to Work Check</h3>
+                            <p className="text-sm text-green-800 mb-3">
+                              Complete a fast, secure digital identity check using Yoti.
+                            </p>
+                            <div className="bg-white rounded-md p-3 mb-3">
+                              <p className="text-sm font-medium text-gray-900 mb-2">What you'll need:</p>
+                              <ul className="text-sm text-gray-700 space-y-1 ml-4 list-disc">
+                                <li>Your valid UK or Irish passport</li>
+                                <li>A smartphone or webcam</li>
+                                <li>5 minutes of your time</li>
+                              </ul>
+                            </div>
+                            <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
+                              <p className="text-sm text-blue-900">
+                                <strong>📧 Next step:</strong> After you submit this form, we'll email you a secure Yoti link to complete your digital identity verification. This is fully compliant with UK Home Office requirements.
+                              </p>
+                            </div>
                           </div>
-                          <div className="text-sm text-gray-500">
-                            PDF, JPG, PNG files up to 5MB each
-                          </div>
-                        </label>
+                        </div>
                       </div>
-                      
-                      {uploadError && (
-                        <p className="text-red-600 text-sm mt-2">{uploadError}</p>
-                      )}
+                    )}
 
-                      {uploadedFiles.length > 0 && (
-                        <div className="mt-4 space-y-2">
-                          <p className="text-sm font-medium text-gray-700">Uploaded Files:</p>
-                          {uploadedFiles.map((file, index) => (
-                            <div key={index} className="flex items-center justify-between bg-gray-50 p-3 rounded-md">
-                              <div className="flex items-center space-x-2">
-                                <span className="text-sm text-gray-600">📎</span>
-                                <span className="text-sm text-gray-900">{file.name}</span>
-                                <span className="text-xs text-gray-500">({(file.size / 1024 / 1024).toFixed(1)}MB)</span>
+                    {formData.rightToWorkMethod === 'video_call' && (
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-4">
+                        <div className="flex items-start space-x-3">
+                          <div className="text-2xl">📹</div>
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-blue-900 mb-2">Video Call Verification</h3>
+                            <p className="text-sm text-blue-800 mb-3">
+                              One of our consultants will verify your identity via a live video call.
+                            </p>
+                            <div className="bg-white rounded-md p-3 mb-3">
+                              <p className="text-sm font-medium text-gray-900 mb-2">What you'll need:</p>
+                              <ul className="text-sm text-gray-700 space-y-1 ml-4 list-disc">
+                                <li>Your original UK or Irish passport</li>
+                                <li>A device with camera and microphone</li>
+                                <li>15 minutes for the video call</li>
+                              </ul>
+                            </div>
+                            <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3">
+                              <p className="text-sm text-yellow-900">
+                                <strong>📅 Next step:</strong> Our team will contact you within 24 hours to schedule your video verification call. Please have your passport ready.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* EU/EEA/Swiss - Share Code Required */}
+                {formData.nationalityCategory === 'eu_eea_swiss' && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-4">
+                    <div className="flex items-start space-x-3">
+                      <div className="text-2xl">🇪🇺</div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-blue-900 mb-2">Share Code Required</h3>
+                        <p className="text-sm text-blue-800 mb-3">
+                          EU, EEA, and Swiss nationals must provide a <strong>Share Code</strong> to prove their right to work in the UK.
+                        </p>
+                        
+                        <div className="bg-white rounded-md p-3 mb-3">
+                          <p className="text-sm font-medium text-gray-900 mb-2">How to get your Share Code:</p>
+                          <ol className="text-sm text-gray-700 space-y-1 ml-4 list-decimal">
+                            <li>Visit <a href="https://www.gov.uk/prove-right-to-work" target="_blank" rel="noopener noreferrer" className="text-red-600 hover:underline font-medium">gov.uk/prove-right-to-work</a></li>
+                            <li>Sign in with your UK Visas and Immigration account</li>
+                            <li>Generate your Share Code (valid for 90 days)</li>
+                            <li>Enter it below along with your date of birth</li>
+                          </ol>
+                        </div>
+
+                        <div className="space-y-3">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Share Code *
+                            </label>
+                            <input
+                              type="text"
+                              name="shareCode"
+                              value={formData.shareCode}
+                              onChange={handleInputChange}
+                              placeholder="ABC123DEF"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 uppercase"
+                              required
+                              maxLength={9}
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Date of Birth *
+                            </label>
+                            <input
+                              type="date"
+                              name="dateOfBirth"
+                              value={formData.dateOfBirth}
+                              onChange={handleInputChange}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                              required
+                            />
+                            <p className="text-xs text-gray-500 mt-1">Required to verify your Share Code</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Non-EU - Share Code Required */}
+                {formData.nationalityCategory === 'non_eu' && (
+                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 space-y-4">
+                    <div className="flex items-start space-x-3">
+                      <div className="text-2xl">🌍</div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-purple-900 mb-2">Share Code Required</h3>
+                        <p className="text-sm text-purple-800 mb-3">
+                          All non-EU nationals must provide a <strong>Share Code</strong> to prove their right to work in the UK.
+                        </p>
+                        
+                        <div className="bg-white rounded-md p-3 mb-3">
+                          <p className="text-sm font-medium text-gray-900 mb-2">How to get your Share Code:</p>
+                          <ol className="text-sm text-gray-700 space-y-1 ml-4 list-decimal">
+                            <li>Visit <a href="https://www.gov.uk/prove-right-to-work" target="_blank" rel="noopener noreferrer" className="text-red-600 hover:underline font-medium">gov.uk/prove-right-to-work</a></li>
+                            <li>Sign in with your UK Visas and Immigration account</li>
+                            <li>Generate your Share Code (valid for 90 days)</li>
+                            <li>Enter it below along with your date of birth</li>
+                          </ol>
+                        </div>
+
+                        <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3 mb-3">
+                          <p className="text-sm text-yellow-900">
+                            <strong>⚠️ Important:</strong> Biometric Residence Permits (BRP cards) are no longer accepted. You must use the digital Share Code system.
+                          </p>
+                        </div>
+
+                        <div className="space-y-3">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Share Code *
+                            </label>
+                            <input
+                              type="text"
+                              name="shareCode"
+                              value={formData.shareCode}
+                              onChange={handleInputChange}
+                              placeholder="ABC123DEF"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 uppercase"
+                              required
+                              maxLength={9}
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Date of Birth *
+                            </label>
+                            <input
+                              type="date"
+                              name="dateOfBirth"
+                              value={formData.dateOfBirth}
+                              onChange={handleInputChange}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                              required
+                            />
+                            <p className="text-xs text-gray-500 mt-1">Required to verify your Share Code</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Fallback for physical documents (temporary during transition) */}
+                {formData.nationalityCategory && (
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <details className="cursor-pointer">
+                      <summary className="text-sm font-medium text-gray-700">
+                        ⚠️ Having trouble with digital verification? Click here
+                      </summary>
+                      <div className="mt-3 space-y-3">
+                        <p className="text-sm text-gray-600">
+                          If you cannot complete the digital check, you can upload physical documents. However, this will delay your registration.
+                        </p>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Upload Documents (Optional)
+                          </label>
+                          <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-red-400 transition-colors">
+                            <input
+                              type="file"
+                              id="rightToWorkFiles"
+                              multiple
+                              accept=".pdf,.jpg,.jpeg,.png"
+                              onChange={handleFileUpload}
+                              className="hidden"
+                            />
+                            <label htmlFor="rightToWorkFiles" className="cursor-pointer">
+                              <div className="text-4xl text-gray-400 mb-2">📄</div>
+                              <div className="text-gray-600 mb-2">
+                                Click to upload your documents
                               </div>
-                              <button
-                                type="button"
+                              <div className="text-sm text-gray-500">
+                                PDF, JPG, PNG files up to 5MB each
+                              </div>
+                            </label>
+                          </div>
+                          
+                          {uploadError && (
+                            <p className="text-red-600 text-sm mt-2">{uploadError}</p>
+                          )}
+
+                          {uploadedFiles.length > 0 && (
+                            <div className="mt-4 space-y-2">
+                              <p className="text-sm font-medium text-gray-700">Uploaded Files:</p>
+                              {uploadedFiles.map((file, index) => (
+                                <div key={index} className="flex items-center justify-between bg-gray-50 p-3 rounded-md">
+                                  <div className="flex items-center space-x-2">
+                                    <span className="text-sm text-gray-600">📎</span>
+                                    <span className="text-sm text-gray-900">{file.name}</span>
+                                    <span className="text-xs text-gray-500">({(file.size / 1024 / 1024).toFixed(1)}MB)</span>
+                                  </div>
+                                  <button
+                                    type="button"
                                 onClick={() => removeFile(index)}
                                 className="text-red-600 hover:text-red-800 text-sm"
                               >
@@ -525,8 +631,8 @@ export default function RegisterPart2Page() {
               </div>
             </div>
 
-            {/* CV Upload / Employment History Section */}
-            <div className="border-b pb-8">
+            {/* CV Upload / Employment History Section - REMOVED (collected in Part 1) */}
+            {/* <div className="border-b pb-8">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">CV & Employment History</h2>
               
               <div className="mb-6">
@@ -730,7 +836,7 @@ export default function RegisterPart2Page() {
                   )}
                 </div>
               )}
-            </div>
+            </div> */}
 
             {/* Employment Contract Section */}
             <div className="border-b pb-8">
