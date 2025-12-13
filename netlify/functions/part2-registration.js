@@ -667,10 +667,26 @@ exports.handler = async (event, context) => {
           
           console.log('✅ Contract document saved as HTML');
           
+          // Fetch candidate email from contacts table
+          let candidateEmail = null;
+          try {
+            const emailResult = await contractClient.query(
+              'SELECT email, name FROM contacts WHERE id = $1',
+              [formData.candidateId]
+            );
+            if (emailResult.rows.length > 0 && emailResult.rows[0].email) {
+              candidateEmail = emailResult.rows[0].email;
+              console.log('📧 Found candidate email:', candidateEmail);
+            } else {
+              console.warn('⚠️ No email found for candidate:', formData.candidateId);
+            }
+          } catch (emailFetchError) {
+            console.error('⚠️ Failed to fetch candidate email:', emailFetchError);
+          }
+          
           // Send contract copy to candidate via email
-          if (formData.email || contactData?.email) {
+          if (candidateEmail) {
             try {
-              const candidateEmail = formData.email || contactData?.email;
               console.log('📧 Sending contract copy to:', candidateEmail);
               
               await sendContractEmail({
