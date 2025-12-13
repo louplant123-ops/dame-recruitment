@@ -2,6 +2,7 @@ const fetch = require('node-fetch');
 const { Client } = require('pg');
 const AWS = require('aws-sdk');
 const crypto = require('crypto');
+const nodemailer = require('nodemailer');
 
 // Configure DigitalOcean Spaces
 const spacesEndpoint = new AWS.Endpoint('fra1.digitaloceanspaces.com');
@@ -329,9 +330,6 @@ exports.handler = async (event, context) => {
               contract_status = $5,
               contract_signed_by = $6,
               contract_signed_date = $7,
-              registration_status = $8,
-              part2_status = $9,
-              part2_completed_at = NOW(),
               updated_at = NOW()
           WHERE id = $1
         `;
@@ -343,9 +341,7 @@ exports.handler = async (event, context) => {
           formData.emergencyRelationship || null,
           formData.contractAccepted ? 'signed' : 'pending',
           formData.contractSignature || null,
-          formData.contractDate || null,
-          'work_ready',
-          'completed'
+          formData.contractDate || null
         ]);
         console.log('✅ Emergency contact and contract details updated for candidate:', formData.candidateId);
       } catch (emError) {
@@ -800,8 +796,6 @@ exports.handler = async (event, context) => {
 
 // Send contract email to candidate using Nodemailer (same as DameDesk)
 async function sendContractEmail({ to, candidateName, contractHTML, signatureDate }) {
-  const nodemailer = require('nodemailer');
-  
   // Check if SMTP credentials are configured
   if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
     console.warn('⚠️ SMTP credentials not configured - skipping email');
