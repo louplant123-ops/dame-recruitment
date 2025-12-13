@@ -1056,7 +1056,7 @@ maxTravelDistance: '10',
                 </div>
                 {formData.employmentHistory.length === 0 ? (
                   <p className="text-sm text-charcoal/60 text-center py-4">
-                    No previous employment history. Click "Add Job" to add manually.
+                    No previous employment history. Click Add Job to add manually.
                   </p>
                 ) : (
                   <div className="space-y-4">
