@@ -805,18 +805,42 @@ async function sendContractEmail({ to, candidateName, contractHTML, signatureDat
   // Debug: Check nodemailer module
   console.log('📧 Nodemailer module type:', typeof nodemailer);
   console.log('📧 Nodemailer.createTransporter type:', typeof nodemailer?.createTransporter);
+  console.log('📧 Nodemailer keys:', Object.keys(nodemailer || {}));
   
-  // Try to require nodemailer again if it's not loaded properly
+  // Try to get the correct nodemailer reference
   let mailer = nodemailer;
-  if (typeof nodemailer?.createTransporter !== 'function') {
-    console.warn('⚠️ Nodemailer not loaded correctly, attempting re-require');
+  
+  // Check if it's a default export issue
+  if (nodemailer && nodemailer.default && typeof nodemailer.default.createTransporter === 'function') {
+    console.log('✅ Using nodemailer.default');
+    mailer = nodemailer.default;
+  } else if (typeof nodemailer?.createTransporter !== 'function') {
+    console.warn('⚠️ Nodemailer not loaded correctly, attempting fresh require');
     try {
-      mailer = require('nodemailer');
-      console.log('✅ Re-required nodemailer successfully');
+      // Clear from cache and re-require
+      delete require.cache[require.resolve('nodemailer')];
+      const freshNodemailer = require('nodemailer');
+      console.log('📧 Fresh nodemailer type:', typeof freshNodemailer);
+      console.log('📧 Fresh nodemailer.createTransporter type:', typeof freshNodemailer?.createTransporter);
+      
+      if (freshNodemailer && freshNodemailer.default && typeof freshNodemailer.default.createTransporter === 'function') {
+        mailer = freshNodemailer.default;
+        console.log('✅ Using fresh nodemailer.default');
+      } else if (typeof freshNodemailer?.createTransporter === 'function') {
+        mailer = freshNodemailer;
+        console.log('✅ Using fresh nodemailer directly');
+      } else {
+        throw new Error('createTransporter not found on nodemailer module');
+      }
     } catch (err) {
-      console.error('❌ Failed to re-require nodemailer:', err.message);
-      throw new Error('Nodemailer module not available');
+      console.error('❌ Failed to load nodemailer:', err.message);
+      throw new Error('Nodemailer module not available: ' + err.message);
     }
+  }
+  
+  // Verify we have createTransporter before proceeding
+  if (typeof mailer.createTransporter !== 'function') {
+    throw new Error('mailer.createTransporter is not a function after all attempts');
   }
   
   // Create transporter using same config as DameDesk
