@@ -802,9 +802,26 @@ async function sendContractEmail({ to, candidateName, contractHTML, signatureDat
     return;
   }
   
+  // Debug: Check nodemailer module
+  console.log('📧 Nodemailer module type:', typeof nodemailer);
+  console.log('📧 Nodemailer.createTransporter type:', typeof nodemailer?.createTransporter);
+  
+  // Try to require nodemailer again if it's not loaded properly
+  let mailer = nodemailer;
+  if (typeof nodemailer?.createTransporter !== 'function') {
+    console.warn('⚠️ Nodemailer not loaded correctly, attempting re-require');
+    try {
+      mailer = require('nodemailer');
+      console.log('✅ Re-required nodemailer successfully');
+    } catch (err) {
+      console.error('❌ Failed to re-require nodemailer:', err.message);
+      throw new Error('Nodemailer module not available');
+    }
+  }
+  
   // Create transporter using same config as DameDesk
   const port = parseInt(process.env.SMTP_PORT || '587');
-  const transporter = nodemailer.createTransporter({
+  const transporter = mailer.createTransporter({
     host: process.env.SMTP_HOST || 'smtpout.secureserver.net',
     port: port,
     secure: port === 465, // true for 465, false for other ports
