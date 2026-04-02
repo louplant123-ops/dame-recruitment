@@ -3,13 +3,17 @@ import Link from 'next/link'
 import JobShareButtons from '@/components/JobShareButtons'
 import JobApplyPanel from '@/components/JobApplyPanel'
 
+const API_BASE = 'https://damedesk-production.up.railway.app'
+
 interface Job {
-  id: number
+  id: string
   title: string
   slug: string
   location: string
+  postcode: string | null
   rate: string
   rateType: string
+  rateRange: string | null
   shift: string
   type: string
   brief: string
@@ -20,115 +24,73 @@ interface Job {
   immediateStart: boolean
   payMin: number
   payMax: number
+  skills: string
+  industry: string
+  hoursPerWeek: number | null
+  workersNeeded: number
+  company: string
   validThrough: string
   employmentType: string
+  datePosted: string
 }
 
-// Mock jobs data
-const mockJobs: Job[] = [
-  {
-    id: 1,
-    title: 'Warehouse Operative - Day Shift',
-    slug: 'warehouse-operative-day-shift-leicester',
-    location: 'Leicester',
-    rate: '£11.50',
-    rateType: 'per hour',
-    shift: 'Day Shift',
-    type: 'Temporary',
-    brief: 'Join our busy warehouse team in Leicester. Full training provided for the right candidate.',
-    description: 'We are looking for reliable warehouse operatives to join our client\'s busy distribution center in Leicester. This is an excellent opportunity for someone looking to start their career in logistics or gain experience in a fast-paced warehouse environment.',
-    responsibilities: [
-      'Picking and packing orders accurately',
-      'Loading and unloading delivery vehicles',
-      'Stock rotation and inventory management',
-      'Maintaining a clean and safe working environment',
-      'Operating warehouse equipment safely'
-    ],
-    requirements: [
-      'Previous warehouse experience preferred but not essential',
-      'Ability to work in a fast-paced environment',
-      'Good attention to detail',
-      'Reliable and punctual',
-      'Ability to lift up to 25kg'
-    ],
-    badges: ['Immediate Start', 'Training Provided', 'Weekly Pay'],
-    immediateStart: true,
-    payMin: 11.50,
-    payMax: 12.00,
-    validThrough: '2024-02-15',
-    employmentType: 'TEMPORARY'
-  },
-  {
-    id: 2,
-    title: 'Production Operator - Manufacturing',
-    slug: 'production-operator-manufacturing-nottingham',
-    location: 'Nottingham',
-    rate: '£12.25',
-    rateType: 'per hour',
-    shift: 'Rotating Shifts',
-    type: 'Permanent',
-    brief: 'Permanent production role with excellent benefits and career progression opportunities.',
-    description: 'Our client, a leading manufacturing company in Nottingham, is seeking experienced production operators to join their team. This permanent position offers excellent benefits and clear progression opportunities.',
-    responsibilities: [
-      'Operating production machinery safely and efficiently',
-      'Quality control and inspection of products',
-      'Following standard operating procedures',
-      'Maintaining production records and documentation',
-      'Participating in continuous improvement initiatives'
-    ],
-    requirements: [
-      'Previous manufacturing/production experience essential',
-      'Understanding of health and safety procedures',
-      'Ability to work rotating shifts',
-      'Strong attention to detail',
-      'Team player with good communication skills'
-    ],
-    badges: ['Permanent', 'Benefits Package', 'Career Progression'],
-    immediateStart: false,
-    payMin: 12.25,
-    payMax: 14.50,
-    validThrough: '2024-03-01',
-    employmentType: 'FULL_TIME'
+async function fetchAllJobs(): Promise<Job[]> {
+  try {
+    const res = await fetch(`${API_BASE}/jobs/public`, { cache: 'no-store' })
+    if (!res.ok) return []
+    const data = await res.json()
+    return data.success ? data.jobs : []
+  } catch {
+    return []
   }
-]
+}
 
-interface JobDetailPageProps {
-  params: {
-    slug: string
+async function fetchJob(slug: string): Promise<Job | null> {
+  try {
+    const res = await fetch(`${API_BASE}/jobs/public/${slug}`, { cache: 'no-store' })
+    if (!res.ok) return null
+    const data = await res.json()
+    return data.success ? data.job : null
+  } catch {
+    return null
   }
 }
 
 export async function generateStaticParams() {
-  // Generate static params for all job slugs
-  return mockJobs.map((job) => ({
-    slug: job.slug,
-  }))
+  const jobs = await fetchAllJobs()
+  return jobs.map((job) => ({ slug: job.slug }))
 }
 
-export default function JobDetailPage({ params }: JobDetailPageProps) {
-  // Find the job directly since this is now a static page
-  const job = mockJobs.find(j => j.slug === params.slug)
+interface JobDetailPageProps {
+  params: { slug: string }
+}
+
+export default async function JobDetailPage({ params }: JobDetailPageProps) {
+  const job = await fetchJob(params.slug)
 
   if (!job) {
     notFound()
   }
 
-  // Generate structured data
+  // Google for Jobs structured data (JSON-LD)
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "JobPosting",
     "title": job.title,
-    "description": job.description,
+    "description": job.description || job.brief,
     "hiringOrganization": {
       "@type": "Organization",
       "name": "Dame Recruitment",
-      "sameAs": "https://dame-recruitment-fresh.windsurf.build"
+      "sameAs": "https://dame-recruitment.com",
+      "logo": "https://dame-recruitment.com/logo.png"
     },
     "jobLocation": {
       "@type": "Place",
       "address": {
         "@type": "PostalAddress",
         "addressLocality": job.location,
+        ...(job.postcode ? { "postalCode": job.postcode } : {}),
+        "addressRegion": "East Midlands",
         "addressCountry": "GB"
       }
     },
@@ -137,19 +99,22 @@ export default function JobDetailPage({ params }: JobDetailPageProps) {
       "currency": "GBP",
       "value": {
         "@type": "QuantitativeValue",
-        "value": job.payMin,
+        ...(job.payMax > job.payMin
+          ? { "minValue": job.payMin, "maxValue": job.payMax }
+          : { "value": job.payMin }),
         "unitText": job.rateType === "per hour" ? "HOUR" : "YEAR"
       }
     },
     "validThrough": job.validThrough,
     "employmentType": job.employmentType,
-    "workHours": job.shift === "Days" ? "9:00-17:00" : job.shift === "Nights" ? "22:00-06:00" : "Rotating shifts",
-    "datePosted": "2025-08-17"
+    "datePosted": job.datePosted,
+    ...(job.industry ? { "industry": job.industry } : {}),
+    ...(job.workersNeeded > 1 ? { "totalJobOpenings": job.workersNeeded } : {})
   }
 
   return (
     <>
-      {/* Structured Data */}
+      {/* Google for Jobs structured data */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
@@ -184,7 +149,7 @@ export default function JobDetailPage({ params }: JobDetailPageProps) {
                   </div>
                   <div className="flex items-center gap-2 text-charcoal/70">
                     <span>💰</span>
-                    <span className="font-body font-semibold">{job.rate} {job.rateType}</span>
+                    <span className="font-body font-semibold">{job.rateRange || job.rate} {job.rateType}</span>
                   </div>
                   <div className="flex items-center gap-2 text-charcoal/70">
                     <span>🕐</span>
@@ -206,72 +171,82 @@ export default function JobDetailPage({ params }: JobDetailPageProps) {
                   ))}
                 </div>
 
+                {/* Workers needed */}
+                {job.workersNeeded > 1 && (
+                  <div className="mb-4 px-4 py-2 bg-green-50 border border-green-200 rounded-lg inline-block">
+                    <span className="font-body text-green-800 font-medium">
+                      {job.workersNeeded} positions available
+                    </span>
+                  </div>
+                )}
+
                 {/* Share and Email */}
                 <JobShareButtons job={job} />
               </div>
 
               {/* Job Description */}
-              <section className="mb-8">
-                <h2 className="text-2xl font-heading font-semibold text-charcoal mb-4">
-                  Job Description
-                </h2>
-                <p className="font-body text-charcoal/80 leading-relaxed">
-                  {job.description}
-                </p>
-              </section>
-
-              {/* Responsibilities */}
-              <section className="mb-8">
-                <h2 className="text-2xl font-heading font-semibold text-charcoal mb-4">
-                  Key Responsibilities
-                </h2>
-                <ul className="space-y-2">
-                  {job.responsibilities.map((responsibility, index) => (
-                    <li key={index} className="flex items-start gap-3 font-body text-charcoal/80">
-                      <span className="text-primary-red mt-1">•</span>
-                      <span>{responsibility}</span>
-                    </li>
-                  ))}
-                </ul>
-              </section>
+              {job.description && (
+                <section className="mb-8">
+                  <h2 className="text-2xl font-heading font-semibold text-charcoal mb-4">
+                    Job Description
+                  </h2>
+                  <div className="font-body text-charcoal/80 leading-relaxed whitespace-pre-line">
+                    {job.description}
+                  </div>
+                </section>
+              )}
 
               {/* Requirements */}
-              <section className="mb-8">
-                <h2 className="text-2xl font-heading font-semibold text-charcoal mb-4">
-                  Requirements
-                </h2>
-                <ul className="space-y-2">
-                  {job.requirements.map((requirement, index) => (
-                    <li key={index} className="flex items-start gap-3 font-body text-charcoal/80">
-                      <span className="text-primary-red mt-1">•</span>
-                      <span>{requirement}</span>
-                    </li>
-                  ))}
-                </ul>
-              </section>
+              {job.requirements && job.requirements.length > 0 && (
+                <section className="mb-8">
+                  <h2 className="text-2xl font-heading font-semibold text-charcoal mb-4">
+                    Requirements
+                  </h2>
+                  <ul className="space-y-2">
+                    {job.requirements.map((requirement, index) => (
+                      <li key={index} className="flex items-start gap-3 font-body text-charcoal/80">
+                        <span className="text-primary-red mt-1">•</span>
+                        <span>{requirement}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              )}
 
-              {/* Shift Pattern Details */}
+              {/* Skills */}
+              {job.skills && (
+                <section className="mb-8">
+                  <h2 className="text-2xl font-heading font-semibold text-charcoal mb-4">
+                    Skills
+                  </h2>
+                  <div className="flex flex-wrap gap-2">
+                    {job.skills.split(',').map((skill, index) => (
+                      <span key={index} className="px-3 py-1 bg-accent-teal/10 text-accent-teal text-sm rounded-full font-body">
+                        {skill.trim()}
+                      </span>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {/* Pay & Hours */}
               <section className="mb-8">
                 <h2 className="text-2xl font-heading font-semibold text-charcoal mb-4">
-                  Shift Pattern & Pay
+                  Pay & Hours
                 </h2>
                 <div className="bg-neutral-light rounded-lg p-6">
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
-                      <h3 className="font-heading font-medium text-charcoal mb-2">Shift Pattern</h3>
-                      <p className="font-body text-charcoal/80">
-                        {job.shift === 'Days' && 'Monday to Friday, 9:00 AM - 5:00 PM'}
-                        {job.shift === 'Nights' && 'Monday to Friday, 10:00 PM - 6:00 AM'}
-                        {job.shift === 'Rotating' && 'Rotating shifts including days, nights, and weekends'}
-                      </p>
+                      <h3 className="font-heading font-medium text-charcoal mb-2">Hours</h3>
+                      <p className="font-body text-charcoal/80">{job.shift}</p>
                     </div>
                     <div>
                       <h3 className="font-heading font-medium text-charcoal mb-2">Pay Rate</h3>
                       <p className="font-body text-charcoal/80 font-semibold">
-                        {job.rate} {job.rateType}
+                        {job.rateRange || job.rate} {job.rateType}
                       </p>
                       {job.immediateStart && (
-                        <p className="font-body text-accent-green text-sm mt-1">
+                        <p className="font-body text-green-600 text-sm mt-1">
                           ✓ Immediate start available
                         </p>
                       )}
@@ -280,7 +255,7 @@ export default function JobDetailPage({ params }: JobDetailPageProps) {
                 </div>
               </section>
 
-              {/* Location Map Placeholder */}
+              {/* Location */}
               <section className="mb-8">
                 <h2 className="text-2xl font-heading font-semibold text-charcoal mb-4">
                   Location
@@ -288,9 +263,9 @@ export default function JobDetailPage({ params }: JobDetailPageProps) {
                 <div className="bg-neutral-light rounded-lg p-8 text-center">
                   <div className="text-6xl mb-4">🗺️</div>
                   <h3 className="font-heading font-medium text-charcoal mb-2">{job.location}</h3>
-                  <p className="font-body text-charcoal/70">
-                    Interactive map coming soon
-                  </p>
+                  {job.postcode && (
+                    <p className="font-body text-charcoal/70">{job.postcode}</p>
+                  )}
                 </div>
               </section>
             </div>

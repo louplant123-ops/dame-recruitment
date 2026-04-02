@@ -1,6 +1,33 @@
 import { MetadataRoute } from 'next'
 
-export default function sitemap(): MetadataRoute.Sitemap {
+const API_BASE = 'https://damedesk-production.up.railway.app'
+
+interface PublicJob {
+  slug: string
+  datePosted: string
+}
+
+async function fetchPublicJobs(): Promise<PublicJob[]> {
+  try {
+    const res = await fetch(`${API_BASE}/jobs/public`)
+    if (!res.ok) return []
+    const data = await res.json()
+    return data.success ? data.jobs : []
+  } catch {
+    return []
+  }
+}
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const jobs = await fetchPublicJobs()
+
+  const jobEntries: MetadataRoute.Sitemap = jobs.map((job) => ({
+    url: `https://dame-recruitment.com/jobs/${job.slug}`,
+    lastModified: new Date(job.datePosted),
+    changeFrequency: 'weekly' as const,
+    priority: 0.9,
+  }))
+
   return [
     {
       url: 'https://dame-recruitment.com',
@@ -14,6 +41,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'daily',
       priority: 0.8,
     },
+    ...jobEntries,
     {
       url: 'https://dame-recruitment.com/candidates',
       lastModified: new Date(),

@@ -38,7 +38,7 @@ function JobsContent() {
     const fetchJobs = async () => {
       try {
         // Try DameDesk API first
-        const response = await fetch('http://localhost:3001/jobs/public');
+        const response = await fetch('https://damedesk-production.up.railway.app/jobs/public');
         if (response.ok) {
           const data = await response.json();
           if (data.success && data.jobs) {
