@@ -36,7 +36,7 @@ interface Job {
 
 async function fetchAllJobs(): Promise<Job[]> {
   try {
-    const res = await fetch(`${API_BASE}/jobs/public`, { cache: 'no-store' })
+    const res = await fetch(`${API_BASE}/jobs/public`, { next: { revalidate: 0 } })
     if (!res.ok) return []
     const data = await res.json()
     return data.success ? data.jobs : []
@@ -47,7 +47,7 @@ async function fetchAllJobs(): Promise<Job[]> {
 
 async function fetchJob(slug: string): Promise<Job | null> {
   try {
-    const res = await fetch(`${API_BASE}/jobs/public/${slug}`, { cache: 'no-store' })
+    const res = await fetch(`${API_BASE}/jobs/public/${slug}`, { next: { revalidate: 0 } })
     if (!res.ok) return null
     const data = await res.json()
     return data.success ? data.job : null
@@ -56,8 +56,13 @@ async function fetchJob(slug: string): Promise<Job | null> {
   }
 }
 
+export const dynamicParams = false
+
 export async function generateStaticParams() {
   const jobs = await fetchAllJobs()
+  if (jobs.length === 0) {
+    return [{ slug: '_no-jobs' }]
+  }
   return jobs.map((job) => ({ slug: job.slug }))
 }
 

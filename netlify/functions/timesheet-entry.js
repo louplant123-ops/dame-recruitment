@@ -1,18 +1,9 @@
-const { Client } = require('pg');
+const { getDbClient } = require('./db');
 
 // Get timesheet template data
 async function getTimesheetTemplate(timesheetId) {
   try {
-    const client = new Client({
-      host: process.env.DB_HOST || 'damedesk-crm-production-do-user-27348714-0.j.db.ondigitalocean.com',
-      port: process.env.DB_PORT || 25060,
-      database: process.env.DB_NAME || 'defaultdb',
-      user: process.env.DB_USER || 'doadmin',
-      password: process.env.DB_PASSWORD || 'AVNS_wm_vFxOY5--ftSp64EL',
-      ssl: { rejectUnauthorized: false },
-      connectionTimeoutMillis: 10000
-    });
-
+    const client = getDbClient();
     await client.connect();
     console.log('Looking up timesheet:', timesheetId);
 

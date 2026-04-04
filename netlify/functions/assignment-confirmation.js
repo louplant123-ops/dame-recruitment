@@ -1,5 +1,5 @@
 const fetch = require('node-fetch');
-const { Client } = require('pg');
+const { getDbClient } = require('./db');
 
 exports.handler = async (event, context) => {
   // Only allow POST requests
@@ -45,16 +45,7 @@ exports.handler = async (event, context) => {
     // Create timeline event for assignment confirmation
     if (formData.candidateId) {
       try {
-        const dbClient = new Client({
-          host: process.env.DB_HOST || 'damedesk-crm-production-do-user-27348714-0.j.db.ondigitalocean.com',
-          port: process.env.DB_PORT || 25060,
-          database: process.env.DB_NAME || 'defaultdb',
-          user: process.env.DB_USER || 'doadmin',
-          password: process.env.DB_PASSWORD,
-          ssl: { rejectUnauthorized: false },
-          connectionTimeoutMillis: 10000
-        });
-
+        const dbClient = getDbClient();
         await dbClient.connect();
 
         const historyId = `HIST_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;

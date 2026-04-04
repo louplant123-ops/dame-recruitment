@@ -4,6 +4,19 @@ const http = require('http');
 const crypto = require('crypto');
 
 exports.handler = async (event, context) => {
+  // Handle CORS preflight (must come before method check)
+  if (event.httpMethod === 'OPTIONS') {
+    return {
+      statusCode: 200,
+      headers: {
+        'Access-Control-Allow-Origin': 'https://www.damerecruitment.co.uk',
+        'Access-Control-Allow-Headers': 'Content-Type, X-API-Key',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS'
+      },
+      body: ''
+    };
+  }
+
   // Only allow POST requests
   if (event.httpMethod !== 'POST') {
     return {
@@ -14,19 +27,6 @@ exports.handler = async (event, context) => {
         'Access-Control-Allow-Methods': 'POST, OPTIONS'
       },
       body: JSON.stringify({ error: 'Method not allowed' })
-    };
-  }
-
-  // Handle CORS preflight
-  if (event.httpMethod === 'OPTIONS') {
-    return {
-      statusCode: 200,
-      headers: {
-        'Access-Control-Allow-Origin': 'https://www.damerecruitment.co.uk',
-        'Access-Control-Allow-Headers': 'Content-Type, X-API-Key',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS'
-      },
-      body: ''
     };
   }
 
@@ -258,11 +258,11 @@ async function forwardToDameDesk(registrationData, cvFileData, candidateId) {
   const { Client } = require('pg');
   
   const client = new Client({
-    host: 'damedesk-crm-production-do-user-27348714-0.j.db.ondigitalocean.com',
-    port: 25060,
-    user: 'doadmin',
-    password: 'AVNS_wm_vFxOY5--ftSp64EL',
-    database: 'defaultdb',
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT || 25060,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME || 'defaultdb',
     ssl: {
       rejectUnauthorized: false
     }
@@ -720,6 +720,65 @@ async function forwardToDameDesk(registrationData, cvFileData, candidateId) {
       }
     }
     
+    // Create screening task instead of auto-sending Part 2
+    // Part 2 will only be sent AFTER a consultant reviews the candidate and approves them
+    const finalCandidateId = isUpdate ? candidateId : (registrationData.candidateId || candidateId);
+    const candidateEmail = registrationData.email;
+    const candidateName = `${registrationData.firstName} ${registrationData.lastName}`.trim();
+    
+    if (finalCandidateId) {
+      try {
+        console.log('� Creating screening task for candidate:', finalCandidateId);
+        const screenTaskId = `TASK_SCREEN_${Date.now()}_${Math.random().toString(36).substr(2, 8)}`;
+        await client.query(`
+          INSERT INTO tasks (id, title, description, type, priority, status, contact_id, due_date, created_at)
+          VALUES ($1, $2, $3, 'candidate_screening', 'high', 'pending', $4, CURRENT_TIMESTAMP + INTERVAL '4 hours', CURRENT_TIMESTAMP)
+        `, [
+          screenTaskId,
+          `Screen New Candidate — ${candidateName}`,
+          `${candidateName} just completed Part 1 registration. Review their CV, call them, and decide:\n• Suitable for: Temp / Perm / Both / Not suitable\n• Disposition: Approve / Needs info / Reject\n\nEmail: ${candidateEmail || 'N/A'}\nPhone: ${registrationData.phone || 'N/A'}`,
+          finalCandidateId
+        ]);
+        
+        // Log activity
+        const screenActivityId = `ACT_${Date.now()}_${Math.random().toString(36).substr(2, 8)}`;
+        await client.query(`
+          INSERT INTO activities (
+            id, subject_type, subject_id, type, summary, details, created_at
+          ) VALUES ($1, 'candidate', $2, 'screening_task_created', 'Screening task created — pending consultant review before Part 2', $3, CURRENT_TIMESTAMP)
+        `, [
+          screenActivityId,
+          finalCandidateId,
+          JSON.stringify({ task_id: screenTaskId, candidate_name: candidateName, created_at: new Date().toISOString() })
+        ]);
+        
+        // Send notification to consultants
+        try {
+          const railwayUrl = process.env.RAILWAY_BACKEND_URL || 'https://damedesk-production.up.railway.app';
+          await fetch(`${railwayUrl}/notifications/create`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              type: 'new_registration_screen',
+              title: `New Registration — ${candidateName}`,
+              message: `${candidateName} completed Part 1. Please screen and approve before Part 2 is sent.`,
+              icon: 'person-add-outline',
+              color: '#3B82F6',
+              linkType: 'contact',
+              linkId: finalCandidateId,
+            }),
+          });
+        } catch (notifErr) {
+          console.warn('⚠️ Notification send failed (non-critical):', notifErr.message);
+        }
+        
+        console.log('✅ Screening task created:', screenTaskId);
+      } catch (taskError) {
+        console.warn('⚠️ Failed to create screening task:', taskError.message);
+        // Non-critical — don't fail the registration
+      }
+    }
+
     await client.end();
     console.log('✅ Successfully saved to database');
     
@@ -728,6 +787,91 @@ async function forwardToDameDesk(registrationData, cvFileData, candidateId) {
     await client.end();
     throw error;
   }
+}
+
+// Auto-send Part 2 registration invitation email after Part 1 completion
+async function sendPart2InvitationEmail(email, name, candidateId) {
+  const nodemailer = require('nodemailer');
+  
+  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+    console.warn('⚠️ SMTP credentials not configured — skipping Part 2 invitation email');
+    
+    // Fallback: try Railway backend notification endpoint
+    try {
+      const railwayUrl = process.env.RAILWAY_BACKEND_URL || 'https://damedesk-production.up.railway.app';
+      await fetch(`${railwayUrl}/notifications/create`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'part2_invitation_needed',
+          title: 'Part 2 Invitation Needed',
+          message: `${name} completed Part 1 — please send Part 2 link manually (no SMTP configured)`,
+          icon: 'mail-outline',
+          color: '#F59E0B',
+          linkType: 'contact',
+          linkId: candidateId,
+        }),
+      });
+    } catch (notifErr) {
+      console.warn('⚠️ Failed to send fallback notification:', notifErr.message);
+    }
+    return;
+  }
+  
+  const part2Link = `https://www.damerecruitment.co.uk/part2registration?id=${candidateId}`;
+  const firstName = name.split(' ')[0] || 'there';
+  
+  const transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST || 'smtp.office365.com',
+    port: parseInt(process.env.SMTP_PORT || '587'),
+    secure: false,
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
+    },
+  });
+  
+  await transporter.sendMail({
+    from: `"Dame Recruitment" <${process.env.SMTP_USER}>`,
+    to: email,
+    subject: 'Almost There! Complete Your Registration - Dame Recruitment',
+    html: `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="font-family:Arial,sans-serif;line-height:1.6;color:#333;margin:0;padding:0;">
+  <div style="max-width:600px;margin:0 auto;padding:20px;">
+    <div style="background-color:#dc2626;color:white;padding:20px;text-align:center;border-radius:8px 8px 0 0;">
+      <h1 style="margin:0;">Dame Recruitment</h1>
+      <p style="margin:5px 0 0;">Complete Your Registration</p>
+    </div>
+    <div style="padding:30px 20px;background:#f9f9f9;border-radius:0 0 8px 8px;">
+      <h3>Hi ${firstName},</h3>
+      <p>Thank you for completing Part 1 of your registration! You're almost work-ready.</p>
+      <div style="background:#fef2f2;border-left:4px solid #dc2626;padding:15px;margin:20px 0;">
+        <strong>Next Step:</strong> Complete Part 2 to become eligible for work assignments.
+      </div>
+      <p>Part 2 takes just <strong>5-10 minutes</strong> and covers:</p>
+      <ul>
+        <li>Bank details for payment</li>
+        <li>National Insurance number</li>
+        <li>Right to work verification</li>
+        <li>Emergency contact</li>
+        <li>Contract signature</li>
+      </ul>
+      <p style="text-align:center;margin:25px 0;">
+        <a href="${part2Link}" style="display:inline-block;background:#dc2626;color:white;padding:14px 32px;text-decoration:none;border-radius:6px;font-weight:bold;font-size:16px;">Complete Part 2 Now</a>
+      </p>
+      <p>Once completed, we can start placing you immediately.</p>
+      <p>Questions? Call us on <strong>0115 888 2233</strong> or email <strong>info@damerecruitment.co.uk</strong></p>
+    </div>
+    <div style="text-align:center;padding:15px;font-size:12px;color:#666;">
+      <p>Dame Recruitment Ltd | Innovation House, Nottingham Business Park, NG8 6PY</p>
+    </div>
+  </div>
+</body>
+</html>`,
+    text: `Hi ${firstName},\n\nThank you for completing Part 1 of your registration!\n\nPlease complete Part 2 to become work-ready: ${part2Link}\n\nThis takes 5-10 minutes and covers bank details, NI number, right to work, emergency contact, and contract.\n\nQuestions? Call 0115 888 2233\n\nDame Recruitment Team`,
+  });
 }
 
 // Fallback: Send email notification

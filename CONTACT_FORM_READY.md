@@ -13,11 +13,11 @@
 - ✅ Returns database result to confirm save
 
 ### 2. Database Connection
-- **Host:** damedesk-crm-production-do-user-27348714-0.j.db.ondigitalocean.com
+- **Host:** (set via DB_HOST environment variable)
 - **Port:** 25060
 - **Database:** defaultdb
 - **User:** doadmin
-- **Password:** AVNS_wm_vFxOY5--ftSp64EL (hardcoded as fallback)
+- **Password:** (set via DB_PASSWORD environment variable)
 
 ### 3. Dependencies
 - ✅ `pg` package already in package.json
@@ -53,14 +53,14 @@ If you want to use environment variables instead of hardcoded password:
 
 **Netlify Dashboard → Site Settings → Environment Variables:**
 ```
-DB_HOST=damedesk-crm-production-do-user-27348714-0.j.db.ondigitalocean.com
+DB_HOST=your_database_host_here
 DB_PORT=25060
 DB_NAME=defaultdb
 DB_USER=doadmin
-DB_PASSWORD=AVNS_wm_vFxOY5--ftSp64EL
+DB_PASSWORD=your_database_password_here
 ```
 
-**Note:** Password is already hardcoded as fallback, so this is optional.
+**Note:** These environment variables are REQUIRED — there are no hardcoded fallbacks.
 
 ---
 

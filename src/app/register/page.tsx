@@ -72,6 +72,7 @@ maxTravelDistance: '10',
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState('')
   const [isParsingCV, setIsParsingCV] = useState(false)
   const [cvParseMessage, setCvParseMessage] = useState<{type: 'success' | 'error', text: string} | null>(null)
 
@@ -94,8 +95,11 @@ maxTravelDistance: '10',
       
       setIsLoadingCandidate(true)
       try {
-        // Fetch candidate data from DameDesk via API
-        const response = await fetch(`/.netlify/functions/get-candidate?id=${candidateId}`)
+        const response = await fetch(`/.netlify/functions/get-candidate?id=${candidateId}`, {
+          headers: {
+            'X-API-Key': process.env.NEXT_PUBLIC_WEBSITE_API_KEY || ''
+          }
+        })
         
         if (response.ok) {
           const candidate = await response.json()
@@ -298,6 +302,7 @@ maxTravelDistance: '10',
     if (validateStep(currentStep)) {
       console.log('✅ Validation passed, submitting...');
       setIsSubmitting(true);
+      setSubmitError('');
       try {
         // Prepare form data for multipart upload
         const formDataToSend = new FormData();
@@ -362,11 +367,15 @@ maxTravelDistance: '10',
           console.warn('❌ DameDesk submission failed, status:', response.status);
           const errorText = await response.text();
           console.warn('Error details:', errorText);
-          // Fallback: store locally or send to alternative endpoint
+          setIsSubmitting(false);
+          setSubmitError('Registration failed — please try again or email us directly.');
+          return;
         }
       } catch (error) {
         console.error('💥 Error submitting registration:', error);
-        // Continue with success message even if API fails
+        setIsSubmitting(false);
+        setSubmitError('Registration failed — please try again or email us directly.');
+        return;
       }
       
       setIsSubmitting(false);
@@ -1245,6 +1254,13 @@ maxTravelDistance: '10',
                   {errors.terms}
                 </p>
               )}
+            </div>
+          )}
+
+          {/* Submit Error */}
+          {submitError && (
+            <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-4 text-sm" role="alert">
+              {submitError}
             </div>
           )}
 

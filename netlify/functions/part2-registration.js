@@ -1,5 +1,5 @@
 const fetch = require('node-fetch');
-const { Client } = require('pg');
+const { getDbClient } = require('./db');
 const AWS = require('aws-sdk');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
@@ -134,18 +134,7 @@ exports.handler = async (event, context) => {
     try {
       // Connect to DigitalOcean PostgreSQL database
       console.log('🔄 Attempting database connection...');
-      const client = new Client({
-        host: process.env.DB_HOST || 'damedesk-crm-production-do-user-27348714-0.j.db.ondigitalocean.com',
-        port: process.env.DB_PORT || 25060,
-        database: process.env.DB_NAME || 'defaultdb',
-        user: process.env.DB_USER || 'doadmin',
-        password: process.env.DB_PASSWORD,
-        ssl: {
-          rejectUnauthorized: false
-        },
-        connectionTimeoutMillis: 10000
-      });
-
+      const client = getDbClient();
       await client.connect();
       console.log('✅ Connected to DigitalOcean database');
 
@@ -417,16 +406,7 @@ exports.handler = async (event, context) => {
             rtwStatus = 'scheduled';
           }
           
-          const rtwClient = new Client({
-            host: process.env.DB_HOST || 'damedesk-crm-production-do-user-27348714-0.j.db.ondigitalocean.com',
-            port: process.env.DB_PORT || 25060,
-            database: process.env.DB_NAME || 'defaultdb',
-            user: process.env.DB_USER || 'doadmin',
-            password: process.env.DB_PASSWORD || 'AVNS_wm_vFxOY5--ftSp64EL',
-            ssl: { rejectUnauthorized: false },
-            connectionTimeoutMillis: 10000
-          });
-          
+          const rtwClient = getDbClient();
           await rtwClient.connect();
           
           // Check if RTW check already exists for this contact
@@ -506,16 +486,7 @@ exports.handler = async (event, context) => {
       if (formData.contractAccepted && formData.contractSignature) {
         try {
           // Reconnect to database for contract document
-          const contractClient = new Client({
-            host: process.env.DB_HOST || 'damedesk-crm-production-do-user-27348714-0.j.db.ondigitalocean.com',
-            port: process.env.DB_PORT || 25060,
-            database: process.env.DB_NAME || 'defaultdb',
-            user: process.env.DB_USER || 'doadmin',
-            password: process.env.DB_PASSWORD || 'AVNS_wm_vFxOY5--ftSp64EL',
-            ssl: { rejectUnauthorized: false },
-            connectionTimeoutMillis: 10000
-          });
-          
+          const contractClient = getDbClient();
           await contractClient.connect();
           
           const signedDate = new Date().toLocaleDateString('en-GB', { 

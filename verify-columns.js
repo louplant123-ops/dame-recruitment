@@ -1,12 +1,17 @@
 const { Client } = require('pg');
 
 async function verifyColumns() {
+  if (!process.env.DB_HOST || !process.env.DB_PASSWORD) {
+    console.error('ERROR: DB_HOST and DB_PASSWORD environment variables are required.');
+    process.exit(1);
+  }
+
   const client = new Client({
-    host: process.env.DB_HOST || 'damedesk-crm-production-do-user-27348714-0.j.db.ondigitalocean.com',
+    host: process.env.DB_HOST,
     port: process.env.DB_PORT || 25060,
     database: process.env.DB_NAME || 'defaultdb',
     user: process.env.DB_USER || 'doadmin',
-    password: process.env.DB_PASSWORD || 'AVNS_wm_vFxOY5--ftSp64EL',
+    password: process.env.DB_PASSWORD,
     ssl: {
       rejectUnauthorized: false
     }
