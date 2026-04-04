@@ -1,4 +1,4 @@
-const { getDbClient } = require('./db');
+const { getDbClient, rateLimit } = require('./db');
 
 // Update contract signature in database
 async function updateContractSignature(contractId, signatureData, event) {
@@ -183,6 +183,16 @@ exports.handler = async (event, context) => {
     return {
       statusCode: 405,
       body: JSON.stringify({ error: 'Method not allowed' })
+    };
+  }
+
+  const clientIp = event.headers['x-forwarded-for'] || event.headers['client-ip'] || 'unknown';
+  const rl = rateLimit(`sign:${clientIp}`, 5, 60000);
+  if (!rl.allowed) {
+    return {
+      statusCode: 429,
+      headers: { 'Content-Type': 'application/json', 'Retry-After': String(Math.ceil(rl.retryAfterMs / 1000)) },
+      body: JSON.stringify({ error: 'Too many requests. Try again later.' })
     };
   }
 

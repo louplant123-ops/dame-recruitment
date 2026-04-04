@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import type { Metadata } from 'next'
 import { MapPin, Phone, Mail, Clock, CheckCircle, XCircle } from 'lucide-react'
 
 // Contact form component with spam protection and form states
@@ -90,7 +89,7 @@ export default function ContactPage() {
   }
 
   return (
-    <main className="py-16">
+    <div className="py-16">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-heading font-bold text-charcoal mb-4">
@@ -400,6 +399,6 @@ export default function ContactPage() {
           </div>
         </div>
       </div>
-    </main>
+    </div>
   )
 }

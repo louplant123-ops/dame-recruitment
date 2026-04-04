@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import type { Metadata } from 'next'
 
 export default function PostJobPage() {
   const [formData, setFormData] = useState({
@@ -103,7 +102,7 @@ export default function PostJobPage() {
     setErrors({})
   }
   return (
-    <main className="py-16">
+    <div className="py-16">
       <div className="max-w-2xl mx-auto">
         <h1 className="text-4xl font-heading font-bold text-charcoal mb-8">
           Post a Job
@@ -433,6 +432,6 @@ export default function PostJobPage() {
           </ul>
         </div>
       </div>
-    </main>
+    </div>
   )
 }

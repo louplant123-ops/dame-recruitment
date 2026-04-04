@@ -2,7 +2,6 @@
 
 import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
-import type { Metadata } from 'next'
 
 // Registration form component (wrapped in Suspense)
 function RegistrationForm() {
@@ -405,7 +404,7 @@ maxTravelDistance: '10',
 
   if (isSubmitted) {
     return (
-      <main className="py-16">
+      <div className="py-16">
         <div className="max-w-2xl mx-auto text-center">
           <div className="bg-green-50 border border-green-200 rounded-lg p-8 mb-8">
             <div className="text-green-600 text-6xl mb-4">✓</div>
@@ -437,12 +436,12 @@ maxTravelDistance: '10',
             </a>
           </div>
         </div>
-      </main>
+      </div>
     )
   }
 
   return (
-    <main className="py-16">
+    <div className="py-16">
       <div className="max-w-2xl mx-auto">
         <div className="mb-8">
           <h1 className="text-4xl font-heading font-bold text-charcoal mb-4">
@@ -1294,7 +1293,7 @@ maxTravelDistance: '10',
           </div>
         </form>
       </div>
-    </main>
+    </div>
   )
 }
 

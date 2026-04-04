@@ -29,4 +29,22 @@ function getDbClient() {
   });
 }
 
-module.exports = { getDbClient };
+const rateLimitStore = new Map();
+
+function rateLimit(key, maxRequests = 10, windowMs = 60000) {
+  const now = Date.now();
+  const entry = rateLimitStore.get(key);
+
+  if (!entry || now - entry.windowStart > windowMs) {
+    rateLimitStore.set(key, { windowStart: now, count: 1 });
+    return { allowed: true };
+  }
+
+  entry.count++;
+  if (entry.count > maxRequests) {
+    return { allowed: false, retryAfterMs: windowMs - (now - entry.windowStart) };
+  }
+  return { allowed: true };
+}
+
+module.exports = { getDbClient, rateLimit };

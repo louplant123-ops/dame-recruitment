@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 
 interface Job {
+  id: string
   title: string
   rate: string
   rateType: string
@@ -15,8 +16,72 @@ interface JobApplyPanelProps {
   job: Job
 }
 
+type FormStatus = 'idle' | 'submitting' | 'success' | 'error'
+
 export default function JobApplyPanel({ job }: JobApplyPanelProps) {
   const [showApplyForm, setShowApplyForm] = useState(false)
+  const [fullName, setFullName] = useState('')
+  const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
+  const [status, setStatus] = useState<FormStatus>('idle')
+  const [errorMsg, setErrorMsg] = useState('')
+  const cvRef = useRef<HTMLInputElement>(null)
+
+  const handleSubmit = async () => {
+    if (!fullName.trim() || !email.trim() || !phone.trim()) {
+      setErrorMsg('Please fill in all required fields.')
+      return
+    }
+    setStatus('submitting')
+    setErrorMsg('')
+
+    try {
+      const fd = new FormData()
+      fd.append('fullName', fullName.trim())
+      fd.append('email', email.trim())
+      fd.append('phone', phone.trim())
+      fd.append('jobId', job.id)
+      fd.append('jobTitle', job.title)
+      if (cvRef.current?.files?.[0]) {
+        fd.append('cv', cvRef.current.files[0])
+      }
+
+      const res = await fetch('/.netlify/functions/job-apply', {
+        method: 'POST',
+        headers: { 'X-API-Key': 'website-integration' },
+        body: fd,
+      })
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({ error: 'Submission failed' }))
+        throw new Error(data.error || 'Submission failed')
+      }
+
+      setStatus('success')
+    } catch (err: any) {
+      console.error('Application submit error:', err)
+      setStatus('error')
+      setErrorMsg(err.message || 'Something went wrong. Please try again.')
+    }
+  }
+
+  if (status === 'success') {
+    return (
+      <div className="lg:col-span-1">
+        <div className="lg:sticky lg:top-8">
+          <div className="bg-white border border-green-200 rounded-lg p-6 shadow-sm">
+            <div className="text-green-600 text-4xl mb-3 text-center">✓</div>
+            <h3 className="text-xl font-heading font-semibold text-charcoal mb-2 text-center">
+              Application Sent!
+            </h3>
+            <p className="font-body text-charcoal/70 text-sm text-center">
+              Thanks for applying for <strong>{job.title}</strong>. We&apos;ll review your application and be in touch soon.
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="lg:col-span-1">
@@ -54,6 +119,11 @@ export default function JobApplyPanel({ job }: JobApplyPanelProps) {
             </button>
           ) : (
             <div className="space-y-4">
+              {errorMsg && (
+                <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg p-3">
+                  {errorMsg}
+                </div>
+              )}
               <div>
                 <label className="block font-body font-medium text-charcoal mb-2">
                   Full Name *
@@ -61,6 +131,8 @@ export default function JobApplyPanel({ job }: JobApplyPanelProps) {
                 <input
                   type="text"
                   required
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
                   className="w-full px-3 py-2 border border-neutral-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-red focus:border-transparent"
                 />
               </div>
@@ -71,6 +143,8 @@ export default function JobApplyPanel({ job }: JobApplyPanelProps) {
                 <input
                   type="email"
                   required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="w-full px-3 py-2 border border-neutral-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-red focus:border-transparent"
                 />
               </div>
@@ -81,6 +155,8 @@ export default function JobApplyPanel({ job }: JobApplyPanelProps) {
                 <input
                   type="tel"
                   required
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
                   className="w-full px-3 py-2 border border-neutral-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-red focus:border-transparent"
                 />
               </div>
@@ -89,16 +165,19 @@ export default function JobApplyPanel({ job }: JobApplyPanelProps) {
                   Upload CV
                 </label>
                 <input
+                  ref={cvRef}
                   type="file"
                   accept=".pdf,.doc,.docx"
                   className="w-full px-3 py-2 border border-neutral-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-red focus:border-transparent"
                 />
               </div>
               <button
-                type="submit"
-                className="w-full bg-primary-red text-white px-6 py-3 rounded-lg font-body font-medium hover:bg-primary-red/90 transition-colors"
+                type="button"
+                onClick={handleSubmit}
+                disabled={status === 'submitting'}
+                className="w-full bg-primary-red text-white px-6 py-3 rounded-lg font-body font-medium hover:bg-primary-red/90 transition-colors disabled:opacity-60"
               >
-                Submit Application
+                {status === 'submitting' ? 'Submitting...' : 'Submit Application'}
               </button>
               <button
                 onClick={() => setShowApplyForm(false)}

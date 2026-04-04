@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import JobShareButtons from '@/components/JobShareButtons'
@@ -66,6 +67,26 @@ export async function generateStaticParams() {
   return jobs.map((job) => ({ slug: job.slug }))
 }
 
+export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+  const job = await fetchJob(params.slug)
+  if (!job) {
+    return { title: 'Job Not Found' }
+  }
+  return {
+    title: `${job.title} in ${job.location}`,
+    description: job.brief || `${job.title} - ${job.type} role in ${job.location}. ${job.rate} ${job.rateType}. Apply now with Dame Recruitment.`,
+    openGraph: {
+      title: `${job.title} in ${job.location} | Dame Recruitment`,
+      description: job.brief || `${job.type} role in ${job.location}. ${job.rate} ${job.rateType}.`,
+      url: `https://www.damerecruitment.co.uk/jobs/${params.slug}`,
+      siteName: 'Dame Recruitment',
+    },
+    alternates: {
+      canonical: `/jobs/${params.slug}`,
+    },
+  }
+}
+
 interface JobDetailPageProps {
   params: { slug: string }
 }
@@ -86,8 +107,8 @@ export default async function JobDetailPage({ params }: JobDetailPageProps) {
     "hiringOrganization": {
       "@type": "Organization",
       "name": "Dame Recruitment",
-      "sameAs": "https://dame-recruitment.com",
-      "logo": "https://dame-recruitment.com/logo.png"
+      "sameAs": "https://www.damerecruitment.co.uk",
+      "logo": "https://www.damerecruitment.co.uk/logo.png"
     },
     "jobLocation": {
       "@type": "Place",
@@ -125,7 +146,7 @@ export default async function JobDetailPage({ params }: JobDetailPageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
 
-      <main className="py-8">
+      <div className="py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Breadcrumb */}
           <nav className="mb-8" aria-label="Breadcrumb">
@@ -279,7 +300,7 @@ export default async function JobDetailPage({ params }: JobDetailPageProps) {
             <JobApplyPanel job={job} />
           </div>
         </div>
-      </main>
+      </div>
     </>
   )
 }

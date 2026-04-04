@@ -2,8 +2,17 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: 'For Employers - Dame Recruitment',
+  title: 'For Employers',
   description: 'Reliable people for warehousing, manufacturing & engineering. Fast shortlists, better day-one show-up, and hires that last across the East Midlands.',
+  openGraph: {
+    title: 'For Employers | Dame Recruitment',
+    description: 'Same-day shortlists, reliable attendance, transparent rates. East Midlands recruitment specialists.',
+    url: 'https://www.damerecruitment.co.uk/employers',
+    siteName: 'Dame Recruitment',
+  },
+  alternates: {
+    canonical: '/employers',
+  },
 }
 
 // Data arrays for future expansion
@@ -56,7 +65,7 @@ const engagementModels = [
 
 export default function EmployersPage() {
   return (
-    <main>
+    <div>
       {/* Hero Section */}
       <section className="py-16 bg-neutral-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -319,6 +328,6 @@ export default function EmployersPage() {
           </Link>
         </div>
       </section>
-    </main>
+    </div>
   )
 }

@@ -49,7 +49,7 @@ const blogPosts = [
 
 export default function NewsPage() {
   return (
-    <main className="relative">
+    <div className="relative">
       {/* Header Section */}
       <section className="bg-neutral-white py-16 section-accent-blue">
         <div className="max-w-container mx-auto px-4 sm:px-6 lg:px-8">
@@ -168,6 +168,6 @@ export default function NewsPage() {
           </div>
         </div>
       </section>
-    </main>
+    </div>
   )
 }

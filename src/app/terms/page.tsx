@@ -2,11 +2,15 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'Terms of Service',
+  description: 'Terms of Service for Dame Recruitment. Read our terms and conditions for using our recruitment services.',
+  alternates: {
+    canonical: '/terms',
+  },
 }
 
 export default function TermsPage() {
   return (
-    <main className="py-16">
+    <div className="py-16">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-4xl font-heading font-bold text-charcoal mb-8">
           Terms of Service
@@ -68,6 +72,6 @@ export default function TermsPage() {
           </div>
         </div>
       </div>
-    </main>
+    </div>
   )
 }

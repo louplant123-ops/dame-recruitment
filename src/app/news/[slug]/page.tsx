@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Calendar, Clock, Tag } from 'lucide-react'
@@ -103,10 +104,31 @@ const blogPosts: BlogPost[] = [
 ]
 
 export async function generateStaticParams() {
-  // Generate static params for all blog post slugs
   return blogPosts.map((post) => ({
     slug: post.slug,
   }))
+}
+
+export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+  const post = blogPosts.find(p => p.slug === params.slug)
+  if (!post) {
+    return { title: 'Article Not Found' }
+  }
+  return {
+    title: post.title,
+    description: post.excerpt,
+    openGraph: {
+      title: `${post.title} | Dame Recruitment`,
+      description: post.excerpt,
+      url: `https://www.damerecruitment.co.uk/news/${params.slug}`,
+      siteName: 'Dame Recruitment',
+      type: 'article',
+      publishedTime: post.publishedAt,
+    },
+    alternates: {
+      canonical: `/news/${params.slug}`,
+    },
+  }
 }
 
 export default function BlogPostPage({ params }: { params: { slug: string } }) {
@@ -118,7 +140,7 @@ export default function BlogPostPage({ params }: { params: { slug: string } }) {
   }
 
   return (
-    <main className="relative">
+    <div className="relative">
       {/* Breadcrumb Navigation */}
       <nav className="bg-neutral-light py-4" aria-label="Breadcrumb">
         <div className="max-w-container mx-auto px-4 sm:px-6 lg:px-8">
@@ -258,6 +280,6 @@ export default function BlogPostPage({ params }: { params: { slug: string } }) {
           </div>
         </div>
       </section>
-    </main>
+    </div>
   )
 }

@@ -9,6 +9,8 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Dame Recruitment - Staff that show up. Results that count.',
     description: 'East Midlands recruitment specialists delivering reliable temps and permanent hires when you need them most.',
+    url: 'https://www.damerecruitment.co.uk',
+    siteName: 'Dame Recruitment',
     type: 'website',
     locale: 'en_GB',
   },
@@ -19,7 +21,7 @@ export const metadata: Metadata = {
 
 export default function HomePage() {
   return (
-    <main className="relative">
+    <div className="relative">
       {/* Hero Section */}
       <section className="relative bg-charcoal overflow-hidden min-h-[520px] lg:min-h-[70vh] flex items-center">
         {/* Geometric Background Pattern */}
@@ -199,6 +201,6 @@ export default function HomePage() {
           </div>
         </section>
       </LazySection>
-    </main>
+    </div>
   )
 }

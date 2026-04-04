@@ -2,11 +2,15 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'Privacy Policy',
+  description: 'Privacy Policy for Dame Recruitment. Learn how we collect, use, and protect your personal information.',
+  alternates: {
+    canonical: '/privacy',
+  },
 }
 
 export default function PrivacyPage() {
   return (
-    <main className="py-16">
+    <div className="py-16">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-4xl font-heading font-bold text-charcoal mb-8">
           Privacy Policy
@@ -61,6 +65,6 @@ export default function PrivacyPage() {
           </div>
         </div>
       </div>
-    </main>
+    </div>
   )
 }

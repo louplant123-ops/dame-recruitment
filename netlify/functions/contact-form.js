@@ -1,5 +1,5 @@
 // Contact form with PostgreSQL database integration
-const { getDbClient } = require('./db');
+const { getDbClient, rateLimit } = require('./db');
 
 // Store contact in database
 async function storeInDatabase(contactData) {
@@ -76,6 +76,16 @@ exports.handler = async (event, context) => {
         'Access-Control-Allow-Methods': 'POST, OPTIONS'
       },
       body: JSON.stringify({ error: 'Method not allowed' })
+    };
+  }
+
+  const clientIp = event.headers['x-forwarded-for'] || event.headers['client-ip'] || 'unknown';
+  const rl = rateLimit(`contact:${clientIp}`, 5, 60000);
+  if (!rl.allowed) {
+    return {
+      statusCode: 429,
+      headers: { 'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json', 'Retry-After': String(Math.ceil(rl.retryAfterMs / 1000)) },
+      body: JSON.stringify({ error: 'Too many submissions. Please try again later.' })
     };
   }
 

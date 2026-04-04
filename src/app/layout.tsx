@@ -32,11 +32,11 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL('https://dame-recruitment.com'),
+  metadataBase: new URL('https://www.damerecruitment.co.uk'),
   openGraph: {
     title: 'Dame Recruitment — Professional Staffing Solutions',
     description: 'Professional recruitment services across Leicester, Coventry and the East Midlands.',
-    url: 'https://dame-recruitment.com',
+    url: 'https://www.damerecruitment.co.uk',
     siteName: 'Dame Recruitment',
     locale: 'en_GB',
     type: 'website',

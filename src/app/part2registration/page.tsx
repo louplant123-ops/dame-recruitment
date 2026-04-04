@@ -84,8 +84,37 @@ export default function RegisterPart2Page() {
   }
 
 
+  const validateNINumber = (ni: string): boolean => {
+    // UK NI format: 2 letters, 6 digits, 1 letter (A-D)
+    // First two letters cannot be: BG, GB, NK, KN, TN, NT, ZZ
+    // First letter cannot be: D, F, I, Q, U, V
+    // Second letter cannot be: D, F, I, O, Q, U, V
+    const niRegex = /^(?!BG|GB|NK|KN|TN|NT|ZZ)[A-CEGHJ-PR-TW-Z][A-CEGHJ-NPR-TW-Z]\d{6}[A-D]$/i
+    return niRegex.test(ni.replace(/\s/g, ''))
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Validate NI number format
+    if (formData.niNumber && !validateNINumber(formData.niNumber)) {
+      alert('Please enter a valid National Insurance number (e.g., AB123456C)')
+      return
+    }
+    
+    // Validate sort code format (6 digits)
+    const cleanSortCode = formData.sortCode.replace(/[-\s]/g, '')
+    if (cleanSortCode.length !== 6 || !/^\d{6}$/.test(cleanSortCode)) {
+      alert('Please enter a valid sort code (6 digits, e.g., 12-34-56)')
+      return
+    }
+    
+    // Validate account number (8 digits)
+    if (!/^\d{8}$/.test(formData.accountNumber.replace(/\s/g, ''))) {
+      alert('Please enter a valid account number (8 digits)')
+      return
+    }
+    
     setIsSubmitting(true)
     
     try {
@@ -105,49 +134,26 @@ export default function RegisterPart2Page() {
         formDataToSend.append(`rightToWorkFile_${index}`, file);
       });
       
-      // Try multiple endpoints in case the Railway URL is different
-      const endpoints = [
-        'https://damedesk-registration-production.up.railway.app/api/candidates/complete-registration',
-        'https://railway-server-production.up.railway.app/api/candidates/complete-registration',
-        'https://damedesk-server-production.up.railway.app/api/candidates/complete-registration',
-        '/.netlify/functions/part2-registration' // Fallback to Netlify function
-      ];
+      // Submit to Netlify function (primary endpoint)
+      const endpoint = '/.netlify/functions/part2-registration';
       
-      let response = null;
-      let lastError = null;
+      console.log(`🔄 Submitting to: ${endpoint}`);
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 
+          'X-API-Key': 'website-integration'
+          // Don't set Content-Type for FormData - browser will set it with boundary
+        },
+        body: formDataToSend
+      });
       
-      for (const endpoint of endpoints) {
-        try {
-          console.log(`🔄 Trying endpoint: ${endpoint}`);
-          response = await fetch(endpoint, {
-            method: 'POST',
-            headers: { 
-              'X-API-Key': 'website-integration'
-              // Don't set Content-Type for FormData - browser will set it with boundary
-            },
-            body: formDataToSend
-          });
-          
-          if (response.ok) {
-            console.log(`✅ Success with endpoint: ${endpoint}`);
-            break;
-          } else {
-            console.log(`❌ Failed with endpoint: ${endpoint} - Status: ${response.status}`);
-            lastError = `${endpoint}: ${response.status}`;
-          }
-        } catch (error) {
-          console.log(`❌ Network error with endpoint: ${endpoint}`, error);
-          lastError = `${endpoint}: ${error instanceof Error ? error.message : 'Unknown error'}`;
-          continue;
-        }
-      }
-      
-      if (response && response.ok) {
+      if (response.ok) {
         console.log('✅ Part 2 registration submitted successfully');
         setIsSubmitted(true)
       } else {
-        console.error('❌ All endpoints failed. Last error:', lastError);
-        alert(`Registration failed: All servers unavailable. Last error: ${lastError}`);
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('❌ Registration failed:', response.status, errorData);
+        alert(`Registration failed: ${errorData.error || 'Server error'}. Please try again or contact us.`);
       }
     } catch (error) {
       console.error('❌ Network error:', error);

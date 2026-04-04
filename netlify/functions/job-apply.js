@@ -1,4 +1,4 @@
-const { getDbClient } = require('./db');
+const { getDbClient, rateLimit } = require('./db');
 const crypto = require('crypto');
 
 function corsHeaders() {
@@ -42,6 +42,16 @@ exports.handler = async (event) => {
 
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, headers: corsHeaders(), body: JSON.stringify({ error: 'Method not allowed' }) };
+  }
+
+  const clientIp = event.headers['x-forwarded-for'] || event.headers['client-ip'] || 'unknown';
+  const rl = rateLimit(`apply:${clientIp}`, 5, 60000);
+  if (!rl.allowed) {
+    return {
+      statusCode: 429,
+      headers: { ...corsHeaders(), 'Retry-After': String(Math.ceil(rl.retryAfterMs / 1000)) },
+      body: JSON.stringify({ error: 'Too many submissions. Please try again later.' })
+    };
   }
 
   try {
