@@ -112,12 +112,11 @@ export default function ContactPage() {
                 <div className="flex items-start space-x-4">
                   <MapPin className="h-5 w-5 text-primary-red flex-shrink-0 mt-1" />
                   <div>
-                    <h3 className="font-body font-medium text-charcoal mb-1">Address</h3>
+                    <h3 className="font-body font-medium text-charcoal mb-1">Head Office</h3>
                     <p className="font-body text-charcoal/70 text-sm">
                       Dame Recruitment Ltd<br />
-                      Innovation House<br />
-                      Nottingham Business Park<br />
-                      Nottingham, NG8 6PY
+                      3 Oswin Rd<br />
+                      Leicester, LE3 1HR
                     </p>
                   </div>
                 </div>
@@ -126,12 +125,23 @@ export default function ContactPage() {
                   <Phone className="h-5 w-5 text-primary-red flex-shrink-0 mt-1" />
                   <div>
                     <h3 className="font-body font-medium text-charcoal mb-1">Phone</h3>
-                    <a 
-                      href="tel:+441159876543"
-                      className="font-body text-charcoal/70 text-sm hover:text-primary-red transition-colors"
-                    >
-                      0115 987 6543
-                    </a>
+                    <div className="font-body text-charcoal/70 text-sm space-y-1.5">
+                      <a href="tel:+443300435011" className="block hover:text-primary-red transition-colors">
+                        <span className="text-charcoal/50">Head Office:</span> 0330 043 5011
+                      </a>
+                      <a href="tel:+441164560011" className="block hover:text-primary-red transition-colors">
+                        <span className="text-charcoal/50">Leicester:</span> 0116 456 0011
+                      </a>
+                      <a href="tel:+441156612460" className="block hover:text-primary-red transition-colors">
+                        <span className="text-charcoal/50">Nottingham:</span> 0115 661 2460
+                      </a>
+                      <a href="tel:+441604969011" className="block hover:text-primary-red transition-colors">
+                        <span className="text-charcoal/50">Northampton:</span> 01604 969 011
+                      </a>
+                      <a href="tel:+442477753721" className="block hover:text-primary-red transition-colors">
+                        <span className="text-charcoal/50">Coventry:</span> 024 7775 3721
+                      </a>
+                    </div>
                   </div>
                 </div>
                 

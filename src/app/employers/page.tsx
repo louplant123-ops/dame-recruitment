@@ -270,23 +270,19 @@ export default function EmployersPage() {
             </h2>
           </div>
           
-          <div className="grid md:grid-cols-3 gap-8">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-white rounded-lg p-6 border border-neutral-light">
-                <div className="flex items-center mb-4">
-                  <div className="w-12 h-12 bg-neutral-light rounded-full flex items-center justify-center mr-4">
-                    <span className="text-xl">👤</span>
-                  </div>
-                  <div>
-                    <div className="font-heading font-medium text-charcoal">Client Name</div>
-                    <div className="font-body text-charcoal/70 text-sm">Company, Role</div>
-                  </div>
-                </div>
-                <p className="font-body text-charcoal/70 italic">
-                  &quot;Testimonial content will go here. This is a placeholder for client feedback about Dame Recruitment&apos;s services.&quot;
-                </p>
-              </div>
-            ))}
+          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            <div className="bg-white rounded-lg p-6 border border-neutral-light">
+              <p className="font-body text-charcoal/70 italic mb-4">
+                &quot;The difference for me is the communication. You&apos;re not chasing updates or wondering what&apos;s going on, they keep you in the loop and actually take ownership.&quot;
+              </p>
+              <div className="font-heading font-medium text-charcoal">Future Steel</div>
+            </div>
+            <div className="bg-white rounded-lg p-6 border border-neutral-light">
+              <p className="font-body text-charcoal/70 italic mb-4">
+                &quot;We needed people quickly but didn&apos;t want to drop our standards. Dame managed both, it was a quick turnaround without compromising on quality.&quot;
+              </p>
+              <div className="font-heading font-medium text-charcoal">Pegasus</div>
+            </div>
           </div>
         </div>
       </section>
@@ -301,7 +297,7 @@ export default function EmployersPage() {
             </div>
             <div className="flex items-center gap-2">
               <span className="text-accent-green">✓</span>
-              <span className="font-body text-charcoal/70">GLAA compliant</span>
+              <span className="font-body text-charcoal/70">Fully compliant</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-accent-green">✓</span>

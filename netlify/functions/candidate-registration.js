@@ -355,6 +355,34 @@ async function forwardToDameDesk(registrationData, cvFileData, candidateId) {
         }
       }
       
+      // Build skills: AI-extracted first, then supplement with industries and form experience
+      let mergedSkills = aiData.skills || '';
+      if (registrationData.industries) {
+        try {
+          const industryLabels = {
+            manufacturing: 'Manufacturing', engineering: 'Engineering', construction: 'Construction',
+            automotive: 'Automotive', food_production: 'Food Production', warehousing: 'Warehousing',
+            retail: 'Retail', hospitality: 'Hospitality', healthcare: 'Healthcare',
+            education: 'Education', administration: 'Administration', customer_service: 'Customer Service',
+            sales: 'Sales', it: 'IT', finance: 'Finance', hr: 'HR', marketing: 'Marketing',
+            legal: 'Legal', transport: 'Transport', security: 'Security', cleaning: 'Cleaning',
+            agriculture: 'Agriculture', social_care: 'Social Care'
+          };
+          const parsed = typeof registrationData.industries === 'string'
+            ? JSON.parse(registrationData.industries)
+            : registrationData.industries;
+          if (Array.isArray(parsed)) {
+            const labels = parsed.map(i => industryLabels[i] || i).filter(Boolean);
+            const existing = mergedSkills ? mergedSkills.split(',').map(s => s.trim().toLowerCase()) : [];
+            for (const label of labels) {
+              if (!existing.includes(label.toLowerCase())) {
+                mergedSkills = mergedSkills ? `${mergedSkills}, ${label}` : label;
+              }
+            }
+          }
+        } catch (e) { /* industries not parseable */ }
+      }
+
       // Merge employment history from form and AI (UPDATE path)
       let employmentHistoryUpdate = registrationData.employmentHistory || aiData.employmentHistory || null;
       if (typeof employmentHistoryUpdate === 'string') {
@@ -396,7 +424,7 @@ async function forwardToDameDesk(registrationData, cvFileData, candidateId) {
         registrationData.disabilityInfo || null,
         registrationData.reasonableAdjustments || null,
         registrationData.drivingLicense || null,
-        aiData.skills || null,
+        mergedSkills || null,
         employmentHistoryUpdate ? JSON.stringify(employmentHistoryUpdate) : null,
         candidateId
       ]);
@@ -418,11 +446,13 @@ async function forwardToDameDesk(registrationData, cvFileData, candidateId) {
             [candidateId, 'cv']
           );
           
+          // Ensure file_content column exists (desktop schema uses file_content, legacy uses content)
+          await client.query(`ALTER TABLE candidate_documents ADD COLUMN IF NOT EXISTS file_content TEXT`).catch(() => {});
+
           if (existingCV.rows.length > 0) {
-            // Update existing CV
             await client.query(`
               UPDATE candidate_documents 
-              SET name = $1, content = $2, file_size = $3, uploaded_date = NOW(), notes = $4
+              SET name = $1, content = $2, file_content = $2, file_size = $3, uploaded_date = NOW(), notes = $4
               WHERE contact_id = $5 AND type = 'cv'
             `, [
               cvFileData.fileName,
@@ -433,11 +463,10 @@ async function forwardToDameDesk(registrationData, cvFileData, candidateId) {
             ]);
             console.log('✅ CV document updated in database:', cvFileData.fileName);
           } else {
-            // Insert new CV
             await client.query(`
               INSERT INTO candidate_documents (
-                id, contact_id, type, name, content, file_size, uploaded_date, uploaded_by, notes, created_at
-              ) VALUES ($1, $2, 'cv', $3, $4, $5, NOW(), 'website_part1', $6, NOW())
+                id, contact_id, type, name, content, file_content, file_size, uploaded_date, uploaded_by, notes, created_at
+              ) VALUES ($1, $2, 'cv', $3, $4, $4, $5, NOW(), 'website_part1', $6, NOW())
             `, [
               docId,
               candidateId,
@@ -583,6 +612,34 @@ async function forwardToDameDesk(registrationData, cvFileData, candidateId) {
         }
       }
       
+      // Build skills: AI-extracted first, then supplement with industries (INSERT path)
+      let mergedSkillsInsert = aiData.skills || '';
+      if (registrationData.industries) {
+        try {
+          const industryLabels = {
+            manufacturing: 'Manufacturing', engineering: 'Engineering', construction: 'Construction',
+            automotive: 'Automotive', food_production: 'Food Production', warehousing: 'Warehousing',
+            retail: 'Retail', hospitality: 'Hospitality', healthcare: 'Healthcare',
+            education: 'Education', administration: 'Administration', customer_service: 'Customer Service',
+            sales: 'Sales', it: 'IT', finance: 'Finance', hr: 'HR', marketing: 'Marketing',
+            legal: 'Legal', transport: 'Transport', security: 'Security', cleaning: 'Cleaning',
+            agriculture: 'Agriculture', social_care: 'Social Care'
+          };
+          const parsed = typeof registrationData.industries === 'string'
+            ? JSON.parse(registrationData.industries)
+            : registrationData.industries;
+          if (Array.isArray(parsed)) {
+            const labels = parsed.map(i => industryLabels[i] || i).filter(Boolean);
+            const existing = mergedSkillsInsert ? mergedSkillsInsert.split(',').map(s => s.trim().toLowerCase()) : [];
+            for (const label of labels) {
+              if (!existing.includes(label.toLowerCase())) {
+                mergedSkillsInsert = mergedSkillsInsert ? `${mergedSkillsInsert}, ${label}` : label;
+              }
+            }
+          }
+        } catch (e) { /* industries not parseable */ }
+      }
+
       // Merge employment history from form and AI (INSERT path)
       let employmentHistoryInsert = registrationData.employmentHistory || aiData.employmentHistory || null;
       if (typeof employmentHistoryInsert === 'string') {
@@ -624,7 +681,7 @@ async function forwardToDameDesk(registrationData, cvFileData, candidateId) {
         registrationData.medicalConditions || null,
         registrationData.disabilityInfo || null,
         registrationData.reasonableAdjustments || null,
-        aiData.skills || null,
+        mergedSkillsInsert || null,
         employmentHistoryInsert ? JSON.stringify(employmentHistoryInsert) : null
       ]);
       
@@ -642,15 +699,16 @@ async function forwardToDameDesk(registrationData, cvFileData, candidateId) {
               notes += ` | Parsed: ${cvFileData.wordCount} words extracted`;
             }
             
+            await client.query(`ALTER TABLE candidate_documents ADD COLUMN IF NOT EXISTS file_content TEXT`).catch(() => {});
             await client.query(`
               INSERT INTO candidate_documents (
-                id, contact_id, type, name, content, file_size, uploaded_date, uploaded_by, notes, created_at
-              ) VALUES ($1, $2, 'cv', $3, $4, $5, NOW(), 'website_part1', $6, NOW())
+                id, contact_id, type, name, content, file_content, file_size, uploaded_date, uploaded_by, notes, created_at
+              ) VALUES ($1, $2, 'cv', $3, $4, $4, $5, NOW(), 'website_part1', $6, NOW())
             `, [
               docId,
               newCandidateId,
               cvFileData.fileName,
-              cvFileData.content, // Base64 encoded file content
+              cvFileData.content,
               cvFileData.size,
               notes
             ]);

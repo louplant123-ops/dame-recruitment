@@ -17,6 +17,8 @@ export default function PostJobPage() {
     jobType: '',
     location: '',
     description: '',
+    salaryMin: '',
+    salaryMax: '',
     urgency: ''
   })
   
@@ -77,6 +79,8 @@ export default function PostJobPage() {
           jobType: '',
           location: '',
           description: '',
+          salaryMin: '',
+          salaryMax: '',
           urgency: ''
         })
       } else {
@@ -387,6 +391,38 @@ export default function PostJobPage() {
               )}
             </div>
             
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <label htmlFor="salaryMin" className="block font-body font-medium text-charcoal mb-2">
+                  Salary / Rate (Min)
+                </label>
+                <input
+                  type="text"
+                  id="salaryMin"
+                  value={formData.salaryMin || ''}
+                  onChange={(e) => updateFormData('salaryMin', e.target.value)}
+                  className="w-full px-4 py-3 border border-neutral-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-red focus:border-transparent"
+                  disabled={formState === 'submitting'}
+                  placeholder="e.g. £12.71/hr or £25,000/yr"
+                />
+              </div>
+              
+              <div>
+                <label htmlFor="salaryMax" className="block font-body font-medium text-charcoal mb-2">
+                  Salary / Rate (Max)
+                </label>
+                <input
+                  type="text"
+                  id="salaryMax"
+                  value={formData.salaryMax || ''}
+                  onChange={(e) => updateFormData('salaryMax', e.target.value)}
+                  className="w-full px-4 py-3 border border-neutral-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-red focus:border-transparent"
+                  disabled={formState === 'submitting'}
+                  placeholder="e.g. £15.00/hr or £35,000/yr"
+                />
+              </div>
+            </div>
+            
             <div>
               <label htmlFor="urgency" className="block font-body font-medium text-charcoal mb-2">
                 How urgently do you need to fill this position? *
@@ -410,6 +446,12 @@ export default function PostJobPage() {
               )}
             </div>
             
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-sm text-gray-500 leading-relaxed">
+              <strong>Privacy Notice:</strong> Dame Recruitment will use the information you provide to manage your recruitment requirements and communicate with you about suitable candidates. Your data is stored securely and processed in accordance with UK GDPR and the Data Protection Act 2018. You can request access to, correction, or deletion of your data at any time by contacting{' '}
+              <a href="mailto:info@damerecruitment.co.uk" className="text-primary-red underline">info@damerecruitment.co.uk</a>. See our{' '}
+              <a href="/privacy" className="text-primary-red underline">Privacy Policy</a> for full details.
+            </div>
+
             <button
               type="submit"
               disabled={formState === 'submitting'}

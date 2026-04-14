@@ -248,6 +248,7 @@ exports.handler = async (event, context) => {
           name TEXT NOT NULL,
           file_path TEXT,
           content TEXT,
+          file_content TEXT,
           file_size INTEGER,
           uploaded_date TIMESTAMP DEFAULT NOW(),
           uploaded_by TEXT,

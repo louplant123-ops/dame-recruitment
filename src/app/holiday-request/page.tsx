@@ -14,6 +14,9 @@ interface HolidayFormData {
   clientApproved: boolean;
   clientName?: string;
   approvedBy?: string;
+  returnToWorkDate?: string;
+  coverRequired: boolean;
+  additionalNotes?: string;
 }
 
 export default function HolidayRequestPage() {
@@ -36,7 +39,10 @@ export default function HolidayRequestPage() {
     reason: '',
     clientApproved: false,
     clientName: '',
-    approvedBy: ''
+    approvedBy: '',
+    returnToWorkDate: '',
+    coverRequired: false,
+    additionalNotes: ''
   })
 
   // Step 1: Send verification code
@@ -179,8 +185,8 @@ export default function HolidayRequestPage() {
       <div className="bg-white rounded-2xl shadow-xl p-8 max-w-2xl w-full">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">🏖️ Holiday Request</h1>
-          <p className="text-gray-600">Dame Recruitment</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Time Off Request</h1>
+          <p className="text-gray-600">Dame Recruitment — Holiday, Sick Leave & Absence</p>
         </div>
 
         {error && (
@@ -335,7 +341,13 @@ export default function HolidayRequestPage() {
               />
             </div>
 
+            {/* Site Approval Section */}
             <div className="border-t pt-6">
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
+                <p className="text-sm text-amber-800 font-medium">Important: Please speak to your site/manager first before submitting this request.</p>
+                <p className="text-xs text-amber-600 mt-1">Holiday must be approved by your site supervisor before we can confirm it.</p>
+              </div>
+
               <label className="flex items-start space-x-3 cursor-pointer">
                 <input
                   type="checkbox"
@@ -345,10 +357,10 @@ export default function HolidayRequestPage() {
                 />
                 <div>
                   <span className="text-sm font-medium text-gray-700">
-                    I have informed my client about this holiday
+                    My site/manager has approved this holiday
                   </span>
                   <p className="text-xs text-gray-500 mt-1">
-                    Check this if you&apos;ve already discussed this with your client/manager
+                    Tick this if you&apos;ve already spoken to your site supervisor and they&apos;ve agreed
                   </p>
                 </div>
               </label>
@@ -358,7 +370,7 @@ export default function HolidayRequestPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Client/Company Name
+                    Site / Company Name
                   </label>
                   <input
                     type="text"
@@ -371,18 +383,51 @@ export default function HolidayRequestPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Approved By
+                    Approved By (Manager Name)
                   </label>
                   <input
                     type="text"
                     value={formData.approvedBy}
                     onChange={(e) => setFormData({ ...formData, approvedBy: e.target.value })}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                    placeholder="Manager name"
+                    placeholder="Supervisor / manager name"
                   />
                 </div>
               </div>
             )}
+
+            {/* Additional options */}
+            <div className="space-y-4">
+              <label className="flex items-start space-x-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={formData.coverRequired}
+                  onChange={(e) => setFormData({ ...formData, coverRequired: e.target.checked })}
+                  className="mt-1 w-5 h-5 text-teal-500 border-gray-300 rounded focus:ring-teal-500"
+                />
+                <div>
+                  <span className="text-sm font-medium text-gray-700">
+                    Cover is needed for my shift(s)
+                  </span>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Tick this if the site requires someone to cover your shift while you&apos;re away
+                  </p>
+                </div>
+              </label>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Additional Notes (optional)
+                </label>
+                <textarea
+                  value={formData.additionalNotes}
+                  onChange={(e) => setFormData({ ...formData, additionalNotes: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  rows={2}
+                  placeholder="Any other information we should know..."
+                />
+              </div>
+            </div>
 
             <button
               type="submit"

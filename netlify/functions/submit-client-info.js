@@ -32,7 +32,7 @@ async function updateClientInfo(formId, formData) {
         client_info_form_completed = NOW(),
         updated_at = NOW()
       WHERE client_info_form_id = $18
-      RETURNING id, name, company
+      RETURNING id, name, email, company
     `;
 
     const values = [
@@ -119,6 +119,9 @@ async function updateClientInfo(formId, formData) {
     
     return {
       clientId: contact.id,
+      clientName: contact.name,
+      clientEmail: contact.email,
+      clientCompany: contact.company,
       taskId: taskId,
       status: 'completed'
     };
@@ -149,6 +152,14 @@ exports.handler = async (event, context) => {
     const result = await updateClientInfo(formId, formData);
     console.log('✅ Client info submitted successfully');
 
+    // Send confirmation email to client (fire-and-forget)
+    if (result.clientEmail) {
+      sendConfirmationEmail(result).catch(e => console.error('⚠️ Confirmation email failed:', e.message));
+    }
+
+    // Notify consultants via telnyx server (fire-and-forget)
+    notifyConsultants(result).catch(e => console.error('⚠️ Consultant notification failed:', e.message));
+
     return {
       statusCode: 200,
       headers: { 'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json' },
@@ -174,3 +185,81 @@ exports.handler = async (event, context) => {
     };
   }
 };
+
+// Send confirmation email to the client via Microsoft Graph
+async function sendConfirmationEmail(result) {
+  const graphClientId = process.env.GRAPH_CLIENT_ID;
+  const graphClientSecret = process.env.GRAPH_CLIENT_SECRET;
+  const graphTenantId = process.env.GRAPH_TENANT_ID;
+  const graphMailbox = process.env.GRAPH_MAILBOX;
+  if (!graphClientId || !graphClientSecret || !graphTenantId || !graphMailbox) return;
+
+  const tokenRes = await fetch(`https://login.microsoftonline.com/${graphTenantId}/oauth2/v2.0/token`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ client_id: graphClientId, client_secret: graphClientSecret, scope: 'https://graph.microsoft.com/.default', grant_type: 'client_credentials' })
+  });
+  const tokenData = await tokenRes.json();
+  if (!tokenData.access_token) return;
+
+  const firstName = (result.clientName || '').split(' ')[0];
+  const emailHtml = `<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f3f4f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f3f4f6;padding:40px 20px">
+<tr><td align="center">
+<table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06)">
+  <tr><td style="background:#dc2626;padding:28px 40px;text-align:center">
+    <h1 style="margin:0;color:#ffffff;font-size:24px;font-weight:600">Dame Recruitment</h1>
+  </td></tr>
+  <tr><td style="padding:36px 40px 20px">
+    <p style="color:#374151;font-size:15px;line-height:1.6;margin:0 0 20px">Hi ${firstName},</p>
+    <p style="color:#374151;font-size:15px;line-height:1.6;margin:0 0 20px">Thank you for completing the client information form for <strong>${result.clientCompany || 'your company'}</strong>. We\u2019ve received all your details and will update your account accordingly.</p>
+    <p style="color:#374151;font-size:15px;line-height:1.6;margin:0 0 4px">If you have any questions or need to make changes, please don\u2019t hesitate to get in touch.</p>
+    <p style="color:#374151;font-size:15px;line-height:1.6;margin:20px 0 4px">Best regards,</p>
+    <p style="color:#374151;font-size:15px;line-height:1.6;margin:0;font-weight:600">Dame Recruitment</p>
+    <p style="color:#6b7280;font-size:14px;margin:2px 0 0">0115 888 2233 &middot; info@damerecruitment.co.uk</p>
+  </td></tr>
+  <tr><td style="background:#f9fafb;padding:20px 40px;border-top:1px solid #e5e7eb">
+    <p style="color:#9ca3af;font-size:12px;line-height:1.5;margin:0;text-align:center">
+      Dame Recruitment &middot; <a href="https://www.damerecruitment.co.uk" style="color:#9ca3af">www.damerecruitment.co.uk</a> &middot; <a href="https://www.damerecruitment.co.uk/privacy" style="color:#9ca3af">Privacy Policy</a>
+    </p>
+  </td></tr>
+</table>
+</td></tr></table>
+</body></html>`;
+
+  await fetch(`https://graph.microsoft.com/v1.0/users/${graphMailbox}/sendMail`, {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${tokenData.access_token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      message: {
+        subject: 'Client Information Received \u2014 Dame Recruitment',
+        body: { contentType: 'HTML', content: emailHtml },
+        toRecipients: [{ emailAddress: { address: result.clientEmail } }]
+      }
+    })
+  });
+  console.log(`\u2709\uFE0F Confirmation email sent to ${result.clientEmail}`);
+}
+
+// Notify consultants in DameDesk via telnyx server
+async function notifyConsultants(result) {
+  const serverUrl = process.env.TELNYX_SERVER_URL || process.env.SERVER_URL;
+  if (!serverUrl) return;
+
+  await fetch(`${serverUrl}/notifications/create`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      type: 'client_info_completed',
+      title: 'Client Info Form Completed',
+      message: `${result.clientName || 'A client'} (${result.clientCompany || ''}) has completed their client information form.`,
+      icon: 'document-text-outline',
+      color: '#F43F5E',
+      linkType: 'contact',
+      linkId: result.clientId
+    })
+  });
+  console.log(`\uD83D\uDD14 Consultant notification sent for ${result.clientCompany}`);
+}

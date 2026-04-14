@@ -16,8 +16,8 @@ export default function Footer() {
   const trustFeatures = [
     {
       icon: Shield,
-      text: 'GLAA Compliant',
-      description: 'Licensed by the Gangmasters and Labour Abuse Authority'
+      text: 'Fully Compliant',
+      description: 'Professional and ethical recruitment practices'
     },
     {
       icon: Award,
@@ -74,25 +74,36 @@ export default function Footer() {
               <div className="flex items-center space-x-3">
                 <MapPin className="h-5 w-5 text-accent-teal flex-shrink-0" />
                 <span className="font-body text-dark-text/80">
-                  123 Business Park, Leicester, LE1 2AB
+                  3 Oswin Rd, Leicester, LE3 1HR
                 </span>
               </div>
-              <div className="flex items-center space-x-3">
-                <Phone className="h-5 w-5 text-accent-teal flex-shrink-0" />
-                <Link 
-                  href="tel:+441162345678"
-                  className="font-body text-dark-text/80 hover:text-primary-red transition-colors focus:outline-none focus:ring-2 focus:ring-primary-red focus:ring-offset-2 focus:ring-offset-charcoal rounded-sm"
-                >
-                  0116 234 5678
-                </Link>
+              <div className="flex items-start space-x-3">
+                <Phone className="h-5 w-5 text-accent-teal flex-shrink-0 mt-0.5" />
+                <div className="font-body text-dark-text/80 space-y-1">
+                  <Link href="tel:+443300435011" className="block hover:text-primary-red transition-colors">
+                    <span className="text-dark-text/60 text-sm">Head Office:</span> 0330 043 5011
+                  </Link>
+                  <Link href="tel:+441164560011" className="block hover:text-primary-red transition-colors">
+                    <span className="text-dark-text/60 text-sm">Leicester:</span> 0116 456 0011
+                  </Link>
+                  <Link href="tel:+441156612460" className="block hover:text-primary-red transition-colors">
+                    <span className="text-dark-text/60 text-sm">Nottingham:</span> 0115 661 2460
+                  </Link>
+                  <Link href="tel:+441604969011" className="block hover:text-primary-red transition-colors">
+                    <span className="text-dark-text/60 text-sm">Northampton:</span> 01604 969 011
+                  </Link>
+                  <Link href="tel:+442477753721" className="block hover:text-primary-red transition-colors">
+                    <span className="text-dark-text/60 text-sm">Coventry:</span> 024 7775 3721
+                  </Link>
+                </div>
               </div>
               <div className="flex items-center space-x-3">
                 <Mail className="h-5 w-5 text-accent-teal flex-shrink-0" />
                 <Link 
-                  href="mailto:hello@damerecruitment.com"
+                  href="mailto:hello@damerecruitment.co.uk"
                   className="font-body text-dark-text/80 hover:text-primary-red transition-colors focus:outline-none focus:ring-2 focus:ring-primary-red focus:ring-offset-2 focus:ring-offset-charcoal rounded-sm"
                 >
-                  hello@damerecruitment.com
+                  hello@damerecruitment.co.uk
                 </Link>
               </div>
             </div>
@@ -176,7 +187,7 @@ export default function Footer() {
               © {currentYear} Dame Recruitment. All rights reserved.
             </p>
             <p className="font-body text-sm text-dark-text/60">
-              GLAA License: GLA.123456 | Company Registration: 12345678
+              Company Registration: 12345678
             </p>
           </div>
         </div>

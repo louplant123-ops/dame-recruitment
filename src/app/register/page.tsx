@@ -605,7 +605,7 @@ maxTravelDistance: '10',
                 
                 <div>
                   <label htmlFor="dateOfBirth" className="block font-body font-medium text-charcoal mb-2">
-                    Date of Birth
+                    Date of Birth (Optional)
                   </label>
                   <input
                     type="date"
@@ -619,7 +619,7 @@ maxTravelDistance: '10',
               
               <div>
                 <label htmlFor="address" className="block font-body font-medium text-charcoal mb-2">
-                  Address
+                  Address (Optional)
                 </label>
                 <input
                   type="text"
@@ -656,7 +656,7 @@ maxTravelDistance: '10',
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
                   <label htmlFor="gender" className="block font-body font-medium text-charcoal mb-2">
-                    Gender
+                    Gender (Optional)
                   </label>
                   <select
                     id="gender"
@@ -673,7 +673,7 @@ maxTravelDistance: '10',
                 
                 <div>
                   <label htmlFor="nationality" className="block font-body font-medium text-charcoal mb-2">
-                    Nationality
+                    Nationality (Optional)
                   </label>
                   <input
                     type="text"
@@ -791,7 +791,7 @@ maxTravelDistance: '10',
 
               <div>
                 <label htmlFor="experience" className="block font-body font-medium text-charcoal mb-2">
-                  Tell us about your experience
+                  Tell us about your experience (Optional)
                 </label>
                 <textarea
                   id="experience"
@@ -806,7 +806,7 @@ maxTravelDistance: '10',
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
                   <label htmlFor="yearsOfExperience" className="block font-body font-medium text-charcoal mb-2">
-                    Years of Experience
+                    Years of Experience (Optional)
                   </label>
                   <select
                     id="yearsOfExperience"
@@ -825,7 +825,7 @@ maxTravelDistance: '10',
 
                 <div>
                   <label htmlFor="expectedHourlyRate" className="block font-body font-medium text-charcoal mb-2">
-                    Expected Hourly Rate
+                    Expected Hourly Rate (Optional)
                   </label>
                   <div className="relative">
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-charcoal/70">£</span>
@@ -886,7 +886,7 @@ maxTravelDistance: '10',
 
               <div>
                 <label htmlFor="availability" className="block font-body font-medium text-charcoal mb-2">
-                  When can you start?
+                  When can you start? (Optional)
                 </label>
                 <select
                   id="availability"

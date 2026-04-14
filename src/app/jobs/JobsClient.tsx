@@ -258,7 +258,7 @@ function JobsContent() {
             Showing {filteredJobs.length} of {jobs.length} jobs
             {jobs.length > 0 && (
               <span className="ml-2 px-2 py-1 bg-green-100 text-green-800 text-xs rounded">
-                Live from DameDesk CRM
+                Live vacancies
               </span>
             )}
           </p>
@@ -312,10 +312,10 @@ function JobsContent() {
             {jobs.length === 0 ? (
               <div>
                 <p className="text-body-lg font-body text-charcoal/70 mb-4">
-                  Loading jobs from DameDesk CRM...
+                  Loading jobs...
                 </p>
                 <p className="text-body font-body text-charcoal/60">
-                  If jobs don&apos;t appear, the CRM may not be running. <Link href="/contact" className="text-primary-red hover:underline">Contact us</Link> for available opportunities.
+                  If jobs don&apos;t appear, please try again shortly or <Link href="/contact" className="text-primary-red hover:underline">contact us</Link> for available opportunities.
                 </p>
               </div>
             ) : (

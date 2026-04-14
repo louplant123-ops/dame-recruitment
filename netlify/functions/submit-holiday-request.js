@@ -55,12 +55,14 @@ exports.handler = async (event) => {
     await client.connect();
 
     try {
-      // Insert holiday request into database
+      // If site has already approved, auto-set status to approved
+      const initialStatus = formData.clientApproved ? 'approved' : 'pending';
+
       const result = await client.query(
         `INSERT INTO holiday_requests 
          (candidate_id, start_date, end_date, total_days, leave_type, reason, 
-          client_approved, client_name, approved_by, status, submitted_at, created_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())
+          client_approved, client_name, approved_by, status, cover_required, additional_notes, submitted_at, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW(), NOW())
          RETURNING *`,
         [
           formData.candidateId,
@@ -72,7 +74,9 @@ exports.handler = async (event) => {
           formData.clientApproved,
           formData.clientName || null,
           formData.approvedBy || null,
-          'pending'
+          initialStatus,
+          formData.coverRequired || false,
+          formData.additionalNotes || null
         ]
       );
 
@@ -172,13 +176,30 @@ exports.handler = async (event) => {
               </div>
               ${formData.clientApproved ? `
               <div class="detail-row">
-                <span class="detail-label">Client Approved:</span>
+                <span class="detail-label">Site Approved:</span>
                 <span class="detail-value">✓ Yes - ${formData.clientName} (${formData.approvedBy})</span>
+              </div>
+              ` : `
+              <div class="detail-row">
+                <span class="detail-label">Site Approved:</span>
+                <span class="detail-value">✗ Not yet — needs confirmation</span>
+              </div>
+              `}
+              ${formData.coverRequired ? `
+              <div class="detail-row">
+                <span class="detail-label">Cover Required:</span>
+                <span class="detail-value">⚠️ Yes — find cover for these shifts</span>
+              </div>
+              ` : ''}
+              ${formData.additionalNotes ? `
+              <div class="detail-row">
+                <span class="detail-label">Notes:</span>
+                <span class="detail-value">${formData.additionalNotes}</span>
               </div>
               ` : ''}
               <div class="detail-row">
                 <span class="detail-label">Status:</span>
-                <span class="detail-value"><span class="badge badge-pending">PENDING REVIEW</span></span>
+                <span class="detail-value"><span class="badge ${formData.clientApproved ? 'badge-approved' : 'badge-pending'}">${formData.clientApproved ? 'SITE APPROVED' : 'PENDING REVIEW'}</span></span>
               </div>
             </div>
             

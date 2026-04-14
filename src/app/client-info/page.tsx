@@ -219,7 +219,7 @@ export default function ClientInfoPage() {
             <form onSubmit={handleSubmit} className="space-y-8">
               {/* Company Details */}
               <div className="border-b pb-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">🏢 Company Details</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">Company Details</h3>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
@@ -248,7 +248,7 @@ export default function ClientInfoPage() {
 
               {/* Invoice Contact */}
               <div className="border-b pb-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">📄 Invoice Contact</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">Invoice Contact</h3>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
@@ -277,7 +277,7 @@ export default function ClientInfoPage() {
 
               {/* Accounts Contact */}
               <div className="border-b pb-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">💰 Accounts Contact (Optional)</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">Accounts Contact (Optional)</h3>
                 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div>
@@ -317,7 +317,7 @@ export default function ClientInfoPage() {
 
               {/* Site & Safety */}
               <div className="border-b pb-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">🦺 Site & Safety Information</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">Site & Safety Information</h3>
                 
                 <div className="mb-4">
                   <label className="flex items-center">
@@ -391,7 +391,7 @@ export default function ClientInfoPage() {
 
               {/* Client Preferences */}
               <div className="border-b pb-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">👥 Client Preferences</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">Client Preferences</h3>
                 
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-2">Key Decision Makers</label>
@@ -418,7 +418,7 @@ export default function ClientInfoPage() {
 
               {/* Communication Preferences */}
               <div className="pb-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">📞 Communication Preferences</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">Communication Preferences</h3>
                 
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-2">Preferred Contact Method</label>
@@ -446,6 +446,12 @@ export default function ClientInfoPage() {
                     placeholder="e.g., 9am-5pm weekdays, avoid mornings"
                   />
                 </div>
+              </div>
+
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-sm text-gray-500 leading-relaxed">
+                <strong>Privacy Notice:</strong> Dame Recruitment will use the information you provide to manage your account and deliver our recruitment services. Your data is stored securely and processed in accordance with UK GDPR and the Data Protection Act 2018. You can request access to, correction, or deletion of your data at any time by contacting{' '}
+                <a href="mailto:info@damerecruitment.co.uk" className="text-red-600 underline">info@damerecruitment.co.uk</a>. See our{' '}
+                <a href="/privacy" className="text-red-600 underline">Privacy Policy</a> for full details.
               </div>
 
               <div className="text-center pt-6">
