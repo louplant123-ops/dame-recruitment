@@ -99,15 +99,6 @@ export default function RegisterPart2Page() {
     return niRegex.test(ni.replace(/\s/g, ''))
   }
 
-  const validateNINumber = (ni: string): boolean => {
-    // UK NI format: 2 letters, 6 digits, 1 letter (A-D)
-    // First two letters cannot be: BG, GB, NK, KN, TN, NT, ZZ
-    // First letter cannot be: D, F, I, Q, U, V
-    // Second letter cannot be: D, F, I, O, Q, U, V
-    const niRegex = /^(?!BG|GB|NK|KN|TN|NT|ZZ)[A-CEGHJ-PR-TW-Z][A-CEGHJ-NPR-TW-Z]\d{6}[A-D]$/i
-    return niRegex.test(ni.replace(/\s/g, ''))
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     const errors: Record<string, string> = {}
