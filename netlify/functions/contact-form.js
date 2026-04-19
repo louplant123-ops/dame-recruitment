@@ -55,6 +55,7 @@ async function upsertExistingEmail(client, contactData) {
         )
       END,
       source = 'website_contact_form',
+      last_contact = NOW(),
       updated_at = NOW()
     WHERE LOWER(email) = LOWER($1)
     RETURNING id, name, type, assigned_to
@@ -162,8 +163,8 @@ async function storeInDatabase(contactData) {
     const insertQuery = `
       INSERT INTO contacts (
         id, name, email, phone, company, type, status, temperature,
-        notes, source, created_at, updated_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, 'active', $7, $8, 'website_contact_form', NOW(), NOW())
+        notes, source, last_contact, created_at, updated_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, 'active', $7, $8, 'website_contact_form', NOW(), NOW(), NOW())
       ON CONFLICT (id) 
       DO UPDATE SET 
         name = EXCLUDED.name,
@@ -173,6 +174,7 @@ async function storeInDatabase(contactData) {
         type = EXCLUDED.type,
         temperature = EXCLUDED.temperature,
         notes = EXCLUDED.notes,
+        last_contact = NOW(),
         updated_at = NOW()
       RETURNING id, name, type, assigned_to
     `;
