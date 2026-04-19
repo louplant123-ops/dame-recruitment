@@ -1,14 +1,162 @@
 // Contact form with PostgreSQL database integration
 const { getDbClient, rateLimit } = require('./db');
 
+function createId(prefix) {
+  return `${prefix}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+}
+
+function getEnquirySummary(contactData) {
+  if (contactData.contactType === 'candidate') {
+    return 'Candidate enquiry received via website';
+  }
+  if (contactData.contactType === 'client') {
+    return 'Client enquiry received via website';
+  }
+  return 'Prospect enquiry received via website';
+}
+
+function getFollowUpTaskType(contactData) {
+  return contactData.contactType === 'candidate' ? 'candidate_followup' : 'client_followup';
+}
+
+function buildWebsiteNote(contactData) {
+  const lines = [
+    `Website enquiry received from ${contactData.name}`,
+    contactData.company ? `Company: ${contactData.company}` : null,
+    `Email: ${contactData.email}`,
+    contactData.phone ? `Phone: ${contactData.phone}` : null,
+    `Enquiry type: ${contactData.inquiryType || 'general'}`,
+    '',
+    contactData.message
+  ].filter(Boolean);
+
+  return lines.join('\n');
+}
+
+async function upsertExistingEmail(client, contactData) {
+  const updateQuery = `
+    UPDATE contacts
+    SET
+      name = $2,
+      email = $1,
+      phone = COALESCE($3, phone),
+      company = COALESCE($4, company),
+      type = $5,
+      temperature = $6,
+      notes = CASE
+        WHEN COALESCE(notes, '') = '' THEN $7
+        WHEN POSITION($7 IN notes) > 0 THEN notes
+        ELSE CONCAT(
+          notes,
+          E'\\n\\n--- Website enquiry update ',
+          TO_CHAR(NOW(), 'YYYY-MM-DD HH24:MI:SS'),
+          E' ---\\n',
+          $7
+        )
+      END,
+      source = 'website_contact_form',
+      updated_at = NOW()
+    WHERE LOWER(email) = LOWER($1)
+    RETURNING id, name, type, assigned_to
+  `;
+
+  const updateValues = [
+    contactData.email,
+    contactData.name,
+    contactData.phone || null,
+    contactData.company || null,
+    contactData.contactType,
+    contactData.temperature,
+    contactData.message
+  ];
+
+  const result = await client.query(updateQuery, updateValues);
+  return result.rows[0] || null;
+}
+
+async function createEnquiryArtifacts(client, savedContact, contactData) {
+  const timelineNote = buildWebsiteNote(contactData);
+
+  try {
+    await client.query(
+      `
+        INSERT INTO activities (
+          id, subject_type, subject_id, type, summary, channel, direction, user_name, details, created_at
+        ) VALUES ($1, $2, $3, 'enquiry_received', $4, 'web', 'inbound', 'Website', $5, NOW())
+      `,
+      [
+        createId('act'),
+        savedContact.type || contactData.contactType,
+        savedContact.id,
+        getEnquirySummary(contactData),
+        JSON.stringify({
+          source: 'website_contact_form',
+          inquiryType: contactData.inquiryType || 'general',
+          name: contactData.name,
+          email: contactData.email,
+          phone: contactData.phone || null,
+          company: contactData.company || null,
+          message: contactData.message
+        })
+      ]
+    );
+  } catch (error) {
+    console.warn('⚠️ Activity creation failed:', error.message);
+  }
+
+  try {
+    await client.query(
+      `
+        INSERT INTO contact_notes (id, contact_id, content, note_type, created_by, created_at, updated_at)
+        VALUES ($1, $2, $3, 'website_enquiry', 'Website', NOW(), NOW())
+      `,
+      [createId('note'), savedContact.id, timelineNote]
+    );
+  } catch (error) {
+    console.warn('⚠️ Contact note creation failed:', error.message);
+  }
+
+  try {
+    const taskTitle = contactData.contactType === 'candidate'
+      ? `Follow up website candidate: ${contactData.name}`
+      : `Follow up website enquiry: ${contactData.name}${contactData.company ? ` (${contactData.company})` : ''}`;
+    const taskDescription = `${timelineNote}\n\nNext step: call or email this contact and qualify the enquiry.`;
+
+    await client.query(
+      `
+        INSERT INTO tasks (id, title, description, type, priority, status, assigned_to, contact_id, due_date, created_at)
+        VALUES ($1, $2, $3, $4, $5, 'pending', $6, $7, NOW() + INTERVAL '4 hours', NOW())
+      `,
+      [
+        createId('task'),
+        taskTitle,
+        taskDescription,
+        getFollowUpTaskType(contactData),
+        contactData.contactType === 'candidate' ? 'medium' : 'high',
+        savedContact.assigned_to || null,
+        savedContact.id
+      ]
+    );
+  } catch (error) {
+    console.warn('⚠️ Follow-up task creation failed:', error.message);
+  }
+}
+
 // Store contact in database
 async function storeInDatabase(contactData) {
+  const client = getDbClient();
+
   try {
     console.log('🔄 Storing contact in database...');
-    
-    const client = getDbClient();
     await client.connect();
     console.log('✅ Connected to database');
+
+    const existingContact = await upsertExistingEmail(client, contactData);
+    if (existingContact) {
+      await createEnquiryArtifacts(client, existingContact, contactData);
+      console.log('ℹ️ Existing contact found by email, updated record:', existingContact);
+      return existingContact;
+    }
 
     // Insert contact into contacts table
     const insertQuery = `
@@ -26,7 +174,7 @@ async function storeInDatabase(contactData) {
         temperature = EXCLUDED.temperature,
         notes = EXCLUDED.notes,
         updated_at = NOW()
-      RETURNING id, name, type
+      RETURNING id, name, type, assigned_to
     `;
 
     const values = [
@@ -41,14 +189,26 @@ async function storeInDatabase(contactData) {
     ];
 
     const result = await client.query(insertQuery, values);
-    await client.end();
+    await createEnquiryArtifacts(client, result.rows[0], contactData);
     
     console.log('✅ Contact stored in database:', result.rows[0]);
     return result.rows[0];
     
   } catch (error) {
+    if (error.code === '23505' && error.constraint === 'contacts_email_lower_unique') {
+      console.warn('ℹ️ Duplicate email detected during insert, updating existing contact instead');
+      const existingContact = await upsertExistingEmail(client, contactData);
+      if (existingContact) {
+        await createEnquiryArtifacts(client, existingContact, contactData);
+        console.log('✅ Existing contact updated after duplicate email conflict:', existingContact);
+        return existingContact;
+      }
+    }
+
     console.error('❌ Database storage error:', error);
     throw error;
+  } finally {
+    await client.end().catch(() => {});
   }
 }
 
@@ -188,7 +348,7 @@ exports.handler = async (event, context) => {
       body: JSON.stringify({
         success: true,
         message: 'Contact form submitted successfully',
-        contactId: contactId,
+        contactId: dbResult.id || contactId,
         contactType: contactType,
         routingMessage: message,
         savedToDatabase: true,

@@ -1,8 +1,40 @@
 const { Client } = require('pg');
 
+/**
+ * pg-connection-string can crash if both URL parse attempts fail: it leaves `result`
+ * undefined then reads `result.searchParams`. That happens when DATABASE_URL is malformed.
+ * Mirror its URL resolution and only pass strings that resolve to a valid URL object.
+ */
+function isParsablePostgresConnectionString(str) {
+  if (!str || typeof str !== 'string') return false;
+  const s = str.trim();
+  if (!s) return false;
+  if (s.charAt(0) === '/') return true;
+  let result;
+  try {
+    try {
+      result = new URL(s, 'postgres://base');
+    } catch {
+      result = new URL(s.replace('@/', '@___DUMMY___/'), 'postgres://base');
+    }
+  } catch {
+    return false;
+  }
+  return !!(result && result.searchParams);
+}
+
 function getDbClient() {
-  const databaseUrl = process.env.DATABASE_URL;
-  if (databaseUrl) {
+  const rawUrl = process.env.DATABASE_URL;
+  const databaseUrl = typeof rawUrl === 'string' ? rawUrl.trim() : '';
+  const useConnectionString = databaseUrl && isParsablePostgresConnectionString(databaseUrl);
+
+  if (databaseUrl && !useConnectionString) {
+    console.warn(
+      'DATABASE_URL is set but could not be parsed as a Postgres URL; using DB_HOST / DB_USER / DB_PASSWORD if present.'
+    );
+  }
+
+  if (useConnectionString) {
     return new Client({
       connectionString: databaseUrl,
       ssl: { rejectUnauthorized: false },
