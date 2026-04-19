@@ -21,7 +21,7 @@ export default function JobDetailView({ job }: JobDetailViewProps) {
             </li>
             <li>›</li>
             <li>
-              <Link href="/jobs" className="hover:text-primary-red">
+              <Link href="/jobs/" className="hover:text-primary-red">
                 Jobs
               </Link>
             </li>

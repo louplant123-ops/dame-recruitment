@@ -24,11 +24,9 @@
   to = "/part2registration/"
   status = 301
 
-# Single-segment job URLs: /jobs/foo → /jobs/foo/ (matches static export layout)
-[[redirects]]
-  from = "/jobs/:jobSlug"
-  to = "/jobs/:jobSlug/"
-  status = 301
+# Do NOT add a 301 from /jobs/:slug → /jobs/:slug/ here — it can cause an
+# ERR_TOO_MANY_REDIRECTS loop with Netlify’s own trailing-slash handling. Use
+# trailing slashes in <Link href> (Next trailingSlash: true) instead.
 
 # New vacancies added after the last build have no out/jobs/<slug>/ yet. Without
 # this rewrite, /* → index.html shows the homepage. Netlify shadowing: if a file

@@ -308,7 +308,7 @@ function JobsContent() {
               </div>
               
               <Link 
-                href={`/jobs/${job.slug || `job-${job.id}`}`}
+                href={`/jobs/${job.slug || `job-${job.id}`}/`}
                 className="block w-full bg-primary-red text-white px-4 py-3 rounded-lg text-body font-body font-medium hover:bg-primary-red/90 transition-colors text-center"
               >
                 View & Apply

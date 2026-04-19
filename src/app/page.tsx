@@ -50,7 +50,7 @@ export default function HomePage() {
             {/* CTAs */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-20">
               <Link
-                href="/jobs"
+                href="/jobs/"
                 className="bg-primary-red text-white px-8 py-4 rounded-lg font-body font-semibold text-lg btn-lift hover:bg-red-700 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-red focus:ring-offset-2 focus:ring-offset-charcoal"
                 aria-label="Browse available jobs"
               >
