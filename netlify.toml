@@ -24,13 +24,11 @@
   to = "/part2registration/"
   status = 301
 
-# Jobs: if a slug isn't built (e.g. job added between deploys), return a proper
-# 404 instead of falling through to the SPA catch-all (which would otherwise
-# serve the homepage with HTTP 200 and confuse visitors).
-[[redirects]]
-  from = "/jobs/*"
-  to = "/404"
-  status = 404
+# NOTE: Do NOT add a blanket redirect for /jobs/* → 404. Netlify does not reliably
+# "shadow" that rule with existing static files under out/jobs/<slug>/, so every
+# job detail page would 404 even when the HTML was built. Unknown slugs without
+# a matching file fall through to the SPA catch-all below (homepage) — rare if
+# we rebuild when jobs change; better than a false 404 for valid vacancies.
 
 # Fallback for SPA routing (lowest priority)
 [[redirects]]
