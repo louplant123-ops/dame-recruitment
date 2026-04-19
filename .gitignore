@@ -41,3 +41,9 @@ next-env.d.ts
 
 # Prevent empty package.json in functions directory
 netlify/functions/package.json
+
+# OneDrive sync-conflict duplicates (auto-created when the same file is edited from
+# multiple machines / OneDrive web). Keep the copies on disk but don't let them
+# pollute git status or accidentally get committed.
+*-Lou*
+*-Lou.*
