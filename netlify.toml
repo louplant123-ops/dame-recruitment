@@ -24,11 +24,19 @@
   to = "/part2registration/"
   status = 301
 
-# NOTE: Do NOT add a blanket redirect for /jobs/* → 404. Netlify does not reliably
-# "shadow" that rule with existing static files under out/jobs/<slug>/, so every
-# job detail page would 404 even when the HTML was built. Unknown slugs without
-# a matching file fall through to the SPA catch-all below (homepage) — rare if
-# we rebuild when jobs change; better than a false 404 for valid vacancies.
+# Single-segment job URLs: /jobs/foo → /jobs/foo/ (matches static export layout)
+[[redirects]]
+  from = "/jobs/:jobSlug"
+  to = "/jobs/:jobSlug/"
+  status = 301
+
+# New vacancies added after the last build have no out/jobs/<slug>/ yet. Without
+# this rewrite, /* → index.html shows the homepage. Netlify shadowing: if a file
+# exists at out/jobs/<slug>/index.html, this rule does not run.
+[[redirects]]
+  from = "/jobs/*"
+  to = "/jobs/loader/index.html"
+  status = 200
 
 # Fallback for SPA routing (lowest priority)
 [[redirects]]
