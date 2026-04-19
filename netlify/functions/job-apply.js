@@ -117,13 +117,12 @@ exports.handler = async (event) => {
       console.log('✨ New candidate created:', candidateId);
     }
 
-    // 2. Save CV if uploaded
+    // 2. Save CV if uploaded (column is file_content — not "content" — per DameDesk schema)
     if (cvFile) {
       const docId = `DOC_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
       await client.query(
-        `INSERT INTO candidate_documents (id, contact_id, type, name, content, file_size, uploaded_date, uploaded_by, notes, created_at)
-         VALUES ($1, $2, 'cv', $3, $4, $5, NOW(), 'website_job_apply', 'CV uploaded via job application', NOW())
-         ON CONFLICT DO NOTHING`,
+        `INSERT INTO candidate_documents (id, contact_id, type, name, file_content, file_size, uploaded_date, uploaded_by, notes, created_at)
+         VALUES ($1, $2, 'cv', $3, $4, $5, NOW(), 'website_job_apply', 'CV uploaded via job application', NOW())`,
         [docId, actualCandidateId, cvFile.fileName, cvFile.buffer.toString('base64'), cvFile.size]
       );
       console.log('✅ CV saved:', cvFile.fileName, `(${cvFile.size} bytes)`);
@@ -149,7 +148,7 @@ exports.handler = async (event) => {
         activityId,
         actualCandidateId,
         `Applied for ${jobTitle || 'a role'} via website`,
-        JSON.stringify({ jobId, jobTitle, source: 'website', email, hasCV: !!cvFile }),
+        { jobId, jobTitle, source: 'website', email, hasCV: !!cvFile },
       ]
     );
 
