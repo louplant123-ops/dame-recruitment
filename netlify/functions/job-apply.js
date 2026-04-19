@@ -92,27 +92,44 @@ exports.handler = async (event) => {
     const firstName = nameParts[0] || '';
     const lastName = nameParts.slice(1).join(' ') || '';
 
-    // Check if candidate already exists by email
+    // Reuse any existing row with this email (case-insensitive). The DB has
+    // contacts_email_lower_unique — we must not INSERT if lower(email) matches
+    // a prospect, client, etc. (previously we only matched type = 'candidate'.)
+    const emailNorm = String(email).trim();
     const existingRes = await client.query(
-      `SELECT id, name FROM contacts WHERE email = $1 AND type = 'candidate' LIMIT 1`,
-      [email]
+      `SELECT id, name, type FROM contacts WHERE lower(trim(email)) = lower($1) LIMIT 1`,
+      [emailNorm]
     );
 
     let actualCandidateId;
     let candidateName = fullName;
 
     if (existingRes.rows.length > 0) {
-      actualCandidateId = existingRes.rows[0].id;
-      candidateName = existingRes.rows[0].name || fullName;
-      console.log('📌 Existing candidate found:', actualCandidateId);
-      // Update phone if changed
-      await client.query(`UPDATE contacts SET phone = $1, updated_at = NOW() WHERE id = $2`, [phone, actualCandidateId]);
+      const row = existingRes.rows[0];
+      actualCandidateId = row.id;
+      candidateName = row.name || fullName;
+      console.log('📌 Existing contact by email:', actualCandidateId, row.type);
+      await client.query(
+        `UPDATE contacts
+            SET phone = $1,
+                updated_at = NOW(),
+                name = CASE WHEN NULLIF(trim($2), '') IS NOT NULL THEN trim($2) ELSE name END
+          WHERE id = $3`,
+        [phone, fullName, actualCandidateId]
+      );
+      // Applying for a job implies they're a candidate if they were only a lead before.
+      if (row.type === 'prospect' || row.type === 'business_enquiry') {
+        await client.query(
+          `UPDATE contacts SET type = 'candidate', source = 'website_job_application', updated_at = NOW() WHERE id = $1`,
+          [actualCandidateId]
+        );
+      }
     } else {
       actualCandidateId = candidateId;
       await client.query(
         `INSERT INTO contacts (id, name, email, phone, type, source, status, created_at, updated_at)
          VALUES ($1, $2, $3, $4, 'candidate', 'website_job_application', 'active', NOW(), NOW())`,
-        [candidateId, fullName, email, phone]
+        [candidateId, fullName, emailNorm, phone]
       );
       console.log('✨ New candidate created:', candidateId);
     }
