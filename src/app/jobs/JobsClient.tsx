@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { MapPin, PoundSterling, Clock } from 'lucide-react'
 
 interface Job {
   id: number
@@ -273,11 +274,20 @@ function JobsContent() {
                   {job.title}
                 </h3>
                 <div className="flex items-center gap-4 text-body font-body text-charcoal/70 mb-2">
-                  <span>📍 {job.location}</span>
-                  <span>💰 {job.rate} {job.rateType}</span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <MapPin className="w-4 h-4 text-charcoal/60" strokeWidth={1.75} aria-hidden="true" />
+                    {job.location}
+                  </span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <PoundSterling className="w-4 h-4 text-charcoal/60" strokeWidth={1.75} aria-hidden="true" />
+                    {job.rate} {job.rateType}
+                  </span>
                 </div>
                 <div className="flex items-center gap-4 text-body font-body text-charcoal/70">
-                  <span>🕐 {job.shift}</span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <Clock className="w-4 h-4 text-charcoal/60" strokeWidth={1.75} aria-hidden="true" />
+                    {job.shift}
+                  </span>
                   <span className={`px-2 py-1 rounded text-xs ${job.type === 'Perm' ? 'bg-accent-blue/20 text-accent-blue' : 'bg-accent-teal/20 text-accent-teal'}`}>
                     {job.type}
                   </span>

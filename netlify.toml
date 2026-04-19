@@ -24,6 +24,14 @@
   to = "/part2registration/"
   status = 301
 
+# Jobs: if a slug isn't built (e.g. job added between deploys), return a proper
+# 404 instead of falling through to the SPA catch-all (which would otherwise
+# serve the homepage with HTTP 200 and confuse visitors).
+[[redirects]]
+  from = "/jobs/*"
+  to = "/404"
+  status = 404
+
 # Fallback for SPA routing (lowest priority)
 [[redirects]]
   from = "/*"

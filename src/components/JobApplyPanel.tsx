@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import { CheckCircle2 } from 'lucide-react'
 
 interface Job {
   id: string
@@ -70,7 +71,9 @@ export default function JobApplyPanel({ job }: JobApplyPanelProps) {
       <div className="lg:col-span-1">
         <div className="lg:sticky lg:top-8">
           <div className="bg-white border border-green-200 rounded-lg p-6 shadow-sm">
-            <div className="text-green-600 text-4xl mb-3 text-center">✓</div>
+            <div className="flex justify-center mb-3">
+              <CheckCircle2 className="w-12 h-12 text-green-600" strokeWidth={1.75} aria-hidden="true" />
+            </div>
             <h3 className="text-xl font-heading font-semibold text-charcoal mb-2 text-center">
               Application Sent!
             </h3>

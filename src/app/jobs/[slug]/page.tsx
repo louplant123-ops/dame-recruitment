@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import { MapPin, PoundSterling, Clock, CheckCircle2 } from 'lucide-react'
 import JobShareButtons from '@/components/JobShareButtons'
 import JobApplyPanel from '@/components/JobApplyPanel'
 
@@ -170,15 +171,15 @@ export default async function JobDetailPage({ params }: JobDetailPageProps) {
                 
                 <div className="flex flex-wrap items-center gap-4 mb-4">
                   <div className="flex items-center gap-2 text-charcoal/70">
-                    <span>📍</span>
+                    <MapPin className="w-5 h-5 text-charcoal/60" strokeWidth={1.75} aria-hidden="true" />
                     <span className="font-body">{job.location}</span>
                   </div>
                   <div className="flex items-center gap-2 text-charcoal/70">
-                    <span>💰</span>
+                    <PoundSterling className="w-5 h-5 text-charcoal/60" strokeWidth={1.75} aria-hidden="true" />
                     <span className="font-body font-semibold">{job.rateRange || job.rate} {job.rateType}</span>
                   </div>
                   <div className="flex items-center gap-2 text-charcoal/70">
-                    <span>🕐</span>
+                    <Clock className="w-5 h-5 text-charcoal/60" strokeWidth={1.75} aria-hidden="true" />
                     <span className="font-body">{job.shift}</span>
                   </div>
                   <span className={`px-3 py-1 rounded-full text-sm font-body ${
@@ -272,8 +273,9 @@ export default async function JobDetailPage({ params }: JobDetailPageProps) {
                         {job.rateRange || job.rate} {job.rateType}
                       </p>
                       {job.immediateStart && (
-                        <p className="font-body text-green-600 text-sm mt-1">
-                          ✓ Immediate start available
+                        <p className="flex items-center gap-1.5 font-body text-green-600 text-sm mt-1">
+                          <CheckCircle2 className="w-4 h-4" strokeWidth={2} aria-hidden="true" />
+                          Immediate start available
                         </p>
                       )}
                     </div>
@@ -287,7 +289,11 @@ export default async function JobDetailPage({ params }: JobDetailPageProps) {
                   Location
                 </h2>
                 <div className="bg-neutral-light rounded-lg p-8 text-center">
-                  <div className="text-6xl mb-4">🗺️</div>
+                  <MapPin
+                    className="w-12 h-12 mx-auto mb-4 text-charcoal/50"
+                    strokeWidth={1.5}
+                    aria-hidden="true"
+                  />
                   <h3 className="font-heading font-medium text-charcoal mb-2">{job.location}</h3>
                   {job.postcode && (
                     <p className="font-body text-charcoal/70">{job.postcode}</p>
