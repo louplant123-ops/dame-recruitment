@@ -4,8 +4,8 @@ import LazySection from '@/components/LazySection'
 
 export const metadata: Metadata = {
   title: 'East Midlands Recruitment Specialists | Dame Recruitment',
-  description: 'Reliable temps and permanent staff for warehousing, manufacturing & engineering. Same-day shortlists, weekly pay, honest job descriptions across Leicester, Nottingham, Derby.',
-  keywords: ['recruitment', 'East Midlands', 'warehouse jobs', 'manufacturing jobs', 'engineering jobs', 'Leicester', 'Nottingham', 'Derby', 'temp agency', 'permanent recruitment'],
+  description: 'Permanent and temporary recruitment for warehousing, manufacturing & engineering. Same-day shortlists, honest job descriptions, guaranteed placements across Leicester, Nottingham, Derby.',
+  keywords: ['recruitment', 'East Midlands', 'permanent jobs', 'warehouse jobs', 'manufacturing jobs', 'engineering jobs', 'Leicester', 'Nottingham', 'Derby', 'temp agency', 'permanent recruitment', 'career opportunities'],
   openGraph: {
     title: 'Dame Recruitment - Staff that show up. Results that count.',
     description: 'East Midlands recruitment specialists delivering reliable temps and permanent hires when you need them most.',
@@ -44,7 +44,7 @@ export default function HomePage() {
             
             {/* Sub-headline */}
             <p className="text-body-lg font-body mb-16 max-w-prose mx-auto" style={{ color: '#E8E8E8' }}>
-              East Midlands temps &amp; perms — reliable people, fast.
+              Permanent hires &amp; temporary staff — reliable people, fast.
             </p>
             
             {/* CTAs */}
@@ -75,12 +75,12 @@ export default function HomePage() {
                 <div className="hidden sm:block text-white/40">•</div>
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-accent-yellow rounded-full"></div>
-                  <span>Weekly pay</span>
+                  <span>Guarantees on all placements</span>
                 </div>
                 <div className="hidden sm:block text-white/40">•</div>
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-accent-blue rounded-full"></div>
-                  <span>Temp-to-perm</span>
+                  <span>Temp-to-perm pathways</span>
                 </div>
               </div>
             </div>
@@ -142,8 +142,8 @@ export default function HomePage() {
                     <div className="w-3 h-3 bg-white rounded-full"></div>
                   </div>
                   <div>
-                    <h3 className="text-h3 font-heading font-semibold text-charcoal mb-2">Transparent pricing</h3>
-                    <p className="text-body font-body text-charcoal/70">Clear rates upfront. No hidden fees, no surprise charges, no complicated contracts.</p>
+                    <h3 className="text-h3 font-heading font-semibold text-charcoal mb-2">Transparent fees</h3>
+                    <p className="text-body font-body text-charcoal/70">Clear rates for temps, fair fees for perm. No hidden charges, no complicated contracts.</p>
                   </div>
                 </div>
               </div>
@@ -160,8 +160,8 @@ export default function HomePage() {
                     <div className="w-3 h-3 bg-white rounded-full"></div>
                   </div>
                   <div>
-                    <h3 className="text-h3 font-heading font-semibold text-charcoal mb-2">Weekly pay guaranteed</h3>
-                    <p className="text-body font-body text-charcoal/70">Get paid every Friday without fail. No waiting around for monthly payslips.</p>
+                    <h3 className="text-h3 font-heading font-semibold text-charcoal mb-2">Real opportunities</h3>
+                    <p className="text-body font-body text-charcoal/70">From temp shifts to career moves. Weekly pay when you need it, permanent pathways when you&apos;re ready.</p>
                   </div>
                 </div>
                 

@@ -26,8 +26,8 @@ export default function Footer() {
     },
     {
       icon: Clock,
-      text: 'Same-day Shortlist',
-      description: 'Fast, efficient candidate matching'
+      text: 'Permanent & Temp',
+      description: 'Recruitment solutions for every hiring need'
     }
   ]
 

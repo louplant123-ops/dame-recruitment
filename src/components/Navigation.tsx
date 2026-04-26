@@ -21,8 +21,8 @@ export default function Navigation() {
       href: '/register', 
       label: 'Register',
       submenu: [
-        { href: '/register', label: 'Temp Work' },
-        { href: '/permanent-register', label: 'Permanent Roles' }
+        { href: '/permanent-register', label: 'Permanent Roles' },
+        { href: '/register', label: 'Temp Work' }
       ]
     },
     { href: '/contact', label: 'Contact' },

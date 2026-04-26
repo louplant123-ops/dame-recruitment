@@ -341,8 +341,8 @@ export default function PostJobPage() {
                   disabled={formState === 'submitting'}
                 >
                   <option value="">Select job type</option>
-                  <option value="temporary">Temporary</option>
                   <option value="permanent">Permanent</option>
+                  <option value="temporary">Temporary</option>
                   <option value="contract">Contract</option>
                 </select>
                 {errors.jobType && (

@@ -3,10 +3,10 @@ import Link from 'next/link'
 
 export const metadata: Metadata = {
   title: 'For Employers',
-  description: 'Reliable people for warehousing, manufacturing & engineering. Fast shortlists, better day-one show-up, and hires that last across the East Midlands.',
+  description: 'Permanent and temporary recruitment for warehousing, manufacturing & engineering. Fast shortlists, quality hires, and placements that last across the East Midlands.',
   openGraph: {
     title: 'For Employers | Dame Recruitment',
-    description: 'Same-day shortlists, reliable attendance, transparent rates. East Midlands recruitment specialists.',
+    description: 'Same-day shortlists, permanent and temporary hires, transparent fees. East Midlands recruitment specialists.',
     url: 'https://www.damerecruitment.co.uk/employers',
     siteName: 'Dame Recruitment',
   },
@@ -51,16 +51,16 @@ const sectors = [
 
 const engagementModels = [
   {
-    title: 'Temps',
-    benefit: 'Immediate availability with flexible terms'
+    title: 'Permanent',
+    benefit: 'Full recruitment service with 90-day guarantees'
   },
   {
     title: 'Temp-to-Perm',
     benefit: 'Try before you buy with conversion options'
   },
   {
-    title: 'Permanent',
-    benefit: 'Full recruitment service with guarantees'
+    title: 'Temps',
+    benefit: 'Immediate availability with flexible terms'
   },
   {
     title: 'Backup Supplier',
@@ -122,15 +122,15 @@ export default function EmployersPage() {
         </div>
       </section>
 
-      {/* How We Reduce No-Shows */}
+      {/* How We Find The Right People */}
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-h2 font-heading font-bold text-charcoal mb-4">
-              How we reduce no-shows
+              How we find the right people
             </h2>
             <p className="text-body-lg font-body text-charcoal/70 max-w-prose mx-auto">
-              Monday morning no-shows cost you time and money. Our three-step vetting process ensures candidates show up ready to work.
+              Whether you need someone tomorrow or the perfect permanent hire, our three-step process ensures quality every time.
             </p>
           </div>
           
@@ -159,9 +159,9 @@ export default function EmployersPage() {
               <div className="w-16 h-16 bg-accent-yellow/20 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-2xl">📞</span>
               </div>
-              <h3 className="text-h3 font-heading font-semibold text-charcoal mb-3">3. First-day follow-up</h3>
+              <h3 className="text-h3 font-heading font-semibold text-charcoal mb-3">3. Ongoing support</h3>
               <p className="text-body font-body text-charcoal/70">
-                We contact both candidate and supervisor within 2 hours to ensure smooth integration and address any issues.
+                Check-ins during notice periods for perm hires. Day-one follow-ups for temps. We stay involved until the placement sticks.
               </p>
             </div>
           </div>
@@ -296,7 +296,7 @@ export default function EmployersPage() {
       <section id="brief" className="py-16 bg-primary-red">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-heading font-bold text-white mb-4">
-            Ready to reduce your no-shows?
+            Ready to find the right people?
           </h2>
           <p className="text-lg font-body text-white/90 mb-8">
             Book a 20-minute intro call and we&apos;ll show you how our process works.
