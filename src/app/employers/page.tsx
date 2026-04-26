@@ -11,7 +11,10 @@ import {
   ArrowRightLeft,
   Clock,
   Shield,
-  Quote
+  Quote,
+  FileText,
+  BellRing,
+  Headphones
 } from 'lucide-react'
 
 export const metadata: Metadata = {
@@ -160,22 +163,20 @@ export default function EmployersPage() {
 
       {/* Proof Bar */}
       <section className="py-12 bg-neutral-light">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="text-h2 font-heading font-bold text-accent-teal mb-2">4.2 hours</div>
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row items-center justify-center divide-y md:divide-y-0 md:divide-x divide-charcoal/15">
+            <div className="text-center px-12 py-6">
+              <div className="text-h2 font-heading font-bold text-accent-teal mb-1">4.2 hours</div>
               <div className="text-body font-body font-medium text-charcoal">Average time to shortlist</div>
               <div className="text-body font-body text-charcoal/50 text-sm mt-1">From brief to qualified candidates</div>
             </div>
-            <div className="hidden md:block w-px h-16 bg-charcoal/10"></div>
-            <div className="text-center">
-              <div className="text-h2 font-heading font-bold text-accent-blue mb-2">87%</div>
+            <div className="text-center px-12 py-6">
+              <div className="text-h2 font-heading font-bold text-accent-blue mb-1">87%</div>
               <div className="text-body font-body font-medium text-charcoal">Fill rate (last 90 days)</div>
               <div className="text-body font-body text-charcoal/50 text-sm mt-1">Successful placements that stick</div>
             </div>
-            <div className="hidden md:block w-px h-16 bg-charcoal/10"></div>
-            <div className="text-center">
-              <div className="text-h2 font-heading font-bold text-accent-yellow mb-2">78% / 92%</div>
+            <div className="text-center px-12 py-6">
+              <div className="text-h2 font-heading font-bold text-accent-yellow mb-1">78% / 92%</div>
               <div className="text-body font-body font-medium text-charcoal">12-week retention / 4-week attendance</div>
               <div className="text-body font-body text-charcoal/50 text-sm mt-1">Perm hires / Temp workers</div>
             </div>
@@ -197,8 +198,8 @@ export default function EmployersPage() {
           
           <div className="grid md:grid-cols-3 gap-8">
             <div className="text-center">
-              <div className="w-16 h-16 bg-accent-teal/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">📋</span>
+              <div className="w-16 h-16 bg-accent-teal/15 rounded-full flex items-center justify-center mx-auto mb-5">
+                <FileText className="w-7 h-7 text-accent-teal" />
               </div>
               <h3 className="text-h3 font-heading font-semibold text-charcoal mb-3">1. Realistic job preview</h3>
               <p className="text-body font-body text-charcoal/70">
@@ -207,8 +208,8 @@ export default function EmployersPage() {
             </div>
             
             <div className="text-center">
-              <div className="w-16 h-16 bg-accent-blue/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">✅</span>
+              <div className="w-16 h-16 bg-accent-blue/15 rounded-full flex items-center justify-center mx-auto mb-5">
+                <BellRing className="w-7 h-7 text-accent-blue" />
               </div>
               <h3 className="text-h3 font-heading font-semibold text-charcoal mb-3">2. Double confirmation</h3>
               <p className="text-body font-body text-charcoal/70">
@@ -217,8 +218,8 @@ export default function EmployersPage() {
             </div>
             
             <div className="text-center">
-              <div className="w-16 h-16 bg-accent-yellow/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">📞</span>
+              <div className="w-16 h-16 bg-accent-yellow/15 rounded-full flex items-center justify-center mx-auto mb-5">
+                <Headphones className="w-7 h-7 text-accent-yellow" />
               </div>
               <h3 className="text-h3 font-heading font-semibold text-charcoal mb-3">3. Ongoing support</h3>
               <p className="text-body font-body text-charcoal/70">
