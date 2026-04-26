@@ -138,10 +138,10 @@ export default function EmployersPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-4xl mx-auto">
             <h1 className="text-h1 md:text-h1-lg font-heading font-bold text-charcoal mb-6">
-              Stop waiting weeks for staff.<br />Get shortlists in hours.
+              Stop chasing agencies.<br />Start getting results.
             </h1>
             <p className="text-body-lg font-body text-charcoal/80 mb-8 max-w-prose mx-auto">
-              East Midlands recruitment specialists for warehousing, manufacturing, and engineering. Same-day shortlists, reliable attendance, transparent rates.
+              East Midlands recruitment specialists for warehousing, manufacturing, and engineering. Quality candidates, reliable attendance, transparent rates.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
@@ -154,7 +154,7 @@ export default function EmployersPage() {
                 href="/employers#brief"
                 className="border-2 border-primary-red text-primary-red px-8 py-4 rounded-lg font-body font-medium hover:bg-primary-red/5 transition-colors"
               >
-                Request a same-day shortlist
+                Send us your brief
               </Link>
             </div>
           </div>

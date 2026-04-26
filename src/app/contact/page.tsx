@@ -197,6 +197,7 @@ export default function ContactPage() {
                 ></iframe>
               </div>
             </div>
+          </div>
           
           {/* Contact Form */}
           <div className="lg:col-span-2">
@@ -419,7 +420,6 @@ export default function ContactPage() {
           </div>
         </div>
       </div>
-    </div>
     </div>
     </div>
   )
