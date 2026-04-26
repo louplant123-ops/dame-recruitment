@@ -24,17 +24,6 @@ export default function HomePage() {
     <div className="relative">
       {/* Hero Section */}
       <section className="relative bg-gradient-hero overflow-hidden min-h-[520px] lg:min-h-[70vh] flex items-center">
-        {/* Enhanced Geometric Background Pattern */}
-        <div className="absolute inset-0 opacity-[0.08]">
-          <div className="absolute top-20 left-10 w-40 h-40 border-2 border-white rotate-45"></div>
-          <div className="absolute top-40 right-20 w-32 h-32 border-2 border-white rotate-12"></div>
-          <div className="absolute bottom-32 left-1/4 w-24 h-24 border-2 border-white -rotate-45"></div>
-          <div className="absolute bottom-20 right-1/3 w-28 h-28 border-2 border-white rotate-[30deg]"></div>
-          <div className="absolute top-1/4 right-1/3 w-48 h-px bg-white rotate-12"></div>
-          <div className="absolute top-1/3 left-1/2 w-56 h-px bg-white -rotate-12 transform -translate-x-1/2"></div>
-          <div className="absolute bottom-1/3 right-1/4 w-40 h-px bg-white -rotate-12"></div>
-          <div className="absolute top-16 left-1/3 w-20 h-px bg-white rotate-45"></div>
-        </div>
         
         <div className="relative max-w-container mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-20 w-full">
           <div className="text-center">
@@ -70,12 +59,7 @@ export default function HomePage() {
             <div className="inline-block bg-white/10 backdrop-blur-sm rounded-xl px-6 py-4 border border-white/20">
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 text-white font-body text-body">
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-accent-teal rounded-full animate-pulse-subtle"></div>
-                  <span>Same-day shortlists</span>
-                </div>
-                <div className="hidden sm:block w-px h-4 bg-white/20"></div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-accent-yellow rounded-full animate-pulse-subtle" style={{ animationDelay: '0.5s' }}></div>
+                  <div className="w-2 h-2 bg-accent-yellow rounded-full animate-pulse-subtle"></div>
                   <span>Guarantees on all placements</span>
                 </div>
                 <div className="hidden sm:block w-px h-4 bg-white/20"></div>
@@ -98,7 +82,7 @@ export default function HomePage() {
 
       {/* Value Props Section */}
       <LazySection>
-        <section className="py-20 bg-neutral-light section-accent-teal">
+        <section className="py-20 bg-neutral-light">
             <div className="max-w-container mx-auto px-4 sm:px-6 lg:px-8">
               {/* Section Intro */}
               <div className="text-center mb-16">
@@ -120,8 +104,8 @@ export default function HomePage() {
                     <div className="w-3 h-3 bg-white rounded-full"></div>
                   </div>
                   <div>
-                    <h3 className="text-h3 font-heading font-semibold text-charcoal mb-2">Same-day shortlists</h3>
-                    <p className="text-body font-body text-charcoal/70">Stop waiting weeks for candidates. Get qualified shortlists within hours of your brief.</p>
+                    <h3 className="text-h3 font-heading font-semibold text-charcoal mb-2">Fast, qualified shortlists</h3>
+                    <p className="text-body font-body text-charcoal/70">We move quickly to find the right candidates — so you spend less time waiting and more time interviewing.</p>
                   </div>
                 </div>
                 
