@@ -419,10 +419,10 @@ maxTravelDistance: '10',
         <div className="py-16 px-4 sm:px-6">
           <div className="max-w-2xl mx-auto text-center">
             <div className="bg-green-50 border border-green-200 rounded-lg p-8 mb-8">
-            <div className="text-green-600 text-6xl mb-4">✓</div>
-            <h1 className="text-3xl font-heading font-bold text-charcoal mb-4">
-              Registration Complete!
-            </h1>
+              <div className="text-green-600 text-6xl mb-4">✓</div>
+              <h1 className="text-3xl font-heading font-bold text-charcoal mb-4">
+                Registration Complete!
+              </h1>
             <p className="text-lg font-body text-charcoal/80 mb-6">
               Thank you for registering with Dame Recruitment. We&apos;ll review your application and be in touch soon.
             </p>
@@ -449,6 +449,7 @@ maxTravelDistance: '10',
           </div>
         </div>
       </div>
+    </div>
     )
   }
 
@@ -1317,6 +1318,7 @@ maxTravelDistance: '10',
           </div>
         </form>
       </div>
+    </div>
     </div>
   )
 }
