@@ -182,22 +182,21 @@ export default function ContactPage() {
                   </div>
                 </div>
               </div>
-            </div>
 
-                  {/* Google Maps Embed */}
-            <div className="mt-6 rounded-lg overflow-hidden border border-neutral-light shadow-sm">
-              <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2429.1489739346287!2d-1.1635456841888!3d52.62748297983418!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4879e9e8b0c60d0d%3A0x1e3b7d7f8d9c3b0e!2s3%20Oswin%20Rd%2C%20Leicester%20LE3%201HR%2C%20UK!5e0!3m2!1sen!2sus!4v1698000000000!5m2!1sen!2sus"
-                width="100%"
-                height="200"
-                style={{ border: 0 }}
-                allowFullScreen
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                className="grayscale-[20%] hover:grayscale-0 transition-all"
-              ></iframe>
+              {/* Google Maps Embed */}
+              <div className="mt-6 rounded-lg overflow-hidden border border-neutral-light shadow-sm">
+                <iframe
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2429.1489739346287!2d-1.1635456841888!3d52.62748297983418!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4879e9e8b0c60d0d%3A0x1e3b7d7f8d9c3b0e!2s3%20Oswin%20Rd%2C%20Leicester%20LE3%201HR%2C%20UK!5e0!3m2!1sen!2sus!4v1698000000000!5m2!1sen!2sus"
+                  width="100%"
+                  height="200"
+                  style={{ border: 0 }}
+                  allowFullScreen
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  className="grayscale-[20%] hover:grayscale-0 transition-all"
+                ></iframe>
+              </div>
             </div>
-          </div>
           
           {/* Contact Form */}
           <div className="lg:col-span-2">
@@ -420,6 +419,8 @@ export default function ContactPage() {
           </div>
         </div>
       </div>
+    </div>
+    </div>
     </div>
   )
 }

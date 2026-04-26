@@ -389,6 +389,7 @@ function JobsContent() {
         )}
       </div>
     </div>
+    </div>
   )
 }
 
