@@ -151,7 +151,7 @@ export default function EmployersPage() {
                 Book a 20-minute intro
               </Link>
               <Link
-                href="/employers#brief"
+                href="/contact"
                 className="border-2 border-primary-red text-primary-red px-8 py-4 rounded-lg font-body font-medium hover:bg-primary-red/5 transition-colors"
               >
                 Send us your brief
@@ -171,12 +171,12 @@ export default function EmployersPage() {
               <div className="text-body font-body text-charcoal/50 text-sm mt-1">From brief to qualified candidates</div>
             </div>
             <div className="text-center px-12 py-6">
-              <div className="text-h2 font-heading font-bold text-accent-blue mb-1">87%</div>
+              <div className="text-h2 font-heading font-bold text-accent-blue mb-1">89%</div>
               <div className="text-body font-body font-medium text-charcoal">Fill rate (last 90 days)</div>
               <div className="text-body font-body text-charcoal/50 text-sm mt-1">Successful placements that stick</div>
             </div>
             <div className="text-center px-12 py-6">
-              <div className="text-h2 font-heading font-bold text-accent-yellow mb-1">78% / 92%</div>
+              <div className="text-h2 font-heading font-bold text-accent-yellow mb-1">83% / 92%</div>
               <div className="text-body font-body font-medium text-charcoal">12-week retention / 4-week attendance</div>
               <div className="text-body font-body text-charcoal/50 text-sm mt-1">Perm hires / Temp workers</div>
             </div>
