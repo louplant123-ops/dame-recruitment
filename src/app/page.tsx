@@ -23,16 +23,17 @@ export default function HomePage() {
   return (
     <div className="relative">
       {/* Hero Section */}
-      <section className="relative bg-charcoal overflow-hidden min-h-[520px] lg:min-h-[70vh] flex items-center">
-        {/* Geometric Background Pattern */}
-        <div className="absolute inset-0 opacity-5">
-          <div className="absolute top-20 left-10 w-32 h-32 border border-white rotate-45"></div>
-          <div className="absolute top-40 right-20 w-24 h-24 border border-white rotate-12"></div>
-          <div className="absolute bottom-32 left-1/4 w-16 h-16 border border-white -rotate-45"></div>
-          <div className="absolute bottom-20 right-1/3 w-20 h-20 border border-white rotate-30"></div>
-          {/* Additional angled lines */}
-          <div className="absolute top-1/3 left-1/2 w-40 h-px bg-white rotate-12 transform -translate-x-1/2"></div>
-          <div className="absolute bottom-1/3 right-1/4 w-32 h-px bg-white -rotate-12"></div>
+      <section className="relative bg-gradient-hero overflow-hidden min-h-[520px] lg:min-h-[70vh] flex items-center">
+        {/* Enhanced Geometric Background Pattern */}
+        <div className="absolute inset-0 opacity-[0.08]">
+          <div className="absolute top-20 left-10 w-40 h-40 border-2 border-white rotate-45"></div>
+          <div className="absolute top-40 right-20 w-32 h-32 border-2 border-white rotate-12"></div>
+          <div className="absolute bottom-32 left-1/4 w-24 h-24 border-2 border-white -rotate-45"></div>
+          <div className="absolute bottom-20 right-1/3 w-28 h-28 border-2 border-white rotate-[30deg]"></div>
+          <div className="absolute top-1/4 right-1/3 w-48 h-px bg-white rotate-12"></div>
+          <div className="absolute top-1/3 left-1/2 w-56 h-px bg-white -rotate-12 transform -translate-x-1/2"></div>
+          <div className="absolute bottom-1/3 right-1/4 w-40 h-px bg-white -rotate-12"></div>
+          <div className="absolute top-16 left-1/3 w-20 h-px bg-white rotate-45"></div>
         </div>
         
         <div className="relative max-w-container mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-20 w-full">
@@ -51,14 +52,14 @@ export default function HomePage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-20">
               <Link
                 href="/jobs/"
-                className="bg-primary-red text-white px-8 py-4 rounded-lg font-body font-semibold text-lg btn-lift hover:bg-red-700 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-red focus:ring-offset-2 focus:ring-offset-charcoal"
+                className="bg-gradient-red text-white px-8 py-4 rounded-lg font-body font-semibold text-lg btn-lift hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-primary-red focus:ring-offset-2 focus:ring-offset-charcoal"
                 aria-label="Browse available jobs"
               >
                 Browse Jobs
               </Link>
               <Link
                 href="/employers"
-                className="bg-white border-2 border-charcoal text-charcoal px-8 py-4 rounded-lg font-body font-semibold text-lg btn-lift hover:bg-primary-red hover:text-white hover:border-primary-red transition-colors focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-charcoal"
+                className="bg-white border-2 border-white text-charcoal px-8 py-4 rounded-lg font-body font-semibold text-lg btn-lift hover:bg-primary-red hover:text-white hover:border-primary-red transition-all focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-charcoal"
                 aria-label="Learn about hiring with Dame Recruitment"
               >
                 Hire with Dame
@@ -66,20 +67,20 @@ export default function HomePage() {
             </div>
             
             {/* Credibility Row */}
-            <div className="inline-block bg-white/10 backdrop-blur-sm rounded-lg px-6 py-4 border border-white/20">
+            <div className="inline-block bg-white/10 backdrop-blur-sm rounded-xl px-6 py-4 border border-white/20">
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 text-white font-body text-body">
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-accent-teal rounded-full"></div>
+                  <div className="w-2 h-2 bg-accent-teal rounded-full animate-pulse-subtle"></div>
                   <span>Same-day shortlists</span>
                 </div>
-                <div className="hidden sm:block text-white/40">•</div>
+                <div className="hidden sm:block w-px h-4 bg-white/20"></div>
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-accent-yellow rounded-full"></div>
+                  <div className="w-2 h-2 bg-accent-yellow rounded-full animate-pulse-subtle" style={{ animationDelay: '0.5s' }}></div>
                   <span>Guarantees on all placements</span>
                 </div>
-                <div className="hidden sm:block text-white/40">•</div>
+                <div className="hidden sm:block w-px h-4 bg-white/20"></div>
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-accent-blue rounded-full"></div>
+                  <div className="w-2 h-2 bg-accent-blue rounded-full animate-pulse-subtle" style={{ animationDelay: '1s' }}></div>
                   <span>Temp-to-perm pathways</span>
                 </div>
               </div>
@@ -87,6 +88,13 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Wave Divider */}
+      <div className="wave-divider bg-gradient-hero">
+        <svg viewBox="0 0 1440 60" preserveAspectRatio="none">
+          <path fill="#F4F4F4" d="M0,0 C240,60 480,60 720,30 C960,0 1200,0 1440,30 L1440,60 L0,60 Z"></path>
+        </svg>
+      </div>
 
       {/* Value Props Section */}
       <LazySection>

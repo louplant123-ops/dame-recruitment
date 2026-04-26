@@ -76,6 +76,14 @@ const config: Config = {
       boxShadow: {
         'lift': '0 4px 12px rgba(0, 0, 0, 0.1)',
         'lift-lg': '0 8px 25px rgba(0, 0, 0, 0.15)',
+        'card': '0 2px 8px rgba(0, 0, 0, 0.06)',
+        'card-hover': '0 8px 24px rgba(0, 0, 0, 0.12)',
+      },
+      backgroundImage: {
+        'gradient-hero': 'linear-gradient(135deg, #222222 0%, #1a3a3a 50%, #0d2a2a 100%)',
+        'gradient-charcoal': 'linear-gradient(180deg, #222222 0%, #1a3a3a 100%)',
+        'gradient-teal': 'linear-gradient(135deg, #1CA6A3 0%, #147a78 100%)',
+        'gradient-red': 'linear-gradient(135deg, #C8102E 0%, #9a0b24 100%)',
       },
     },
   },

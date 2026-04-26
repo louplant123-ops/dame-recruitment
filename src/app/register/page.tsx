@@ -404,9 +404,21 @@ maxTravelDistance: '10',
 
   if (isSubmitted) {
     return (
-      <div className="py-16">
-        <div className="max-w-2xl mx-auto text-center">
-          <div className="bg-green-50 border border-green-200 rounded-lg p-8 mb-8">
+      <div>
+        {/* Page Banner */}
+        <div className="page-banner">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center">
+              <h1 className="text-3xl md:text-4xl font-heading font-bold text-white">
+                Registration Complete
+              </h1>
+            </div>
+          </div>
+        </div>
+
+        <div className="py-16 px-4 sm:px-6">
+          <div className="max-w-2xl mx-auto text-center">
+            <div className="bg-green-50 border border-green-200 rounded-lg p-8 mb-8">
             <div className="text-green-600 text-6xl mb-4">✓</div>
             <h1 className="text-3xl font-heading font-bold text-charcoal mb-4">
               Registration Complete!
@@ -441,16 +453,28 @@ maxTravelDistance: '10',
   }
 
   return (
-    <div className="py-16">
-      <div className="max-w-2xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-4xl font-heading font-bold text-charcoal mb-4">
-            Register with Dame Recruitment
-          </h1>
-          <p className="text-lg font-body text-charcoal/80">
-            Join our talent pool and get access to the best job opportunities across the East Midlands.
-          </p>
+    <div>
+      {/* Page Banner */}
+      <div className="page-banner">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <h1 className="text-3xl md:text-4xl font-heading font-bold text-white">
+              Register for Work
+            </h1>
+            <p className="text-white/80 font-body mt-2 max-w-2xl mx-auto">
+              Join our talent pool for temporary and permanent opportunities across the East Midlands.
+            </p>
+          </div>
         </div>
+      </div>
+
+      <div className="py-16">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6">
+          <div className="mb-8">
+            <p className="text-lg font-body text-charcoal/80">
+              Complete the form below to join our talent pool. We&apos;ll match you with suitable opportunities.
+            </p>
+          </div>
 
         {/* Progress Bar */}
         <div className="mb-8">

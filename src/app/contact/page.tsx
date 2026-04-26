@@ -89,16 +89,28 @@ export default function ContactPage() {
   }
 
   return (
-    <div className="py-16">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-heading font-bold text-charcoal mb-4">
-            Contact Dame Recruitment
-          </h1>
-          <p className="text-lg font-body text-charcoal/80 max-w-2xl mx-auto">
-            Get in touch with our team of recruitment specialists. We&apos;re here to help with all your staffing needs across the East Midlands.
-          </p>
+    <div>
+      {/* Page Banner */}
+      <div className="page-banner">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <h1 className="text-3xl md:text-4xl font-heading font-bold text-white">
+              Contact Us
+            </h1>
+            <p className="text-white/80 font-body mt-2 max-w-2xl mx-auto">
+              Get in touch with our recruitment specialists. We&apos;re here to help across the East Midlands.
+            </p>
+          </div>
         </div>
+      </div>
+
+      <div className="py-16">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <p className="text-lg font-body text-charcoal/80 max-w-2xl mx-auto">
+              Have a question or need assistance? Our team is ready to help with all your staffing needs.
+            </p>
+          </div>
         
         <div className="grid lg:grid-cols-3 gap-12">
           {/* Contact Information Card */}
@@ -172,19 +184,18 @@ export default function ContactPage() {
               </div>
             </div>
 
-            {/* Google Map Placeholder */}
-            <div className="mt-6 bg-neutral-light rounded-lg overflow-hidden">
-              <div className="aspect-video flex items-center justify-center bg-gradient-to-br from-neutral-light to-neutral-light/70">
-                <div className="text-center">
-                  <MapPin className="h-12 w-12 text-charcoal/40 mx-auto mb-2" />
-                  <p className="font-body text-charcoal/60 text-sm">
-                    Interactive Map
-                  </p>
-                  <p className="font-body text-charcoal/40 text-xs">
-                    Google Maps integration
-                  </p>
-                </div>
-              </div>
+                  {/* Google Maps Embed */}
+            <div className="mt-6 rounded-lg overflow-hidden border border-neutral-light shadow-sm">
+              <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2429.1489739346287!2d-1.1635456841888!3d52.62748297983418!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4879e9e8b0c60d0d%3A0x1e3b7d7f8d9c3b0e!2s3%20Oswin%20Rd%2C%20Leicester%20LE3%201HR%2C%20UK!5e0!3m2!1sen!2sus!4v1698000000000!5m2!1sen!2sus"
+                width="100%"
+                height="200"
+                style={{ border: 0 }}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                className="grayscale-[20%] hover:grayscale-0 transition-all"
+              ></iframe>
             </div>
           </div>
           

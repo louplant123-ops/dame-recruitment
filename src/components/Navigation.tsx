@@ -3,11 +3,13 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { usePathname } from 'next/navigation'
 import { Menu, X, ChevronDown } from 'lucide-react'
 
 export default function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
+  const pathname = usePathname()
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen)
   const toggleDropdown = (label: string) => {
@@ -78,7 +80,11 @@ export default function Navigation() {
                 ) : (
                   <Link
                     href={link.href}
-                    className="font-body text-charcoal hover:text-primary-red transition-colors focus:outline-none focus:ring-2 focus:ring-primary-red focus:ring-offset-2 rounded-sm px-2 py-1"
+                    className={`font-body transition-colors focus:outline-none focus:ring-2 focus:ring-primary-red focus:ring-offset-2 rounded-sm px-2 py-1 ${
+                      pathname === link.href || pathname.startsWith(link.href + '/')
+                        ? 'text-primary-red font-medium'
+                        : 'text-charcoal hover:text-primary-red'
+                    }`}
                   >
                     {link.label}
                   </Link>
@@ -162,7 +168,11 @@ export default function Navigation() {
                         <Link
                           href={link.href}
                           onClick={toggleMenu}
-                          className="block px-6 py-3 font-body text-charcoal hover:bg-neutral-light hover:text-primary-red transition-colors focus:outline-none focus:ring-2 focus:ring-primary-red focus:ring-inset"
+                          className={`block px-6 py-3 font-body transition-colors focus:outline-none focus:ring-2 focus:ring-primary-red focus:ring-inset ${
+                            pathname === link.href || pathname.startsWith(link.href + '/')
+                              ? 'bg-neutral-light text-primary-red font-medium'
+                              : 'text-charcoal hover:bg-neutral-light hover:text-primary-red'
+                          }`}
                         >
                           {link.label}
                         </Link>

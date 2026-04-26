@@ -74,6 +74,70 @@
   .sr-only {
     @apply absolute w-px h-px p-0 -m-px overflow-hidden whitespace-nowrap border-0;
   }
+  
+  /* Gradient backgrounds */
+  .bg-gradient-hero {
+    background: linear-gradient(135deg, #222222 0%, #1a3a3a 50%, #0d2a2a 100%);
+  }
+  
+  .bg-gradient-charcoal-teal {
+    background: linear-gradient(180deg, #222222 0%, #1a3a3a 100%);
+  }
+  
+  /* Wave divider between sections */
+  .wave-divider {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    line-height: 0;
+  }
+  
+  .wave-divider svg {
+    position: relative;
+    display: block;
+    width: calc(100% + 1.3px);
+    height: 60px;
+  }
+  
+  /* Enhanced card hover with border transition */
+  .card-hover-border {
+    @apply transition-all duration-300 ease-out border-transparent;
+  }
+  
+  .card-hover-border:hover {
+    @apply shadow-lift-lg -translate-y-1 border-accent-teal;
+  }
+  
+  /* Top border accent for cards */
+  .card-accent-top {
+    @apply border-t-4;
+  }
+  
+  /* Page banner style */
+  .page-banner {
+    @apply bg-charcoal text-white py-12;
+    background: linear-gradient(135deg, #222222 0%, #1e3a3a 100%);
+  }
+  
+  /* Animated pulse for dots */
+  @keyframes pulse-subtle {
+    0%, 100% { opacity: 0.8; }
+    50% { opacity: 1; }
+  }
+  
+  .animate-pulse-subtle {
+    animation: pulse-subtle 2s ease-in-out infinite;
+  }
+  
+  /* Quote styling */
+  .quote-mark {
+    @apply text-6xl leading-none font-serif text-accent-teal/20;
+  }
+  
+  /* Avatar initials */
+  .avatar-initials {
+    @apply w-12 h-12 rounded-full flex items-center justify-center font-heading font-bold text-white text-sm;
+  }
 }
 
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Lato:wght@400;500&display=swap');

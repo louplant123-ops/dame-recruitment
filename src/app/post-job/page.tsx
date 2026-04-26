@@ -106,14 +106,29 @@ export default function PostJobPage() {
     setErrors({})
   }
   return (
-    <div className="py-16">
-      <div className="max-w-2xl mx-auto">
-        <h1 className="text-4xl font-heading font-bold text-charcoal mb-8">
-          Post a Job
-        </h1>
-        <p className="text-lg font-body text-charcoal/80 mb-12">
-          Find the perfect candidates for your business. Fill out the form below and we&apos;ll get back to you within 24 hours.
-        </p>
+    <div>
+      {/* Page Banner */}
+      <div className="page-banner">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <h1 className="text-3xl md:text-4xl font-heading font-bold text-white">
+              Post a Job
+            </h1>
+            <p className="text-white/80 font-body mt-2 max-w-2xl mx-auto">
+              Tell us what you need and we&apos;ll find the right people for your business.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="py-16">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6">
+          <h2 className="text-2xl font-heading font-bold text-charcoal mb-4">
+            Job Details
+          </h2>
+          <p className="text-lg font-body text-charcoal/80 mb-12">
+            Find the perfect candidates for your business. Fill out the form below and we&apos;ll get back to you within 24 hours.
+          </p>
         
         {formState === 'success' && (
           <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">

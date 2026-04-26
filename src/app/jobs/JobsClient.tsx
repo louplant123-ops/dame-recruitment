@@ -116,16 +116,28 @@ function JobsContent() {
   }
 
   return (
-    <div className="py-16">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <h1 className="text-h1 md:text-h1-lg font-heading font-bold text-charcoal mb-4">
-            Find your next role
-          </h1>
-          <p className="text-body-lg font-body text-charcoal/80 max-w-prose mx-auto">
-            Local opportunities across the East Midlands. Weekly pay, honest job descriptions, and roles that lead somewhere.
-          </p>
+    <div>
+      {/* Page Banner */}
+      <div className="page-banner">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <h1 className="text-3xl md:text-4xl font-heading font-bold text-white">
+              Find Your Next Role
+            </h1>
+            <p className="text-white/80 font-body mt-2 max-w-2xl mx-auto">
+              Local opportunities across the East Midlands. Honest job descriptions, fair pay, and roles that lead somewhere.
+            </p>
+          </div>
         </div>
+      </div>
+
+      <div className="py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <p className="text-body-lg font-body text-charcoal/80 max-w-prose mx-auto">
+              Browse our current vacancies or register for upcoming opportunities.
+            </p>
+          </div>
         
         {/* Filters */}
         <div className="bg-neutral-light rounded-lg p-6 mb-8">
@@ -268,7 +280,9 @@ function JobsContent() {
         {/* Job Cards */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {filteredJobs.map(job => (
-            <div key={job.id} className="bg-white rounded-lg border border-neutral-light p-6 hover:shadow-md transition-shadow">
+            <div key={job.id} className={`bg-white rounded-lg border-l-4 p-6 card-hover-border ${
+              job.type === 'Perm' ? 'border-l-accent-blue' : 'border-l-accent-teal'
+            } border-t border-r border-b border-neutral-light`}>
               <div className="mb-4">
                 <h3 className="text-h3 font-heading font-semibold text-charcoal mb-2">
                   {job.title}
@@ -288,7 +302,11 @@ function JobsContent() {
                     <Clock className="w-4 h-4 text-charcoal/60" strokeWidth={1.75} aria-hidden="true" />
                     {job.shift}
                   </span>
-                  <span className={`px-2 py-1 rounded text-xs ${job.type === 'Perm' ? 'bg-accent-blue/20 text-accent-blue' : 'bg-accent-teal/20 text-accent-teal'}`}>
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                    job.type === 'Perm' 
+                      ? 'bg-accent-blue/10 text-accent-blue border border-accent-blue/20' 
+                      : 'bg-accent-teal/10 text-accent-teal border border-accent-teal/20'
+                  }`}>
                     {job.type}
                   </span>
                 </div>
@@ -300,8 +318,13 @@ function JobsContent() {
               
               {/* Badges */}
               <div className="flex flex-wrap gap-2 mb-4">
-                {job.badges.map(badge => (
-                  <span key={badge} className="px-2 py-1 bg-accent-yellow/20 text-accent-yellow text-body rounded font-body">
+                {job.immediateStart && (
+                  <span className="px-2 py-1 bg-primary-red/10 text-primary-red text-xs font-medium rounded-full border border-primary-red/20">
+                    Immediate Start
+                  </span>
+                )}
+                {job.badges.filter(b => b !== 'Immediate Start').map(badge => (
+                  <span key={badge} className="px-2 py-1 bg-accent-yellow/10 text-accent-yellow text-xs font-medium rounded-full border border-accent-yellow/20">
                     {badge}
                   </span>
                 ))}
@@ -318,10 +341,16 @@ function JobsContent() {
         </div>
         
         {filteredJobs.length === 0 && (
-          <div className="text-center py-12">
+          <div className="text-center py-16 bg-neutral-light/50 rounded-lg">
             {jobs.length === 0 ? (
               <div>
-                <p className="text-body-lg font-body text-charcoal/70 mb-4">
+                <div className="w-16 h-16 bg-accent-teal/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-accent-teal animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                </div>
+                <p className="text-body-lg font-body text-charcoal mb-2">
                   Loading jobs...
                 </p>
                 <p className="text-body font-body text-charcoal/60">
@@ -329,9 +358,32 @@ function JobsContent() {
                 </p>
               </div>
             ) : (
-              <p className="text-body-lg font-body text-charcoal/70">
-                No jobs match your filters. Try broadening your search or <Link href="/contact" className="text-primary-red hover:underline">contact us</Link> about upcoming opportunities.
-              </p>
+              <div>
+                <div className="w-16 h-16 bg-neutral-light rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-charcoal/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+                <p className="text-body-lg font-body text-charcoal mb-2">
+                  No jobs match your filters
+                </p>
+                <p className="text-body font-body text-charcoal/60 mb-4">
+                  Try broadening your search or contact us about upcoming opportunities.
+                </p>
+                <button 
+                  onClick={() => {
+                    setSearchTerm('')
+                    setSelectedLocations([])
+                    setSelectedTypes([])
+                    setSelectedShifts([])
+                    setPayRange([10, 30])
+                    setImmediateOnly(false)
+                  }}
+                  className="text-primary-red hover:underline font-medium"
+                >
+                  Clear all filters
+                </button>
+              </div>
             )}
           </div>
         )}
