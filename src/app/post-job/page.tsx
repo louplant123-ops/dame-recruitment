@@ -490,5 +490,6 @@ export default function PostJobPage() {
         </div>
       </div>
     </div>
+    </div>
   )
 }
