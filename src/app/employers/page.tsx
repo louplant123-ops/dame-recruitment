@@ -33,14 +33,19 @@ const sectors = [
     roles: ['Maintenance Engineer', 'Electrical Technician', 'Mechanical Fitter', 'CNC Operator', 'Welder', 'Plant Engineer']
   },
   {
-    name: 'Construction',
-    status: 'coming-soon' as const,
-    roles: []
+    name: 'Finance',
+    status: 'active' as const,
+    roles: ['Credit Controller', 'Accounts Payable', 'Payroll Administrator', 'Bookkeeper', 'Finance Assistant', 'Assistant Accountant']
+  },
+  {
+    name: 'Logistics & Distribution',
+    status: 'active' as const,
+    roles: ['HGV Class 1 Driver', 'HGV Class 2 Driver', 'Van Driver', 'Transport Planner', 'Distribution Manager', 'Supply Chain Coordinator']
   },
   {
     name: 'Energy',
-    status: 'coming-soon' as const,
-    roles: []
+    status: 'active' as const,
+    roles: ['Solar Panel Installer', 'EV Charge Point Engineer', 'Smart Meter Engineer', 'Wind Turbine Technician', 'Electrical Improver']
   }
 ]
 
