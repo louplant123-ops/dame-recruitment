@@ -184,55 +184,35 @@ export default function EmployersPage() {
             {sectors.map((sector) => (
               <div
                 key={sector.name}
-                className={`rounded-lg p-6 ${
-                  sector.status === 'active'
-                    ? 'bg-white border border-neutral-light'
-                    : 'bg-neutral-white border border-neutral-light opacity-60'
-                }`}
+                className="rounded-lg p-6 bg-white border border-neutral-light"
               >
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-h3 font-heading font-semibold text-charcoal">
                     {sector.name}
                   </h3>
-                  {sector.status === 'coming-soon' && (
-                    <span className="text-xs font-body text-charcoal/50 bg-neutral-light px-2 py-1 rounded">
-                      Coming soon
+                </div>
+                
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {sector.roles.slice(0, 4).map((role) => (
+                    <span
+                      key={role}
+                      className="text-xs font-body bg-neutral-light text-charcoal/70 px-2 py-1 rounded"
+                    >
+                      {role}
+                    </span>
+                  ))}
+                  {sector.roles.length > 4 && (
+                    <span className="text-xs font-body text-charcoal/50">
+                      +{sector.roles.length - 4} more
                     </span>
                   )}
                 </div>
-                
-                {sector.status === 'active' ? (
-                  <>
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      {sector.roles.slice(0, 4).map((role) => (
-                        <span
-                          key={role}
-                          className="text-xs font-body bg-neutral-light text-charcoal/70 px-2 py-1 rounded"
-                        >
-                          {role}
-                        </span>
-                      ))}
-                      {sector.roles.length > 4 && (
-                        <span className="text-xs font-body text-charcoal/50">
-                          +{sector.roles.length - 4} more
-                        </span>
-                      )}
-                    </div>
-                    <Link
-                      href="/employers#brief"
-                      className="text-primary-red hover:text-primary-red/80 font-body text-sm font-medium"
-                    >
-                      Brief a role →
-                    </Link>
-                  </>
-                ) : (
-                  <Link
-                    href={`/contact?topic=${sector.name.toLowerCase()}`}
-                    className="text-charcoal/50 hover:text-charcoal/70 font-body text-sm"
-                  >
-                    Tell me when you launch →
-                  </Link>
-                )}
+                <Link
+                  href="/employers#brief"
+                  className="text-primary-red hover:text-primary-red/80 font-body text-sm font-medium"
+                >
+                  Brief a role →
+                </Link>
               </div>
             ))}
           </div>
