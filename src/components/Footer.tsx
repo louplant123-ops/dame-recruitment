@@ -9,6 +9,10 @@ export default function Footer() {
     { href: '/jobs', label: 'Job Search' },
     { href: '/register', label: 'Register' },
     { href: '/contact', label: 'Contact Us' },
+    { href: '/temporary-workers-handbook', label: 'Temporary Workers Handbook' },
+    { href: '/policies-procedures', label: 'Policies & Procedures' },
+    { href: '/modern-slavery-statement', label: 'Modern Slavery Statement' },
+    { href: '/data-processing', label: 'Data Processing' },
     { href: '/privacy', label: 'Privacy Policy' },
     { href: '/terms', label: 'Terms of Service' },
   ]
