@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2B9FC6"/>
+      <stop offset=".34" stop-color="#2F4ED1"/>
+      <stop offset=".68" stop-color="#6B4ED0"/>
+      <stop offset="1" stop-color="#C54B65"/>
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="60" height="60" rx="13" fill="#14181d"/>
+  <rect x="2" y="2" width="60" height="60" rx="13" fill="none" stroke="url(#g)" stroke-width="2.5"/>
+  <text x="32" y="50"
+        text-anchor="middle"
+        font-family="Georgia, 'Times New Roman', serif"
+        font-weight="600"
+        font-size="48"
+        fill="#f1ecdf">D</text>
+</svg>
