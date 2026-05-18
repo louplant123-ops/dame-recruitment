@@ -33,7 +33,7 @@ export default function Navigation() {
   return (
     <nav className="sticky top-0 z-50 bg-neutral-white border-b border-neutral-light shadow-sm">
       <div className="max-w-container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex justify-between items-center h-20">
           {/* Logo */}
           <Link 
             href="/" 
@@ -42,9 +42,9 @@ export default function Navigation() {
             <Image
               src="/dame-logo.svg"
               alt="Dame Recruitment"
-              width={200}
-              height={48}
-              className="h-8 md:h-12 w-auto"
+              width={320}
+              height={70}
+              className="h-10 md:h-14 w-auto"
               priority
             />
           </Link>
