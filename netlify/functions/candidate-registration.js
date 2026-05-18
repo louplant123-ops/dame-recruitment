@@ -687,6 +687,25 @@ async function forwardToDameDesk(registrationData, cvFileData, candidateId) {
       
       if (insertResult.rowCount > 0) {
         console.log('✅ Successfully created new candidate:', newCandidateId);
+
+        // Mark referral as registered if candidate arrived via a referral link
+        const referrerId = event.queryStringParameters?.ref || body.ref;
+        if (referrerId) {
+          try {
+            await client.query(
+              `UPDATE candidate_referrals
+                  SET status = 'registered'
+                WHERE referrer_contact_id = $1
+                  AND referee_phone IS NOT NULL
+                  AND status = 'referred'
+                  AND ABS(EXTRACT(EPOCH FROM (NOW() - created_at))) < 7776000`, // within 90 days
+              [referrerId]
+            );
+            console.log('🔗 Referral marked as registered for referrer:', referrerId);
+          } catch (refErr) {
+            console.warn('⚠️ Could not update referral status (non-critical):', refErr.message);
+          }
+        }
         
         // Save CV document if uploaded (stored as base64 in database)
         if (cvFileData) {
@@ -923,7 +942,7 @@ async function sendPart2InvitationEmail(email, name, candidateId) {
         <a href="${part2Link}" style="display:inline-block;background:#dc2626;color:white;padding:14px 32px;text-decoration:none;border-radius:6px;font-weight:bold;font-size:16px;">Complete Part 2 Now</a>
       </p>
       <p>Once completed, we can start placing you immediately.</p>
-      <p>Questions? Call us on <strong>0115 888 2233</strong> or email <strong>info@damerecruitment.co.uk</strong></p>
+      <p>Questions? Call us on <strong>0330 043 5011</strong> or email <strong>hello@damerecruitment.co.uk</strong></p>
     </div>
     <div style="text-align:center;padding:15px;font-size:12px;color:#666;">
       <p>Dame Recruitment Ltd | Innovation House, Nottingham Business Park, NG8 6PY</p>
@@ -931,7 +950,7 @@ async function sendPart2InvitationEmail(email, name, candidateId) {
   </div>
 </body>
 </html>`,
-    text: `Hi ${firstName},\n\nThank you for completing Part 1 of your registration!\n\nPlease complete Part 2 to become work-ready: ${part2Link}\n\nThis takes 5-10 minutes and covers bank details, NI number, right to work, emergency contact, and contract.\n\nQuestions? Call 0115 888 2233\n\nDame Recruitment Team`,
+    text: `Hi ${firstName},\n\nThank you for completing Part 1 of your registration!\n\nPlease complete Part 2 to become work-ready: ${part2Link}\n\nThis takes 5-10 minutes and covers bank details, NI number, right to work, emergency contact, and contract.\n\nQuestions? Call 0330 043 5011\n\nDame Recruitment Team`,
   });
 }
 

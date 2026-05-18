@@ -1,0 +1,28 @@
+{
+  "name": "Dame Recruitment — Client Portal",
+  "short_name": "Dame Client",
+  "description": "Manage your workforce, timesheets, and invoices with Dame Recruitment.",
+  "start_url": "/client",
+  "display": "standalone",
+  "background_color": "#1a1a2e",
+  "theme_color": "#C8102E",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/favicon-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

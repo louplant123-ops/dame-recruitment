@@ -1,28 +1,26 @@
 import type { Metadata } from 'next'
-import { Montserrat, Lato } from 'next/font/google'
+import { Inter, Playfair_Display } from 'next/font/google'
 import './globals.css'
-import Navigation from '@/components/Navigation'
-import Footer from '@/components/Footer'
+import LayoutShell from '@/components/LayoutShell'
 
-const montserrat = Montserrat({
+const inter = Inter({
   subsets: ['latin'],
-  variable: '--font-montserrat',
+  variable: '--font-inter',
   display: 'swap',
 })
 
-const lato = Lato({
-  weight: ['300', '400', '700'],
+const playfair = Playfair_Display({
   subsets: ['latin'],
-  variable: '--font-lato',
+  variable: '--font-playfair',
   display: 'swap',
 })
 
 export const metadata: Metadata = {
   title: {
     template: '%s — Dame Recruitment',
-    default: 'Dame Recruitment — Professional Staffing Solutions in the East Midlands',
+    default: 'Dame Recruitment — People. Performance. Partnership.',
   },
-  description: 'Professional recruitment services across Leicester, Coventry and the East Midlands. Temporary and permanent staffing solutions for employers and career opportunities for candidates.',
+  description: 'Premium recruitment partnerships across Leicester, Coventry and the East Midlands. Temporary and permanent staffing for teams that need reliable people and sharper performance.',
   keywords: ['recruitment', 'staffing', 'jobs', 'Leicester', 'Coventry', 'East Midlands', 'temporary', 'permanent'],
   authors: [{ name: 'Dame Recruitment' }],
   creator: 'Dame Recruitment',
@@ -34,8 +32,8 @@ export const metadata: Metadata = {
   },
   metadataBase: new URL('https://www.damerecruitment.co.uk'),
   openGraph: {
-    title: 'Dame Recruitment — Professional Staffing Solutions',
-    description: 'Professional recruitment services across Leicester, Coventry and the East Midlands.',
+    title: 'Dame Recruitment — People. Performance. Partnership.',
+    description: 'Premium recruitment partnerships across Leicester, Coventry and the East Midlands.',
     url: 'https://www.damerecruitment.co.uk',
     siteName: 'Dame Recruitment',
     locale: 'en_GB',
@@ -43,8 +41,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Dame Recruitment — Professional Staffing Solutions',
-    description: 'Professional recruitment services across Leicester, Coventry and the East Midlands.',
+    title: 'Dame Recruitment — People. Performance. Partnership.',
+    description: 'Premium recruitment partnerships across Leicester, Coventry and the East Midlands.',
   },
   robots: {
     index: true,
@@ -74,19 +72,13 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en-GB" className={`${montserrat.variable} ${lato.variable} scroll-smooth`}>
+    <html lang="en-GB" className={`${inter.variable} ${playfair.variable} scroll-smooth`}>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
       <body className="font-body text-light-text bg-neutral-white antialiased">
-        <div className="min-h-screen flex flex-col">
-          <Navigation />
-          <main className="flex-1">
-            {children}
-          </main>
-          <Footer />
-        </div>
+        <LayoutShell>{children}</LayoutShell>
       </body>
     </html>
   )

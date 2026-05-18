@@ -6,45 +6,31 @@ const config: Config = {
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
-  // Purge unused CSS in production
-  purge: {
-    enabled: process.env.NODE_ENV === 'production',
-    content: [
-      './src/**/*.{js,ts,jsx,tsx,mdx}',
-    ],
-    options: {
-      safelist: [
-        // Keep utility classes that might be used dynamically
-        'btn-lift',
-        'card-hover',
-        'form-input',
-        'section-accent-teal',
-        'section-accent-blue',
-        'section-accent-yellow',
-        'section-accent-green',
-        'animate-fade-in',
-        'animate-slide-up',
-      ],
-    },
-  },
   theme: {
     extend: {
       colors: {
-        // Dame Recruitment Brand Colors
-        charcoal: '#222222',
-        'light-text': '#222222',
-        'dark-text': '#F7F7F7',
-        'neutral-white': '#FFFFFF',
-        'neutral-light': '#F4F4F4',
-        'primary-red': '#C8102E',
-        'accent-teal': '#1CA6A3',
-        'accent-yellow': '#FFD23F',
-        'accent-blue': '#0077B6',
-        'accent-green': '#34A853',
+        // Dame Recruitment 2026 brand board
+        charcoal: '#0A0F1A',
+        graphite: '#111827',
+        ink: '#030712',
+        'light-text': '#E8ECF3',
+        'dark-text': '#F7F8FC',
+        'neutral-white': '#0A0F1A',
+        'neutral-light': '#111827',
+        'primary-red': '#FF4D6D',
+        'accent-teal': '#00E5FF',
+        'accent-yellow': '#F4C95D',
+        'accent-blue': '#2563FF',
+        'accent-green': '#00C781',
+        'accent-purple': '#7C3AED',
+        'accent-pink': '#D946EF',
+        'panel': '#101827',
+        'panel-soft': '#151F32',
+        'line': '#263244',
       },
       fontFamily: {
-        'heading': ['var(--font-montserrat)', 'Montserrat', 'sans-serif'],
-        'body': ['var(--font-lato)', 'Lato', 'sans-serif'],
+        'heading': ['var(--font-playfair)', 'Georgia', 'serif'],
+        'body': ['var(--font-inter)', 'Inter', 'system-ui', 'sans-serif'],
       },
       fontSize: {
         // Typography scale following user requirements
@@ -74,16 +60,18 @@ const config: Config = {
         },
       },
       boxShadow: {
-        'lift': '0 4px 12px rgba(0, 0, 0, 0.1)',
-        'lift-lg': '0 8px 25px rgba(0, 0, 0, 0.15)',
-        'card': '0 2px 8px rgba(0, 0, 0, 0.06)',
-        'card-hover': '0 8px 24px rgba(0, 0, 0, 0.12)',
+        'lift': '0 14px 34px rgba(0, 0, 0, 0.28)',
+        'lift-lg': '0 24px 70px rgba(0, 0, 0, 0.36)',
+        'card': '0 16px 40px rgba(0, 0, 0, 0.24)',
+        'card-hover': '0 24px 70px rgba(0, 0, 0, 0.34)',
+        'glow': '0 0 34px rgba(124, 58, 237, 0.24), 0 0 22px rgba(0, 229, 255, 0.18)',
       },
       backgroundImage: {
-        'gradient-hero': 'linear-gradient(135deg, #222222 0%, #1a3a3a 50%, #0d2a2a 100%)',
-        'gradient-charcoal': 'linear-gradient(180deg, #222222 0%, #1a3a3a 100%)',
-        'gradient-teal': 'linear-gradient(135deg, #1CA6A3 0%, #147a78 100%)',
-        'gradient-red': 'linear-gradient(135deg, #C8102E 0%, #9a0b24 100%)',
+        'gradient-hero': 'radial-gradient(circle at 15% 15%, rgba(0,229,255,0.16), transparent 28%), radial-gradient(circle at 85% 18%, rgba(217,70,239,0.15), transparent 30%), linear-gradient(135deg, #030712 0%, #0A0F1A 46%, #111827 100%)',
+        'gradient-charcoal': 'linear-gradient(180deg, #030712 0%, #0A0F1A 100%)',
+        'gradient-teal': 'linear-gradient(135deg, #00E5FF 0%, #2563FF 100%)',
+        'gradient-red': 'linear-gradient(135deg, #FF4D6D 0%, #D946EF 56%, #7C3AED 100%)',
+        'gradient-neon': 'linear-gradient(90deg, #00E5FF 0%, #2563FF 34%, #7C3AED 66%, #FF4D6D 100%)',
       },
     },
   },

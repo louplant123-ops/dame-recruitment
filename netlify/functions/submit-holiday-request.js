@@ -212,7 +212,7 @@ exports.handler = async (event) => {
 
     await transporter.sendMail({
       from: process.env.SMTP_FROM || 'Dame Recruitment <noreply@damerecruitment.co.uk>',
-      to: 'info@damerecruitment.co.uk',
+      to: 'hello@damerecruitment.co.uk',
       subject: `Holiday Request: ${formData.candidateName} - ${formData.startDate} to ${formData.endDate}`,
       html: officeEmailHtml,
     });
@@ -257,8 +257,8 @@ exports.handler = async (event) => {
             
             <p style="margin-top: 30px; color: #6b7280; font-size: 14px;">
               Dame Recruitment<br>
-              Email: info@damerecruitment.co.uk<br>
-              Phone: 0115 888 2233
+              Email: hello@damerecruitment.co.uk<br>
+              Phone: 0330 043 5011
             </p>
           </div>
         </div>

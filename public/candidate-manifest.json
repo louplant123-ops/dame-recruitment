@@ -1,0 +1,31 @@
+{
+  "name": "Dame Recruitment — My Portal",
+  "short_name": "Dame Portal",
+  "description": "Your candidate portal for Dame Recruitment — shifts, documents, holiday and more.",
+  "start_url": "/candidate/dashboard/",
+  "scope": "/candidate/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f4f4f4",
+  "theme_color": "#C8102E",
+  "icons": [
+    {
+      "src": "/favicon-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ],
+  "categories": ["productivity", "business"],
+  "lang": "en-GB"
+}

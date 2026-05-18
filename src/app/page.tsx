@@ -3,8 +3,8 @@ import Link from 'next/link'
 import LazySection from '@/components/LazySection'
 
 export const metadata: Metadata = {
-  title: 'East Midlands Recruitment Specialists | Dame Recruitment',
-  description: 'Permanent and temporary recruitment for warehousing, manufacturing & engineering. Same-day shortlists, honest job descriptions, guaranteed placements across Leicester, Nottingham, Derby.',
+  title: 'People. Performance. Partnership. | Dame Recruitment',
+  description: 'Premium permanent and temporary recruitment across warehousing, manufacturing, engineering, logistics and commercial teams in the East Midlands.',
   keywords: ['recruitment', 'East Midlands', 'permanent jobs', 'warehouse jobs', 'manufacturing jobs', 'engineering jobs', 'Leicester', 'Nottingham', 'Derby', 'temp agency', 'permanent recruitment', 'career opportunities'],
   openGraph: {
     title: 'Dame Recruitment - Staff that show up. Results that count.',
@@ -21,175 +21,146 @@ export const metadata: Metadata = {
 
 export default function HomePage() {
   return (
-    <div className="relative">
-      {/* Hero Section */}
-      <section className="relative bg-gradient-hero overflow-hidden min-h-[520px] lg:min-h-[70vh] flex items-center">
-        
-        <div className="relative max-w-container mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-20 w-full">
-          <div className="text-center">
-            {/* Main Headline */}
-            <h1 className="text-h1 lg:text-h1-lg font-heading font-bold text-white mb-6">
-              Recruitment made simple.
+    <div className="relative overflow-hidden">
+      <section className="relative overflow-hidden bg-gradient-hero">
+        <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-neon" />
+        <div className="dame-container grid min-h-[calc(100vh-5rem)] items-center gap-12 py-16 lg:grid-cols-[1.05fr_0.95fr] lg:py-24">
+          <div>
+            <p className="dame-eyebrow mb-5">Dame Recruitment</p>
+            <h1 className="max-w-4xl font-heading text-5xl font-bold leading-[0.98] tracking-tight text-white md:text-7xl">
+              Recruitment with sharper <span className="dame-gradient-text">people</span>, stronger performance, and real partnership.
             </h1>
-            
-            {/* Sub-headline */}
-            <p className="text-body-lg font-body mb-16 max-w-prose mx-auto" style={{ color: '#E8E8E8' }}>
-              Permanent hires &amp; temporary staff — reliable people, fast.
+            <p className="mt-7 max-w-2xl text-lg leading-8 text-white/70 md:text-xl">
+              Permanent hires and temporary teams for businesses that need reliable people, honest communication, and a recruitment partner who moves with intent.
             </p>
-            
-            {/* CTAs */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-20">
-              <Link
-                href="/jobs/"
-                className="bg-gradient-red text-white px-8 py-4 rounded-lg font-body font-semibold text-lg btn-lift hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-primary-red focus:ring-offset-2 focus:ring-offset-charcoal"
-                aria-label="Browse available jobs"
-              >
+
+            <div className="mt-9 flex flex-col gap-4 sm:flex-row">
+              <Link href="/jobs/" className="dame-button-primary text-lg" aria-label="Browse available jobs">
                 Browse Jobs
               </Link>
-              <Link
-                href="/employers"
-                className="bg-white border-2 border-white text-charcoal px-8 py-4 rounded-lg font-body font-semibold text-lg btn-lift hover:bg-primary-red hover:text-white hover:border-primary-red transition-all focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-charcoal"
-                aria-label="Learn about hiring with Dame Recruitment"
-              >
+              <Link href="/employers" className="dame-button-secondary text-lg" aria-label="Learn about hiring with Dame Recruitment">
                 Hire with Dame
               </Link>
             </div>
-            
-            {/* Credibility Row */}
-            <div className="inline-block bg-white/10 backdrop-blur-sm rounded-xl px-6 py-4 border border-white/20">
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 text-white font-body text-body">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-accent-yellow rounded-full animate-pulse-subtle"></div>
-                  <span>Guarantees on all placements</span>
+
+            <div className="mt-10 flex flex-wrap gap-3 text-sm font-semibold text-white/70">
+              {['Same-day momentum', 'Vetted shortlists', 'Temp-to-perm pathways'].map((item) => (
+                <span key={item} className="rounded-full border border-white/10 bg-white/5 px-4 py-2 backdrop-blur">
+                  {item}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <div className="dame-glow-border rounded-[2rem]">
+            <div className="dame-glass rounded-[2rem] p-6 md:p-8">
+              <div className="flex items-center gap-5">
+                <span className="dame-mark-gradient block">
+                  <span className="h-24 w-24 text-7xl">D</span>
+                </span>
+                <div>
+                  <p className="font-heading text-4xl font-bold text-white">Dame <span className="text-white/40">Recruitment</span></p>
+                  <div className="mt-3 h-1.5 w-56 rounded-full bg-gradient-neon shadow-glow" />
+                  <p className="mt-4 font-body text-xs font-bold uppercase tracking-[0.32em] text-white/60">
+                    People. Performance. Partnership.
+                  </p>
                 </div>
-                <div className="hidden sm:block w-px h-4 bg-white/20"></div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-accent-blue rounded-full animate-pulse-subtle" style={{ animationDelay: '1s' }}></div>
-                  <span>Temp-to-perm pathways</span>
-                </div>
+              </div>
+
+              <div className="mt-10 grid gap-4 sm:grid-cols-3">
+                {[
+                  ['4.2h', 'Average shortlist rhythm'],
+                  ['89%', 'Recent fill-rate focus'],
+                  ['1:1', 'Dedicated consultant ownership'],
+                ].map(([value, label]) => (
+                  <div key={value} className="rounded-2xl border border-white/10 bg-white/[0.045] p-5">
+                    <div className="font-heading text-3xl font-bold text-white">{value}</div>
+                    <p className="mt-2 text-sm leading-5 text-white/60">{label}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-8 rounded-3xl border border-white/10 bg-black/20 p-5">
+                <p className="dame-eyebrow mb-3">Brand In Use</p>
+                <p className="text-white/70">
+                  A premium recruitment experience that looks like the standard it promises: clear, polished, and built around dependable delivery.
+                </p>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Wave Divider */}
-      <div className="wave-divider bg-gradient-hero">
-        <svg viewBox="0 0 1440 60" preserveAspectRatio="none">
-          <path fill="#F4F4F4" d="M0,0 C240,60 480,60 720,30 C960,0 1200,0 1440,30 L1440,60 L0,60 Z"></path>
-        </svg>
+      <div className="border-y border-white/10 bg-black/20">
+        <div className="dame-container grid gap-4 py-6 text-center font-body text-xs font-bold uppercase tracking-[0.35em] text-white/50 md:grid-cols-3">
+          <span>People</span>
+          <span className="dame-gradient-text">Performance</span>
+          <span>Partnership</span>
+        </div>
       </div>
 
-      {/* Value Props Section */}
       <LazySection>
-        <section className="py-20 bg-neutral-light">
-            <div className="max-w-container mx-auto px-4 sm:px-6 lg:px-8">
-              {/* Section Intro */}
-              <div className="text-center mb-16">
-                <p className="text-body-lg font-body text-charcoal/70 max-w-prose mx-auto">
-                  Whether you&apos;re hiring or looking for work, we deliver what matters most: reliability, speed, and results.
-                </p>
-              </div>
-              
-              <div className="grid md:grid-cols-2 gap-12 lg:gap-16">
-                
-                {/* Employers Column */}
-                <div>
-                  <h2 className="text-h2 font-heading font-bold text-charcoal mb-8">
-                    For Employers
-                  </h2>
-                  <div className="space-y-6">
-                <div className="flex items-start gap-4">
-                  <div className="w-8 h-8 bg-accent-teal rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                    <div className="w-3 h-3 bg-white rounded-full"></div>
-                  </div>
-                  <div>
-                    <h3 className="text-h3 font-heading font-semibold text-charcoal mb-2">Fast, qualified shortlists</h3>
-                    <p className="text-body font-body text-charcoal/70">We move quickly to find the right candidates — so you spend less time waiting and more time interviewing.</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start gap-4">
-                  <div className="w-8 h-8 bg-accent-yellow rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                    <div className="w-3 h-3 bg-white rounded-full"></div>
-                  </div>
-                  <div>
-                    <h3 className="text-h3 font-heading font-semibold text-charcoal mb-2">No-show protection</h3>
-                    <p className="text-body font-body text-charcoal/70">Our three-step vetting process means reliable attendance and fewer Monday morning surprises.</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start gap-4">
-                  <div className="w-8 h-8 bg-accent-blue rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                    <div className="w-3 h-3 bg-white rounded-full"></div>
-                  </div>
-                  <div>
-                    <h3 className="text-h3 font-heading font-semibold text-charcoal mb-2">Backup talent ready</h3>
-                    <p className="text-body font-body text-charcoal/70">Pre-vetted replacements on standby for last-minute changes or unexpected absences.</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start gap-4">
-                  <div className="w-8 h-8 bg-accent-green rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                    <div className="w-3 h-3 bg-white rounded-full"></div>
-                  </div>
-                  <div>
-                    <h3 className="text-h3 font-heading font-semibold text-charcoal mb-2">Transparent fees</h3>
-                    <p className="text-body font-body text-charcoal/70">Clear rates for temps, fair fees for perm. No hidden charges, no complicated contracts.</p>
-                  </div>
-                </div>
-              </div>
+        <section className="py-20">
+          <div className="dame-container">
+            <div className="mx-auto mb-14 max-w-3xl text-center">
+              <p className="dame-eyebrow mb-4">Built For Critical Hires</p>
+              <h2 className="font-heading text-4xl font-bold text-white md:text-5xl">
+                A recruitment experience designed to feel premium and deliver under pressure.
+              </h2>
+              <p className="mt-5 text-lg text-white/60">
+                Whether you&apos;re hiring or looking for work, we focus on reliability, speed, clarity, and outcomes that last.
+              </p>
             </div>
 
-            {/* Candidates Column */}
-            <div>
-              <h2 className="text-h2 font-heading font-bold text-charcoal mb-8">
-                For Job Seekers
-              </h2>
-              <div className="space-y-6">
-                <div className="flex items-start gap-4">
-                  <div className="w-8 h-8 bg-accent-teal rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                    <div className="w-3 h-3 bg-white rounded-full"></div>
+            <div className="grid gap-6 lg:grid-cols-2">
+              {[
+                {
+                  title: 'For Employers',
+                  cta: 'Build Your Team',
+                  href: '/employers',
+                  points: ['Fast, qualified shortlists', 'No-show protection', 'Backup talent ready', 'Transparent fees'],
+                },
+                {
+                  title: 'For Job Seekers',
+                  cta: 'Find Your Role',
+                  href: '/jobs',
+                  points: ['Real opportunities', 'Work close to home', 'Honest job briefings', 'Temp-to-perm pathway'],
+                },
+              ].map((column) => (
+                <div key={column.title} className="dame-glass p-7 md:p-8">
+                  <div className="mb-7 flex items-center justify-between gap-4">
+                    <h3 className="font-heading text-3xl font-bold text-white">{column.title}</h3>
+                    <span className="h-12 w-12 rounded-2xl border border-white/10 bg-white/5 text-center font-heading text-3xl font-bold leading-[3rem] text-white/75">D</span>
                   </div>
-                  <div>
-                    <h3 className="text-h3 font-heading font-semibold text-charcoal mb-2">Real opportunities</h3>
-                    <p className="text-body font-body text-charcoal/70">From temp shifts to career moves. Weekly pay when you need it, permanent pathways when you&apos;re ready.</p>
+                  <div className="space-y-4">
+                    {column.points.map((point, index) => (
+                      <div key={point} className="flex items-center gap-4 rounded-2xl border border-white/10 bg-white/[0.035] p-4">
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-neon text-sm font-bold text-white">
+                          {index + 1}
+                        </span>
+                        <span className="font-body font-semibold text-white/80">{point}</span>
+                      </div>
+                    ))}
                   </div>
+                  <Link href={column.href} className="dame-button-secondary mt-7 w-full">
+                    {column.cta}
+                  </Link>
                 </div>
-                
-                <div className="flex items-start gap-4">
-                  <div className="w-8 h-8 bg-accent-yellow rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                    <div className="w-3 h-3 bg-white rounded-full"></div>
-                  </div>
-                  <div>
-                    <h3 className="text-h3 font-heading font-semibold text-charcoal mb-2">Work close to home</h3>
-                    <p className="text-body font-body text-charcoal/70">Local opportunities across Nottingham, Leicester, Derby, and surrounding areas.</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start gap-4">
-                  <div className="w-8 h-8 bg-accent-blue rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                    <div className="w-3 h-3 bg-white rounded-full"></div>
-                  </div>
-                  <div>
-                    <h3 className="text-h3 font-heading font-semibold text-charcoal mb-2">Honest job briefings</h3>
-                    <p className="text-body font-body text-charcoal/70">No surprises on day one. We tell you exactly what the role involves before you start.</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start gap-4">
-                  <div className="w-8 h-8 bg-accent-green rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                    <div className="w-3 h-3 bg-white rounded-full"></div>
-                  </div>
-                  <div>
-                    <h3 className="text-h3 font-heading font-semibold text-charcoal mb-2">Temp-to-perm pathway</h3>
-                    <p className="text-body font-body text-charcoal/70">Prove yourself in temporary roles and convert to permanent positions with employers you like.</p>
-                  </div>
-                </div>
-              </div>
+              ))}
             </div>
-            
-          </div>
+
+            <div className="mt-8 grid gap-6 md:grid-cols-3">
+              {[
+                ['Candidate Portal', 'Shifts, documents, availability, holidays and referrals in a focused mobile-first space.'],
+                ['Client Portal', 'Workforce, timesheets, invoices, reports and issue handling with the same premium brand.'],
+                ['DameDesk Connected', 'Website enquiries and registrations keep feeding the operational recruitment workflow.'],
+              ].map(([title, copy]) => (
+                <div key={title} className="rounded-3xl border border-white/10 bg-white/[0.035] p-6">
+                  <h3 className="font-heading text-2xl font-bold text-white">{title}</h3>
+                  <p className="mt-3 text-white/60">{copy}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
       </LazySection>

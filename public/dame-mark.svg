@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title id="title">Dame Recruitment D mark</title>
+  <desc id="desc">A dark glass app icon with a metallic letter D and neon gradient border.</desc>
+  <defs>
+    <linearGradient id="border" x1="26" y1="24" x2="230" y2="232" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#00E5FF"/>
+      <stop offset=".34" stop-color="#2563FF"/>
+      <stop offset=".68" stop-color="#7C3AED"/>
+      <stop offset="1" stop-color="#FF4D6D"/>
+    </linearGradient>
+    <linearGradient id="metal" x1="75" y1="49" x2="164" y2="189" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F8FAFC"/>
+      <stop offset=".22" stop-color="#9CA3AF"/>
+      <stop offset=".5" stop-color="#F3F4F6"/>
+      <stop offset=".74" stop-color="#4B5563"/>
+      <stop offset="1" stop-color="#E5E7EB"/>
+    </linearGradient>
+    <radialGradient id="surface" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(81 50) rotate(55) scale(210)">
+      <stop stop-color="#1F2937"/>
+      <stop offset=".48" stop-color="#0A0F1A"/>
+      <stop offset="1" stop-color="#030712"/>
+    </radialGradient>
+    <filter id="shadow" x="36" y="44" width="170" height="168" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="14" stdDeviation="11" flood-color="#000" flood-opacity=".6"/>
+    </filter>
+  </defs>
+  <rect x="19" y="19" width="218" height="218" rx="48" fill="url(#surface)" stroke="url(#border)" stroke-width="4"/>
+  <rect x="32" y="32" width="192" height="192" rx="38" fill="none" stroke="#fff" stroke-opacity=".08"/>
+  <path filter="url(#shadow)" fill="url(#metal)" d="M72 193v-15h17V78H72V63h68c28 0 50 8 66 24 16 15 24 35 24 60 0 26-8 46-24 61-16 15-38 23-66 23H72Zm51-15h15c18 0 32-6 42-17 10-11 15-25 15-43 0-17-5-31-15-41-10-10-24-15-42-15h-15v116Z" transform="translate(-21 -19)"/>
+  <path fill="#fff" fill-opacity=".18" d="M41 51c0-7 6-13 13-13h148c7 0 13 6 13 13v12H41V51Z"/>
+</svg>

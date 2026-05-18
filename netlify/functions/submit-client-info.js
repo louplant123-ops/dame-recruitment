@@ -160,6 +160,11 @@ exports.handler = async (event, context) => {
     // Notify consultants via telnyx server (fire-and-forget)
     notifyConsultants(result).catch(e => console.error('⚠️ Consultant notification failed:', e.message));
 
+    // Send client portal invite email (fire-and-forget)
+    if (result.clientId) {
+      sendPortalInvite(result.clientId).catch(e => console.error('⚠️ Portal invite failed:', e.message));
+    }
+
     return {
       statusCode: 200,
       headers: { 'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json' },
@@ -218,7 +223,7 @@ async function sendConfirmationEmail(result) {
     <p style="color:#374151;font-size:15px;line-height:1.6;margin:0 0 4px">If you have any questions or need to make changes, please don\u2019t hesitate to get in touch.</p>
     <p style="color:#374151;font-size:15px;line-height:1.6;margin:20px 0 4px">Best regards,</p>
     <p style="color:#374151;font-size:15px;line-height:1.6;margin:0;font-weight:600">Dame Recruitment</p>
-    <p style="color:#6b7280;font-size:14px;margin:2px 0 0">0115 888 2233 &middot; info@damerecruitment.co.uk</p>
+    <p style="color:#6b7280;font-size:14px;margin:2px 0 0">0330 043 5011 &middot; hello@damerecruitment.co.uk</p>
   </td></tr>
   <tr><td style="background:#f9fafb;padding:20px 40px;border-top:1px solid #e5e7eb">
     <p style="color:#9ca3af;font-size:12px;line-height:1.5;margin:0;text-align:center">
@@ -262,4 +267,19 @@ async function notifyConsultants(result) {
     })
   });
   console.log(`\uD83D\uDD14 Consultant notification sent for ${result.clientCompany}`);
+}
+
+// Trigger portal invite email via the client-portal-invite Netlify function
+async function sendPortalInvite(clientId) {
+  const NETLIFY_BASE = process.env.URL || 'https://damerecruitment.co.uk';
+  const SERVER_API_KEY = process.env.SERVER_API_KEY || '';
+  await fetch(`${NETLIFY_BASE}/.netlify/functions/client-portal-invite`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(SERVER_API_KEY ? { 'x-api-key': SERVER_API_KEY } : {}),
+    },
+    body: JSON.stringify({ clientId }),
+  });
+  console.log(`📧 Portal invite triggered for client ${clientId}`);
 }

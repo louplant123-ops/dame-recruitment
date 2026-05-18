@@ -471,14 +471,16 @@ maxTravelDistance: '10',
 
       <div className="py-16">
         <div className="max-w-2xl mx-auto px-4 sm:px-6">
-          <div className="mb-8">
+          <div className="dame-form-shell">
+          <div className="dame-form-header">
+            <p className="dame-eyebrow mb-3">Candidate Registration</p>
             <p className="text-lg font-body text-charcoal/80">
               Complete the form below to join our talent pool. We&apos;ll match you with suitable opportunities.
             </p>
           </div>
 
         {/* Progress Bar */}
-        <div className="mb-8">
+        <div className="dame-step-rail mb-8">
           <div className="flex items-center justify-between mb-2">
             <span className="font-body text-sm text-charcoal/70">
               Step {currentStep} of {totalSteps}: {stepTitles[currentStep - 1]}
@@ -1317,6 +1319,7 @@ maxTravelDistance: '10',
             )}
           </div>
         </form>
+        </div>
       </div>
     </div>
     </div>

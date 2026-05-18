@@ -129,8 +129,8 @@ exports.handler = async (event) => {
             
             <div class="footer">
               <p>Dame Recruitment<br>
-              Email: info@damerecruitment.co.uk<br>
-              Phone: 0115 888 2233</p>
+              Email: hello@damerecruitment.co.uk<br>
+              Phone: 0330 043 5011</p>
             </div>
           </div>
         </div>
@@ -152,8 +152,8 @@ This code will expire in 10 minutes.
 If you didn't request this code, please ignore this email or contact us if you have concerns.
 
 Dame Recruitment
-info@damerecruitment.co.uk
-0115 888 2233
+hello@damerecruitment.co.uk
+0330 043 5011
     `;
 
     await transporter.sendMail({

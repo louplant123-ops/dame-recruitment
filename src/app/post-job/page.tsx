@@ -122,13 +122,17 @@ export default function PostJobPage() {
       </div>
 
       <div className="py-16">
-        <div className="max-w-2xl mx-auto px-4 sm:px-6">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6">
+          <div className="dame-form-shell">
+          <div className="dame-form-header">
+          <p className="dame-eyebrow mb-3">Employer Brief</p>
           <h2 className="text-2xl font-heading font-bold text-charcoal mb-4">
             Job Details
           </h2>
           <p className="text-lg font-body text-charcoal/80 mb-12">
             Find the perfect candidates for your business. Fill out the form below and we&apos;ll get back to you within 24 hours.
           </p>
+          </div>
         
         {formState === 'success' && (
           <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
@@ -463,7 +467,7 @@ export default function PostJobPage() {
             
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-sm text-gray-500 leading-relaxed">
               <strong>Privacy Notice:</strong> Dame Recruitment will use the information you provide to manage your recruitment requirements and communicate with you about suitable candidates. Your data is stored securely and processed in accordance with UK GDPR and the Data Protection Act 2018. You can request access to, correction, or deletion of your data at any time by contacting{' '}
-              <a href="mailto:info@damerecruitment.co.uk" className="text-primary-red underline">info@damerecruitment.co.uk</a>. See our{' '}
+              <a href="mailto:hello@damerecruitment.co.uk" className="text-primary-red underline">hello@damerecruitment.co.uk</a>. See our{' '}
               <a href="/privacy" className="text-primary-red underline">Privacy Policy</a> for full details.
             </div>
 
@@ -477,16 +481,17 @@ export default function PostJobPage() {
           </form>
         )}
         
-        <div className="mt-8 p-6 bg-accent-teal/10 rounded-lg">
+        <div className="mt-8 p-6 dame-status-card">
           <h3 className="font-heading font-semibold text-charcoal mb-2">
             What happens next?
           </h3>
           <ul className="font-body text-charcoal/70 space-y-1">
             <li>• We&apos;ll review your job requirements within 24 hours</li>
             <li>• Our team will contact you to discuss details</li>
-            <li>• We&apos;ll provide a same-day shortlist of qualified candidates</li>
+            <li>• We&apos;ll provide a shortlist of qualified candidates</li>
             <li>• You interview and select your preferred candidates</li>
           </ul>
+        </div>
         </div>
       </div>
     </div>

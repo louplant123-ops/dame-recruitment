@@ -288,7 +288,7 @@ async function sendConfirmationEmail(clientData, jobData, result) {
     <p style="color:#374151;font-size:15px;line-height:1.6;margin:0 0 4px">If you have any questions in the meantime, please don\u2019t hesitate to get in touch.</p>
     <p style="color:#374151;font-size:15px;line-height:1.6;margin:20px 0 4px">Best regards,</p>
     <p style="color:#374151;font-size:15px;line-height:1.6;margin:0;font-weight:600">Dame Recruitment</p>
-    <p style="color:#6b7280;font-size:14px;margin:2px 0 0">0115 888 2233 &middot; info@damerecruitment.co.uk</p>
+    <p style="color:#6b7280;font-size:14px;margin:2px 0 0">0330 043 5011 &middot; hello@damerecruitment.co.uk</p>
   </td></tr>
   <tr><td style="background:#f9fafb;padding:20px 40px;border-top:1px solid #e5e7eb">
     <p style="color:#9ca3af;font-size:12px;line-height:1.5;margin:0;text-align:center">
