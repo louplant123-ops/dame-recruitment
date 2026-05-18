@@ -60,7 +60,7 @@ export default function HomePage() {
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 text-white font-body text-body">
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-accent-yellow rounded-full animate-pulse-subtle"></div>
-                  <span>Guarantees on all placements</span>
+                  <span>Local East Midlands specialists</span>
                 </div>
                 <div className="hidden sm:block w-px h-4 bg-white/20"></div>
                 <div className="flex items-center gap-2">
