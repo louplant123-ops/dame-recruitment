@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronRight, ChevronLeft, Upload, Plus, Trash2, MapPin, Briefcase, GraduationCap, Target, Clock, Home } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Upload, Plus, Trash2, MapPin, Briefcase, GraduationCap, Target, Clock, Home, CheckCircle, XCircle } from 'lucide-react';
 import { PageBanner } from '@/components/PageBanner';
 
 interface EmploymentHistory {
@@ -92,6 +92,8 @@ export default function PermanentCandidateRegistration() {
 
   const [cvFile, setCvFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [submitMessage, setSubmitMessage] = useState('');
 
   const jobTypes = [
     'Full-time Permanent', 'Part-time Permanent', 'Contract (6+ months)',
@@ -113,6 +115,16 @@ export default function PermanentCandidateRegistration() {
   const noticePeriods = [
     'Immediately available', '1 week', '2 weeks', '1 month',
     '2 months', '3 months', '6 months', 'Other'
+  ];
+
+  const stepTitles = [
+    'Personal',
+    'Career',
+    'Preferences',
+    'Availability',
+    'Experience',
+    'Education',
+    'Review'
   ];
 
   const addEmploymentHistory = () => {
@@ -218,6 +230,8 @@ export default function PermanentCandidateRegistration() {
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
+    setSubmitStatus('idle');
+    setSubmitMessage('');
     
     try {
       console.log('🚀 Starting permanent registration submission...');
@@ -254,8 +268,9 @@ export default function PermanentCandidateRegistration() {
       if (response.ok) {
         const result = await response.json();
         console.log('✅ Registration successful:', result);
-        alert('Registration submitted successfully! We will be in touch within 24 hours.');
-        // Reset form or redirect
+        setSubmitStatus('success');
+        setSubmitMessage('Registration submitted successfully. We will be in touch within 24 hours.');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
         const errorText = await response.text();
         console.error('❌ Registration failed:', response.status, errorText);
@@ -264,7 +279,9 @@ export default function PermanentCandidateRegistration() {
     } catch (error) {
       console.error('💥 Registration error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      alert(`Registration failed: ${errorMessage}. Please try again.`);
+      setSubmitStatus('error');
+      setSubmitMessage(`Registration failed: ${errorMessage}. Please try again.`);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       setIsSubmitting(false);
     }
@@ -1115,45 +1132,63 @@ export default function PermanentCandidateRegistration() {
     <div>
       <PageBanner
         eyebrow="Permanent roles"
-        title="Register for a permanent position."
-        subtitle="Join our network of professional candidates &mdash; we'll match you with carefully selected opportunities."
+        title="Join our permanent talent network."
+        subtitle="Tell us what you are looking for and we will match you with carefully selected permanent opportunities."
       />
 
-      <div className="py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-xl border border-neutral-light shadow-sm overflow-hidden">
+      <div className="py-16">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6">
+          <div className="mb-8">
+            <p className="text-base md:text-lg text-[color:var(--dame-muted)]">
+              This permanent registration is a little more detailed than the temporary form because it helps us understand your career goals, salary expectations, and ideal next move.
+            </p>
+          </div>
 
-          {/* Progress Bar */}
-          <div className="bg-neutral-light/30 px-8 py-5 border-b border-neutral-light">
-            <div className="flex items-center justify-between">
-              {[1, 2, 3, 4, 5, 6, 7].map((step) => (
-                <div key={step} className="flex items-center">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-body font-medium transition-colors ${
-                    currentStep >= step ? 'bg-primary-red text-white' : 'bg-neutral-light text-charcoal/50'
-                  }`}>
-                    {step}
-                  </div>
-                  {step < 7 && (
-                    <div className={`w-8 sm:w-12 h-1 mx-1 sm:mx-2 rounded-full transition-colors ${
-                      currentStep > step ? 'bg-primary-red' : 'bg-neutral-light'
-                    }`} />
-                  )}
-                </div>
-              ))}
+          {submitStatus === 'success' && (
+            <div className="form-feedback form-feedback--success mb-8" role="alert" aria-live="polite">
+              <CheckCircle className="form-feedback__icon h-5 w-5" aria-hidden="true" />
+              <div className="flex-1">
+                <p className="font-medium text-[color:var(--dame-ink)]">Registration submitted</p>
+                <p className="text-sm text-[color:var(--dame-muted)] mt-0.5">
+                  {submitMessage}
+                </p>
+              </div>
             </div>
-            <div className="flex justify-between text-xs font-body text-charcoal/50 mt-2">
-              <span>Personal</span>
-              <span>Career</span>
-              <span>Preferences</span>
-              <span>Availability</span>
-              <span>Experience</span>
-              <span>Education</span>
-              <span>Review</span>
+          )}
+
+          {submitStatus === 'error' && (
+            <div className="form-feedback form-feedback--error mb-8" role="alert" aria-live="polite">
+              <XCircle className="form-feedback__icon h-5 w-5" aria-hidden="true" />
+              <div className="flex-1">
+                <p className="font-medium text-[color:var(--dame-ink)]">We could not submit that yet</p>
+                <p className="text-sm text-[color:var(--dame-muted)] mt-0.5">
+                  {submitMessage}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Progress */}
+          <div className="mb-8 form-section py-4 md:py-5">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm font-medium text-[color:var(--dame-ink)]">
+                <span className="dame-eyebrow mr-2">Step {currentStep}/7</span>
+                {stepTitles[currentStep - 1]}
+              </span>
+              <span className="text-sm text-[color:var(--dame-muted)]">
+                {Math.round((currentStep / 7) * 100)}% complete
+              </span>
+            </div>
+            <div className="relative w-full h-1.5 rounded-full bg-[color:var(--dame-line)] overflow-hidden">
+              <div
+                className="absolute inset-y-0 left-0 rounded-full transition-all duration-300"
+                style={{ width: `${(currentStep / 7) * 100}%`, background: 'var(--dame-gradient)' }}
+              />
             </div>
           </div>
 
           {/* Form Content */}
-          <div className="px-8 py-8">
+          <div className="form-section">
             {currentStep === 1 && renderStep1()}
             {currentStep === 2 && renderStep2()}
             {currentStep === 3 && renderStep3()}
@@ -1163,12 +1198,12 @@ export default function PermanentCandidateRegistration() {
             {currentStep === 7 && renderStep7()}
 
             {/* Navigation */}
-            <div className="flex justify-between mt-8">
+            <div className="flex justify-between gap-3 mt-8 pt-6 border-t border-[color:var(--dame-line)]">
               <button
                 type="button"
                 onClick={() => setCurrentStep(Math.max(1, currentStep - 1))}
                 disabled={currentStep === 1}
-                className="flex items-center px-6 py-3 border border-neutral-light rounded-lg font-body text-charcoal hover:bg-neutral-light/50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="dame-button-secondary btn-lift disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <ChevronLeft className="w-4 h-4 mr-2" />
                 Previous
@@ -1178,7 +1213,7 @@ export default function PermanentCandidateRegistration() {
                 <button
                   type="button"
                   onClick={() => setCurrentStep(Math.min(7, currentStep + 1))}
-                  className="flex items-center px-6 py-3 bg-primary-red text-white rounded-lg font-body font-medium hover:bg-primary-red/90 transition-colors"
+                className="dame-button-primary btn-lift"
                 >
                   Next
                   <ChevronRight className="w-4 h-4 ml-2" />
@@ -1188,14 +1223,13 @@ export default function PermanentCandidateRegistration() {
                   type="button"
                   onClick={handleSubmit}
                   disabled={isSubmitting}
-                  className="flex items-center px-6 py-3 bg-primary-red text-white rounded-lg font-body font-medium hover:bg-primary-red/90 transition-colors disabled:opacity-50"
+                className="dame-button-primary btn-lift disabled:opacity-50 disabled:cursor-wait"
                 >
                   {isSubmitting ? 'Submitting...' : 'Submit Registration'}
                 </button>
               )}
             </div>
           </div>
-        </div>
       </div>
     </div>
     </div>

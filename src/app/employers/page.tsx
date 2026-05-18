@@ -117,7 +117,7 @@ export default function EmployersPage() {
         align="left"
         eyebrow="For employers"
         title="Reliable staffing across the East Midlands."
-        subtitle="Permanent and temporary recruitment for warehousing, manufacturing, and engineering &mdash; with the consultants who actually pick up the phone."
+        subtitle="Permanent and temporary recruitment for warehousing, manufacturing, and engineering, delivered with a calm and responsive service."
         aside={
           <Link href="/contact" className="dame-button-primary btn-lift">
             Book a call
