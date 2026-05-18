@@ -42,9 +42,9 @@ export default function Navigation() {
             <Image
               src="/dame-logo.svg"
               alt="Dame Recruitment"
-              width={320}
+              width={410}
               height={70}
-              className="h-10 md:h-14 w-auto"
+              className="h-9 md:h-12 w-auto"
               priority
             />
           </Link>
