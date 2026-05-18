@@ -30,7 +30,7 @@ const config: Config = {
         'line': '#e6e1d6',
       },
       fontFamily: {
-        'heading': ['var(--font-playfair)', 'Georgia', 'serif'],
+        'heading': ['"General Sans"', 'var(--font-inter)', 'system-ui', 'sans-serif'],
         'body': ['var(--font-inter)', 'Inter', 'system-ui', 'sans-serif'],
       },
       fontSize: {

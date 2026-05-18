@@ -1,17 +1,11 @@
 import type { Metadata } from 'next'
-import { Inter, Playfair_Display } from 'next/font/google'
+import { Inter } from 'next/font/google'
 import './globals.css'
 import LayoutShell from '@/components/LayoutShell'
 
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
-  display: 'swap',
-})
-
-const playfair = Playfair_Display({
-  subsets: ['latin'],
-  variable: '--font-playfair',
   display: 'swap',
 })
 
@@ -72,10 +66,15 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en-GB" className={`${inter.variable} ${playfair.variable} scroll-smooth`}>
+    <html lang="en-GB" className={`${inter.variable} scroll-smooth`}>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://api.fontshare.com" />
+        <link
+          rel="stylesheet"
+          href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap"
+        />
       </head>
       <body className="font-body antialiased">
         <LayoutShell>{children}</LayoutShell>

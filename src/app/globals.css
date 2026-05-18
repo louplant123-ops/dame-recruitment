@@ -161,7 +161,7 @@
   }
 
   .page-banner h1 {
-    font-family: var(--font-playfair), Georgia, serif;
+    font-family: 'General Sans', var(--font-inter), system-ui, sans-serif;
     font-weight: 600;
     letter-spacing: -0.02em;
     color: var(--dame-ink);
@@ -272,7 +272,7 @@
   .quote-mark {
     font-size: 4rem;
     line-height: 0.9;
-    font-family: var(--font-playfair), Georgia, serif;
+    font-family: 'General Sans', var(--font-inter), system-ui, sans-serif;
     color: var(--dame-line-strong);
   }
 
@@ -283,7 +283,7 @@
     width: 3rem;
     height: 3rem;
     border-radius: 999px;
-    font-family: var(--font-playfair), Georgia, serif;
+    font-family: 'General Sans', var(--font-inter), system-ui, sans-serif;
     font-weight: 600;
     font-size: 0.95rem;
     background: var(--dame-ink);
@@ -309,9 +309,9 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-playfair), Georgia, serif;
+    font-family: 'General Sans', var(--font-inter), system-ui, sans-serif;
     font-weight: 600;
-    letter-spacing: -0.015em;
+    letter-spacing: -0.018em;
     color: var(--dame-ink);
   }
 
