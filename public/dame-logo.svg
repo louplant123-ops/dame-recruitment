@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 140" role="img" aria-labelledby="title">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 140" role="img" aria-labelledby="title">
   <title id="title">Dame Recruitment</title>
   <defs>
     <linearGradient id="brandLine" x1="0" y1="0" x2="1" y2="0">
@@ -16,13 +16,13 @@
         font-family="Georgia, 'Times New Roman', serif" font-weight="600"
         font-size="100" fill="#f1ecdf">D</text>
 
-  <!-- Wordmark: single text run with two tspans for colour distinction -->
+  <!-- Wordmark -->
   <text x="170" y="88"
         font-family="Georgia, 'Times New Roman', serif"
         font-size="60">
-    <tspan font-weight="600" fill="#14181d">Dame</tspan><tspan font-weight="500" fill="#6e7682" dx="14">Recruitment</tspan>
+    <tspan font-weight="600" fill="#14181d">Dame</tspan><tspan font-weight="500" fill="#6e7682" dx="6">Recruitment</tspan>
   </text>
 
-  <!-- Gradient hairline accent -->
-  <rect x="170" y="106" width="600" height="2.5" rx="1.25" fill="url(#brandLine)" opacity=".85"/>
+  <!-- Gradient hairline accent — aligned to wordmark width -->
+  <rect x="170" y="104" width="530" height="2" rx="1" fill="url(#brandLine)" opacity=".85"/>
 </svg>
