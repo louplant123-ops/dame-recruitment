@@ -196,16 +196,13 @@ export default function ClientInfoPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-hero py-12">
+    <div className="min-h-screen bg-gray-50 py-12">
       <div className="max-w-4xl mx-auto px-4">
-        <div className="dame-form-shell">
+        <div className="bg-white rounded-lg shadow-lg">
           {/* Header */}
-          <div className="dame-form-header text-center">
-            <span className="dame-mark-gradient mx-auto mb-4 block w-fit">
-              <span className="h-14 w-14 text-4xl">D</span>
-            </span>
+          <div className="bg-red-600 text-white p-8 rounded-t-lg text-center">
             <h1 className="text-3xl font-bold mb-2">Dame Recruitment</h1>
-            <p>Client Information Form</p>
+            <p className="text-red-100">Client Information Form</p>
           </div>
 
           <div className="p-8">
@@ -453,7 +450,7 @@ export default function ClientInfoPage() {
 
               <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-sm text-gray-500 leading-relaxed">
                 <strong>Privacy Notice:</strong> Dame Recruitment will use the information you provide to manage your account and deliver our recruitment services. Your data is stored securely and processed in accordance with UK GDPR and the Data Protection Act 2018. You can request access to, correction, or deletion of your data at any time by contacting{' '}
-                <a href="mailto:hello@damerecruitment.co.uk" className="text-red-600 underline">hello@damerecruitment.co.uk</a>. See our{' '}
+                <a href="mailto:info@damerecruitment.co.uk" className="text-red-600 underline">info@damerecruitment.co.uk</a>. See our{' '}
                 <a href="/privacy" className="text-red-600 underline">Privacy Policy</a> for full details.
               </div>
 

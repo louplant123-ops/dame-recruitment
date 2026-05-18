@@ -4,21 +4,32 @@
 
 @layer base {
   :root {
-    --dame-ink: #030712;
-    --dame-charcoal: #0a0f1a;
-    --dame-graphite: #111827;
-    --dame-panel: rgba(16, 24, 39, 0.82);
-    --dame-panel-strong: rgba(8, 13, 24, 0.94);
-    --dame-line: rgba(148, 163, 184, 0.18);
-    --dame-muted: #9ca3af;
-    --dame-text: #f8fafc;
-    --dame-cyan: #00e5ff;
-    --dame-blue: #2563ff;
-    --dame-purple: #7c3aed;
-    --dame-pink: #d946ef;
-    --dame-red: #ff4d6d;
-    --dame-gradient: linear-gradient(90deg, var(--dame-cyan), var(--dame-blue), var(--dame-purple), var(--dame-red));
-    --dame-radius: 1.5rem;
+    /* Surface */
+    --dame-bg: #fbfaf7;          /* warm off-white page background */
+    --dame-surface: #ffffff;     /* card / panel */
+    --dame-surface-soft: #f4f1ea;/* warm soft section */
+    --dame-line: #e6e1d6;        /* hairline */
+    --dame-line-strong: #cdc6b6;
+
+    /* Text */
+    --dame-ink: #14181d;         /* primary headings */
+    --dame-text: #232a32;        /* body */
+    --dame-muted: #6e7682;       /* secondary */
+    --dame-muted-soft: #98a0ac;
+
+    /* Brand accents (used sparingly) */
+    --dame-cyan: #2b9fc6;
+    --dame-blue: #2f4ed1;
+    --dame-purple: #6b4ed0;
+    --dame-pink: #c95aaa;
+    --dame-red: #c54b65;
+    --dame-gold: #b89567;
+
+    /* Signature gradient — used only as thin accent lines */
+    --dame-gradient: linear-gradient(90deg, #2b9fc6 0%, #2f4ed1 32%, #6b4ed0 62%, #c54b65 100%);
+
+    --dame-radius: 1rem;
+    --dame-radius-sm: 0.5rem;
   }
 
   html {
@@ -27,502 +38,379 @@
 
   body {
     min-height: 100vh;
+    background: var(--dame-bg);
     color: var(--dame-text);
-    background:
-      radial-gradient(circle at 12% 8%, rgba(0, 229, 255, 0.14), transparent 28rem),
-      radial-gradient(circle at 88% 4%, rgba(217, 70, 239, 0.13), transparent 30rem),
-      radial-gradient(circle at 48% 54%, rgba(37, 99, 255, 0.08), transparent 36rem),
-      linear-gradient(135deg, var(--dame-ink) 0%, var(--dame-charcoal) 45%, var(--dame-graphite) 100%);
-  }
-
-  body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
-    background-image:
-      linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
-    background-size: 48px 48px;
-    mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.85), transparent 78%);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   ::selection {
+    background: var(--dame-ink);
     color: #ffffff;
-    background: rgba(124, 58, 237, 0.65);
   }
-  
+
   *:focus-visible {
-    @apply outline-none ring-2 ring-accent-teal ring-offset-2 ring-offset-charcoal;
-  }
-  
-  /* High contrast focus for better accessibility */
-  @media (prefers-contrast: high) {
-    *:focus-visible {
-      @apply ring-4 ring-accent-teal;
-    }
+    outline: none;
+    box-shadow: 0 0 0 2px var(--dame-bg), 0 0 0 4px var(--dame-ink);
+    border-radius: 2px;
   }
 }
 
 @layer components {
-  .dame-shell {
-    position: relative;
-    overflow: hidden;
-  }
 
   .dame-container {
-    @apply max-w-container mx-auto px-4 sm:px-6 lg:px-8;
+    @apply mx-auto px-4 sm:px-6 lg:px-8;
+    max-width: 1200px;
   }
 
+  /* Eyebrow label */
   .dame-eyebrow {
-    @apply font-body text-xs font-bold uppercase tracking-[0.34em];
-    color: var(--dame-cyan);
+    font-family: var(--font-inter), system-ui, sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--dame-muted);
   }
 
-  .dame-gradient-text {
+  /* Brand mark — dark badge with gradient hairline border (only used in tight branding moments) */
+  .dame-mark-gradient {
+    display: inline-flex;
+    padding: 1.5px;
+    border-radius: 0.85rem;
     background: var(--dame-gradient);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
   }
 
-  .dame-glass,
-  .glass-card {
-    position: relative;
-    overflow: hidden;
-    border: 1px solid var(--dame-line);
-    border-radius: var(--dame-radius);
-    background:
-      linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.025)),
-      var(--dame-panel);
-    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.32);
-    backdrop-filter: blur(18px);
-  }
-
-  .dame-glass::before,
-  .glass-card::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    border-radius: inherit;
-    background:
-      linear-gradient(120deg, rgba(255, 255, 255, 0.18), transparent 22%),
-      radial-gradient(circle at top left, rgba(0, 229, 255, 0.14), transparent 34%),
-      radial-gradient(circle at bottom right, rgba(255, 77, 109, 0.12), transparent 36%);
-  }
-
-  .dame-glass > *,
-  .glass-card > * {
-    position: relative;
-    z-index: 1;
-  }
-
-  .dame-glow-border {
-    position: relative;
-  }
-
-  .dame-glow-border::after {
-    content: "";
-    position: absolute;
-    inset: -1px;
-    z-index: -1;
-    border-radius: inherit;
-    background: var(--dame-gradient);
-    opacity: 0.66;
-    filter: blur(12px);
-  }
-
+  .dame-mark-gradient > span,
   .dame-mark {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 1.25rem;
-    background:
-      linear-gradient(145deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.02)),
-      radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.16), transparent 34%),
-      #0a0f1a;
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.12),
-      0 18px 38px rgba(0, 0, 0, 0.38),
-      0 0 0 1px rgba(0, 229, 255, 0.14);
-    color: #f8fafc;
+    border-radius: 0.7rem;
+    background: linear-gradient(160deg, #1a2030 0%, #0c111c 100%);
+    color: #f1ecdf;
     font-family: var(--font-playfair), Georgia, serif;
-    font-weight: 700;
-    text-shadow: 0 1px 0 #ffffff, 0 12px 24px rgba(0, 0, 0, 0.85);
+    font-weight: 600;
+    line-height: 1;
   }
 
-  .dame-mark-gradient {
-    padding: 2px;
-    border-radius: 1.4rem;
-    background: var(--dame-gradient);
-    box-shadow: 0 0 36px rgba(124, 58, 237, 0.28);
-  }
-
-  .dame-mark-gradient > span {
+  /* Buttons */
+  .dame-button-primary {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border-radius: 1.25rem;
-    background:
-      linear-gradient(145deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.02)),
-      radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.16), transparent 34%),
-      #0a0f1a;
-    color: #f8fafc;
-    font-family: var(--font-playfair), Georgia, serif;
-    font-weight: 700;
-  }
-
-  .dame-neon-line {
-    height: 3px;
+    gap: 0.5rem;
+    padding: 0.85rem 1.5rem;
     border-radius: 999px;
-    background: var(--dame-gradient);
-    box-shadow: 0 0 24px rgba(217, 70, 239, 0.45), 0 0 22px rgba(0, 229, 255, 0.28);
-  }
-
-  .dame-button-primary {
-    @apply inline-flex items-center justify-center rounded-xl px-6 py-3 font-body font-bold text-white transition-all duration-200;
-    background: var(--dame-gradient);
-    box-shadow: 0 16px 34px rgba(124, 58, 237, 0.26);
+    font-family: var(--font-inter), system-ui, sans-serif;
+    font-weight: 500;
+    font-size: 0.95rem;
+    letter-spacing: 0.01em;
+    background: var(--dame-ink);
+    color: #ffffff;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
   }
 
   .dame-button-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 22px 46px rgba(124, 58, 237, 0.36);
+    transform: translateY(-1px);
+    background: #000000;
+    box-shadow: 0 10px 28px rgba(20, 24, 29, 0.22);
   }
 
   .dame-button-secondary {
-    @apply inline-flex items-center justify-center rounded-xl px-6 py-3 font-body font-bold transition-all duration-200;
-    color: var(--dame-text);
-    border: 1px solid var(--dame-line);
-    background: rgba(255, 255, 255, 0.06);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.85rem 1.5rem;
+    border-radius: 999px;
+    font-family: var(--font-inter), system-ui, sans-serif;
+    font-weight: 500;
+    font-size: 0.95rem;
+    letter-spacing: 0.01em;
+    color: var(--dame-ink);
+    border: 1px solid var(--dame-line-strong);
+    background: transparent;
+    transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
   }
 
   .dame-button-secondary:hover {
-    border-color: rgba(0, 229, 255, 0.5);
-    background: rgba(0, 229, 255, 0.08);
+    border-color: var(--dame-ink);
+    background: var(--dame-surface);
   }
 
-  .dame-inner-frame {
-    @apply relative overflow-hidden rounded-[2rem] border border-white/10 p-5 sm:p-8;
-    background:
-      radial-gradient(circle at top left, rgba(0, 229, 255, 0.10), transparent 32%),
-      radial-gradient(circle at bottom right, rgba(255, 77, 109, 0.10), transparent 34%),
-      rgba(10, 15, 26, 0.72);
-    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.32);
-    backdrop-filter: blur(18px);
+  /* Page banner used on inner pages — quiet, editorial, warm off-white */
+  .page-banner {
+    padding-top: 4.5rem;
+    padding-bottom: 4rem;
+    background: var(--dame-surface-soft);
+    border-bottom: 1px solid var(--dame-line);
+    color: var(--dame-ink);
+    position: relative;
   }
 
-  .dame-form-shell {
-    @apply relative overflow-hidden rounded-[2rem] border border-white/10 p-5 sm:p-8;
-    background:
-      linear-gradient(145deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.025)),
-      rgba(10, 15, 26, 0.82);
-    box-shadow: 0 28px 90px rgba(0, 0, 0, 0.34);
-    backdrop-filter: blur(18px);
-  }
-
-  .dame-form-shell::before {
+  .page-banner::after {
     content: "";
     position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background:
-      radial-gradient(circle at 14% 5%, rgba(0, 229, 255, 0.12), transparent 30%),
-      radial-gradient(circle at 90% 8%, rgba(217, 70, 239, 0.10), transparent 28%);
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 2px;
+    background: var(--dame-gradient);
+    opacity: 0.55;
   }
 
-  .dame-form-shell > * {
-    position: relative;
-    z-index: 1;
+  .page-banner h1 {
+    font-family: var(--font-playfair), Georgia, serif;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--dame-ink);
   }
 
-  .dame-form-header {
-    @apply mb-8 border-b border-white/10 pb-6;
+  .page-banner p {
+    color: var(--dame-muted);
   }
 
-  .dame-form-header h2,
-  .dame-form-header h1 {
-    @apply font-heading font-bold text-white;
+  /* Card hover effects (existing class names kept harmless) */
+  .card-hover {
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
   }
 
-  .dame-form-header p {
-    @apply mt-3 text-white/60;
+  .card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 18px 36px rgba(20, 24, 29, 0.08);
   }
 
-  .dame-step-rail {
-    @apply rounded-2xl border border-white/10 bg-white/[0.035] p-4;
+  .card-hover-border {
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+    border-color: var(--dame-line);
   }
 
-  .dame-portal-card {
-    @apply relative overflow-hidden rounded-2xl border border-white/10 p-4 shadow-card;
-    background:
-      linear-gradient(145deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.025)),
-      rgba(16, 24, 39, 0.78);
+  .card-hover-border:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 20px 40px rgba(20, 24, 29, 0.08);
+    border-color: var(--dame-line-strong);
   }
 
-  .dame-portal-card::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background: radial-gradient(circle at top left, rgba(0, 229, 255, 0.08), transparent 36%);
-  }
-
-  .dame-portal-card > * {
-    position: relative;
-    z-index: 1;
-  }
-
-  .dame-portal-action {
-    @apply relative block overflow-hidden rounded-2xl border border-white/10 p-4 shadow-card transition-all active:scale-[0.97];
-    background:
-      linear-gradient(145deg, rgba(255, 255, 255, 0.065), rgba(255, 255, 255, 0.02)),
-      rgba(16, 24, 39, 0.76);
-  }
-
-  .dame-portal-action:hover {
-    border-color: rgba(0, 229, 255, 0.36);
-    transform: translateY(-1px);
-  }
-
-  .dame-icon-chip {
-    @apply flex items-center justify-center rounded-xl border border-white/10;
-    background:
-      linear-gradient(135deg, rgba(0, 229, 255, 0.16), rgba(124, 58, 237, 0.18)),
-      rgba(255, 255, 255, 0.05);
-  }
-
-  .dame-status-card {
-    @apply rounded-2xl border border-white/10 p-4;
-    background: rgba(255, 255, 255, 0.045);
+  .card-accent-top {
+    border-top-width: 3px;
   }
 
   .btn-lift {
-    @apply transition-all duration-200 ease-out;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
-  
+
   .btn-lift:hover {
-    @apply -translate-y-0.5 shadow-lift;
+    transform: translateY(-1px);
+    box-shadow: 0 10px 22px rgba(20, 24, 29, 0.10);
   }
-  
-  .btn-lift:active {
-    @apply translate-y-0 shadow-sm;
-  }
-  
-  /* Section border accents */
-  .section-accent-teal {
-    @apply border-t-2 border-accent-teal;
-  }
-  
-  .section-accent-blue {
-    @apply border-t-2 border-accent-blue;
-  }
-  
-  .section-accent-yellow {
-    @apply border-t-2 border-accent-yellow;
-  }
-  
-  .section-accent-green {
-    @apply border-t-2 border-accent-green;
-  }
-  
-  /* Card hover effects */
-  .card-hover {
-    @apply transition-all duration-300 ease-out;
-  }
-  
-  .card-hover:hover {
-    @apply shadow-lift-lg -translate-y-1;
-  }
-  
-  /* Form input focus states */
+
+  /* Section accents */
+  .section-accent-teal { border-top: 2px solid var(--dame-cyan); }
+  .section-accent-blue { border-top: 2px solid var(--dame-blue); }
+  .section-accent-yellow { border-top: 2px solid var(--dame-gold); }
+  .section-accent-green { border-top: 2px solid var(--dame-cyan); }
+
+  /* Form input focus */
   .form-input {
-    @apply transition-all duration-200 ease-out;
-    color: var(--dame-text);
-    border-color: var(--dame-line);
-    background: rgba(3, 7, 18, 0.62);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    color: var(--dame-ink);
+    background: var(--dame-surface);
+    border: 1px solid var(--dame-line);
   }
-  
+
   .form-input:focus {
-    @apply ring-2 ring-accent-teal ring-offset-2 ring-offset-charcoal border-transparent shadow-sm;
+    outline: none;
+    border-color: var(--dame-ink);
+    box-shadow: 0 0 0 3px rgba(20, 24, 29, 0.08);
   }
-  
-  /* Aria live regions for screen readers */
-  .sr-only {
-    @apply absolute w-px h-px p-0 -m-px overflow-hidden whitespace-nowrap border-0;
-  }
-  
-  /* Gradient backgrounds */
+
+  /* Hero band — the only dark brand moment on the public site */
   .bg-gradient-hero {
+    position: relative;
     background:
-      radial-gradient(circle at 12% 12%, rgba(0, 229, 255, 0.16), transparent 30%),
-      radial-gradient(circle at 88% 18%, rgba(255, 77, 109, 0.13), transparent 30%),
-      linear-gradient(135deg, #030712 0%, #0a0f1a 50%, #111827 100%);
+      radial-gradient(ellipse 60% 40% at 18% 12%, rgba(43, 159, 198, 0.15), transparent 60%),
+      radial-gradient(ellipse 55% 35% at 85% 20%, rgba(107, 78, 208, 0.13), transparent 60%),
+      linear-gradient(180deg, #0f1217 0%, #14181d 100%);
+    color: #ffffff;
   }
-  
+
+  .bg-gradient-hero h1,
+  .bg-gradient-hero h2,
+  .bg-gradient-hero h3 {
+    color: #ffffff;
+  }
+
+  .bg-gradient-hero p {
+    color: rgba(255, 255, 255, 0.78);
+  }
+
+  /* Page banner remains light & elegant. */
+
   .bg-gradient-charcoal-teal {
-    background: linear-gradient(180deg, #030712 0%, #111827 100%);
+    background:
+      linear-gradient(180deg, #0f1217 0%, #14181d 100%);
+    color: #ffffff;
   }
-  
-  /* Wave divider between sections */
+
+  /* Wave divider used in old layouts */
   .wave-divider {
     position: relative;
     width: 100%;
     overflow: hidden;
     line-height: 0;
   }
-  
+
   .wave-divider svg {
     position: relative;
     display: block;
     width: calc(100% + 1.3px);
     height: 60px;
   }
-  
-  /* Enhanced card hover with border transition */
-  .card-hover-border {
-    @apply transition-all duration-300 ease-out border-transparent;
-  }
-  
-  .card-hover-border:hover {
-    @apply shadow-lift-lg -translate-y-1 border-accent-teal;
-  }
-  
-  /* Top border accent for cards */
-  .card-accent-top {
-    @apply border-t-4;
-  }
-  
-  /* Page banner style */
-  .page-banner {
-    @apply text-white py-14;
-    background:
-      radial-gradient(circle at 15% 15%, rgba(0, 229, 255, 0.15), transparent 26%),
-      radial-gradient(circle at 85% 20%, rgba(217, 70, 239, 0.14), transparent 28%),
-      linear-gradient(135deg, #030712 0%, #0a0f1a 100%);
-    border-bottom: 1px solid var(--dame-line);
-  }
 
-  .page-banner h1 {
-    letter-spacing: -0.03em;
-  }
-
-  .page-banner p {
-    color: rgba(248, 250, 252, 0.66);
-  }
-  
-  /* Animated pulse for dots */
-  @keyframes pulse-subtle {
-    0%, 100% { opacity: 0.8; }
-    50% { opacity: 1; }
-  }
-  
-  .animate-pulse-subtle {
-    animation: pulse-subtle 2s ease-in-out infinite;
-  }
-  
-  /* Quote styling */
+  /* Quotation styling */
   .quote-mark {
-    @apply text-6xl leading-none font-serif text-accent-teal/20;
+    font-size: 4rem;
+    line-height: 0.9;
+    font-family: var(--font-playfair), Georgia, serif;
+    color: var(--dame-line-strong);
   }
-  
-  /* Avatar initials */
+
   .avatar-initials {
-    @apply w-12 h-12 rounded-full flex items-center justify-center font-heading font-bold text-white text-sm;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 999px;
+    font-family: var(--font-playfair), Georgia, serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    background: var(--dame-ink);
+    color: #ffffff;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    white-space: nowrap;
+    border: 0;
   }
 }
 
 @layer base {
   html {
-    font-family: var(--font-inter), system-ui, sans-serif;
+    font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+    color: var(--dame-text);
   }
-  
+
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-playfair), Georgia, serif;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    color: var(--dame-ink);
+  }
+
+  p {
+    color: var(--dame-text);
   }
 
   input,
   select,
   textarea {
-    color: var(--dame-text);
-    background-color: rgba(3, 7, 18, 0.72);
+    color: var(--dame-ink);
+    background-color: var(--dame-surface);
     border-color: var(--dame-line);
-  }
-
-  input[type="checkbox"],
-  input[type="radio"] {
-    accent-color: var(--dame-red);
   }
 
   input::placeholder,
   textarea::placeholder {
-    color: rgba(156, 163, 175, 0.72);
+    color: var(--dame-muted-soft);
+  }
+
+  input[type="checkbox"],
+  input[type="radio"] {
+    accent-color: var(--dame-ink);
   }
 }
 
+/* Override legacy Tailwind colour utilities so old pages adopt the new palette */
 @layer utilities {
   .bg-neutral-white,
   .bg-white {
-    background:
-      linear-gradient(145deg, rgba(255, 255, 255, 0.065), rgba(255, 255, 255, 0.02)),
-      rgba(10, 15, 26, 0.88) !important;
+    background-color: var(--dame-surface) !important;
   }
 
   .bg-neutral-light,
-  .bg-gray-50,
-  .bg-gray-100,
-  .bg-red-50,
-  .bg-green-50,
-  .bg-yellow-50,
-  .bg-blue-50 {
-    background:
-      linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.015)),
-      rgba(17, 24, 39, 0.78) !important;
+  .bg-gray-50 {
+    background-color: var(--dame-surface-soft) !important;
   }
 
-  .bg-primary-red,
+  .bg-red-50 { background-color: rgba(197, 75, 101, 0.06) !important; }
+  .bg-green-50 { background-color: rgba(43, 159, 198, 0.06) !important; }
+  .bg-yellow-50 { background-color: rgba(184, 149, 103, 0.08) !important; }
+  .bg-blue-50 { background-color: rgba(47, 78, 209, 0.06) !important; }
+
+  .bg-primary-red {
+    background-color: var(--dame-ink) !important;
+    color: #ffffff !important;
+  }
+
+  /* Keep the gradient-red utility coral; just refine to subdued brand tone */
   .bg-gradient-red {
-    background: var(--dame-gradient) !important;
+    background-image: linear-gradient(135deg, #c54b65 0%, #c95aaa 100%) !important;
+    color: #ffffff !important;
   }
 
   .text-charcoal,
   .text-gray-900,
-  .text-gray-800,
-  .text-gray-700 {
+  .text-gray-800 {
+    color: var(--dame-ink) !important;
+  }
+
+  .text-gray-700,
+  .text-charcoal\/80 {
     color: var(--dame-text) !important;
   }
 
-  .text-charcoal\/80,
   .text-charcoal\/70,
   .text-charcoal\/60,
   .text-charcoal\/50,
   .text-gray-600,
-  .text-gray-500,
-  .text-gray-400 {
+  .text-gray-500 {
     color: var(--dame-muted) !important;
   }
 
+  .text-gray-400,
+  .text-charcoal\/40,
+  .text-charcoal\/30 {
+    color: var(--dame-muted-soft) !important;
+  }
+
   .text-primary-red {
-    color: var(--dame-red) !important;
+    color: var(--dame-ink) !important;
   }
 
-  .text-green-800,
-  .text-green-700,
-  .text-blue-600 {
-    color: var(--dame-cyan) !important;
-  }
+  .text-accent-teal { color: var(--dame-cyan) !important; }
+  .text-accent-blue { color: var(--dame-blue) !important; }
+  .text-accent-yellow { color: var(--dame-gold) !important; }
+  .text-accent-green { color: var(--dame-cyan) !important; }
+  .text-accent-purple { color: var(--dame-purple) !important; }
+  .text-accent-pink { color: var(--dame-pink) !important; }
 
-  .text-yellow-800,
-  .text-red-700,
-  .text-red-600 {
-    color: #fda4af !important;
-  }
+  .bg-accent-teal { background-color: var(--dame-cyan) !important; }
+  .bg-accent-blue { background-color: var(--dame-blue) !important; }
+  .bg-accent-yellow { background-color: var(--dame-gold) !important; }
+  .bg-accent-green { background-color: var(--dame-cyan) !important; }
+  .bg-accent-purple { background-color: var(--dame-purple) !important; }
+  .bg-accent-pink { background-color: var(--dame-pink) !important; }
 
   .border-primary-red {
-    border-color: rgba(255, 77, 109, 0.58) !important;
+    border-color: var(--dame-ink) !important;
   }
 
   .border-neutral-light,
@@ -533,24 +421,20 @@
     border-color: var(--dame-line) !important;
   }
 
-  .shadow-sm,
+  .shadow-sm {
+    box-shadow: 0 1px 2px rgba(20, 24, 29, 0.05), 0 1px 1px rgba(20, 24, 29, 0.04) !important;
+  }
   .shadow,
-  .shadow-md,
+  .shadow-md {
+    box-shadow: 0 8px 16px rgba(20, 24, 29, 0.06), 0 2px 4px rgba(20, 24, 29, 0.04) !important;
+  }
   .shadow-lg,
   .shadow-xl {
-    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.24) !important;
+    box-shadow: 0 18px 40px rgba(20, 24, 29, 0.08), 0 4px 8px rgba(20, 24, 29, 0.04) !important;
   }
 
-  .rounded-lg,
-  .rounded-xl {
-    border-radius: 1rem;
-  }
-
-  .bg-gradient-to-br.from-teal-50.to-blue-50,
-  .bg-gradient-to-br.from-\[\#0f0f1a\].via-\[\#1a1a2e\].to-\[\#16213e\] {
-    background:
-      radial-gradient(circle at 12% 10%, rgba(0, 229, 255, 0.16), transparent 28rem),
-      radial-gradient(circle at 86% 8%, rgba(255, 77, 109, 0.13), transparent 30rem),
-      linear-gradient(135deg, var(--dame-ink) 0%, var(--dame-charcoal) 50%, var(--dame-graphite) 100%) !important;
+  /* Buttons styled via Tailwind classes get the new ink primary look */
+  .bg-primary-red:hover {
+    background: #000000 !important;
   }
 }

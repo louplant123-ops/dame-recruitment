@@ -1128,10 +1128,10 @@ export default function PermanentCandidateRegistration() {
 
       <div className="py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
-          <div className="dame-form-shell overflow-hidden">
+          <div className="bg-white rounded-xl border border-neutral-light shadow-sm overflow-hidden">
 
           {/* Progress Bar */}
-          <div className="dame-step-rail mb-8">
+          <div className="bg-neutral-light/30 px-8 py-5 border-b border-neutral-light">
             <div className="flex items-center justify-between">
               {[1, 2, 3, 4, 5, 6, 7].map((step) => (
                 <div key={step} className="flex items-center">

@@ -154,9 +154,9 @@ export default function HolidayRequestPage() {
 
   if (isSubmitted) {
     return (
-      <div className="min-h-screen bg-gradient-hero flex items-center justify-center p-4">
-        <div className="dame-form-shell max-w-md w-full text-center">
-          <div className="w-16 h-16 dame-icon-chip mx-auto mb-4">
+      <div className="min-h-screen bg-gradient-to-br from-teal-50 to-blue-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
@@ -165,7 +165,7 @@ export default function HolidayRequestPage() {
           <p className="text-gray-600 mb-6">
             Your holiday request has been received. We&apos;ll review it and get back to you within 24 hours.
           </p>
-          <div className="dame-status-card mb-6">
+          <div className="bg-blue-50 rounded-lg p-4 mb-6">
             <p className="text-sm text-gray-700">
               <strong>Dates:</strong> {formData.startDate} to {formData.endDate}<br />
               <strong>Total Days:</strong> {formData.totalDays}<br />
@@ -181,15 +181,12 @@ export default function HolidayRequestPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-hero flex items-center justify-center p-4">
-      <div className="dame-form-shell max-w-2xl w-full">
+    <div className="min-h-screen bg-gradient-to-br from-teal-50 to-blue-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-xl p-8 max-w-2xl w-full">
         {/* Header */}
-        <div className="dame-form-header text-center">
-          <span className="dame-mark-gradient mx-auto mb-4 block w-fit">
-            <span className="h-14 w-14 text-4xl">D</span>
-          </span>
+        <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Time Off Request</h1>
-          <p className="text-gray-600">Dame Recruitment — Holiday, Sick Leave &amp; Absence</p>
+          <p className="text-gray-600">Dame Recruitment — Holiday, Sick Leave & Absence</p>
         </div>
 
         {error && (

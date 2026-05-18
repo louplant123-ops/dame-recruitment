@@ -220,7 +220,7 @@ export default function RegisterPart2Page() {
               Have questions? Get in touch with our team:
             </p>
             <a
-              href="mailto:hello@damerecruitment.co.uk?subject=Registration Enquiry"
+              href="mailto:info@damerecruitment.co.uk?subject=Registration Enquiry"
               className="inline-block bg-primary-red text-white px-6 py-3 rounded-lg font-body font-medium hover:bg-primary-red/90 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-red focus:ring-offset-2"
             >
               Email Our Team
@@ -233,10 +233,8 @@ export default function RegisterPart2Page() {
 
   return (
     <div className="py-16">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6">
-        <div className="dame-form-shell">
-        <div className="dame-form-header">
-          <p className="dame-eyebrow mb-3">Work Ready</p>
+      <div className="max-w-2xl mx-auto">
+        <div className="mb-8">
           <h1 className="text-4xl font-heading font-bold text-charcoal mb-4">
             Complete Your Registration
           </h1>
@@ -861,7 +859,6 @@ export default function RegisterPart2Page() {
             </button>
           </div>
         </form>
-        </div>
       </div>
     </div>
   )

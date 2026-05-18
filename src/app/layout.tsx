@@ -18,9 +18,9 @@ const playfair = Playfair_Display({
 export const metadata: Metadata = {
   title: {
     template: '%s — Dame Recruitment',
-    default: 'Dame Recruitment — People. Performance. Partnership.',
+    default: 'Dame Recruitment — Professional Staffing Solutions in the East Midlands',
   },
-  description: 'Premium recruitment partnerships across Leicester, Coventry and the East Midlands. Temporary and permanent staffing for teams that need reliable people and sharper performance.',
+  description: 'Professional recruitment services across Leicester, Coventry and the East Midlands. Temporary and permanent staffing solutions for employers and career opportunities for candidates.',
   keywords: ['recruitment', 'staffing', 'jobs', 'Leicester', 'Coventry', 'East Midlands', 'temporary', 'permanent'],
   authors: [{ name: 'Dame Recruitment' }],
   creator: 'Dame Recruitment',
@@ -32,8 +32,8 @@ export const metadata: Metadata = {
   },
   metadataBase: new URL('https://www.damerecruitment.co.uk'),
   openGraph: {
-    title: 'Dame Recruitment — People. Performance. Partnership.',
-    description: 'Premium recruitment partnerships across Leicester, Coventry and the East Midlands.',
+    title: 'Dame Recruitment — Professional Staffing Solutions',
+    description: 'Professional recruitment services across Leicester, Coventry and the East Midlands.',
     url: 'https://www.damerecruitment.co.uk',
     siteName: 'Dame Recruitment',
     locale: 'en_GB',
@@ -41,8 +41,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Dame Recruitment — People. Performance. Partnership.',
-    description: 'Premium recruitment partnerships across Leicester, Coventry and the East Midlands.',
+    title: 'Dame Recruitment — Professional Staffing Solutions',
+    description: 'Professional recruitment services across Leicester, Coventry and the East Midlands.',
   },
   robots: {
     index: true,
@@ -77,7 +77,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
-      <body className="font-body text-light-text bg-neutral-white antialiased">
+      <body className="font-body antialiased">
         <LayoutShell>{children}</LayoutShell>
       </body>
     </html>
