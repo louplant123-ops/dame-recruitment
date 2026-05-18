@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { MapPin, Phone, Mail, Clock, CheckCircle, XCircle } from 'lucide-react'
+import { PageBanner } from '@/components/PageBanner'
 
 // Contact form component with spam protection and form states
 export default function ContactPage() {
@@ -90,19 +91,11 @@ export default function ContactPage() {
 
   return (
     <div>
-      {/* Page Banner */}
-      <div className="page-banner">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h1 className="text-3xl md:text-4xl font-heading font-bold text-white">
-              Contact Us
-            </h1>
-            <p className="text-white/80 font-body mt-2 max-w-2xl mx-auto">
-              Get in touch with our recruitment specialists. We&apos;re here to help across the East Midlands.
-            </p>
-          </div>
-        </div>
-      </div>
+      <PageBanner
+        eyebrow="Get in touch"
+        title="Contact our team."
+        subtitle="Speak with a recruitment specialist across the East Midlands &mdash; we typically reply within a few hours."
+      />
 
       <div className="py-16">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -207,47 +200,39 @@ export default function ContactPage() {
               </h2>
               
               {formState === 'success' && (
-                <div 
-                  className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg"
-                  role="alert"
-                  aria-live="polite"
-                >
-                  <div className="flex items-center space-x-3">
-                    <CheckCircle className="h-5 w-5 text-green-600" aria-hidden="true" />
-                    <div>
-                      <h3 className="text-body font-body font-medium text-green-800">Message Sent Successfully!</h3>
-                      <p className="text-body font-body text-green-700">
-                        Thank you for your enquiry. We&apos;ll get back to you within 24 hours.
-                      </p>
-                    </div>
+                <div className="form-feedback form-feedback--success mb-6" role="alert" aria-live="polite">
+                  <CheckCircle className="form-feedback__icon h-5 w-5" aria-hidden="true" />
+                  <div className="flex-1">
+                    <p className="font-medium text-[color:var(--dame-ink)]">Message sent successfully</p>
+                    <p className="text-sm text-[color:var(--dame-muted)] mt-0.5">
+                      Thanks for your enquiry &mdash; we&apos;ll get back to you within 24 hours.
+                    </p>
+                    <button
+                      onClick={resetForm}
+                      className="mt-2 text-sm font-medium text-[color:var(--dame-ink)] underline underline-offset-4 decoration-[color:var(--dame-line-strong)] hover:decoration-[color:var(--dame-ink)]"
+                      aria-label="Reset form to send another message"
+                    >
+                      Send another message
+                    </button>
                   </div>
-                  <button
-                    onClick={resetForm}
-                    className="mt-3 text-body font-body text-green-700 hover:text-green-800 underline btn-lift focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-2"
-                    aria-label="Reset form to send another message"
-                  >
-                    Send another message
-                  </button>
                 </div>
               )}
 
               {formState === 'error' && (
-                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <XCircle className="h-5 w-5 text-red-600" />
-                    <div>
-                      <h3 className="font-body font-medium text-red-800">Message Failed to Send</h3>
-                      <p className="font-body text-red-700 text-sm">
-                        Sorry, there was an error sending your message. Please try again or call us directly.
-                      </p>
-                    </div>
+                <div className="form-feedback form-feedback--error mb-6" role="alert" aria-live="polite">
+                  <XCircle className="form-feedback__icon h-5 w-5" aria-hidden="true" />
+                  <div className="flex-1">
+                    <p className="font-medium text-[color:var(--dame-ink)]">We couldn&apos;t send that message</p>
+                    <p className="text-sm text-[color:var(--dame-muted)] mt-0.5">
+                      Please try again, or give us a call directly.
+                    </p>
+                    <button
+                      onClick={resetForm}
+                      className="mt-2 text-sm font-medium text-[color:var(--dame-ink)] underline underline-offset-4 decoration-[color:var(--dame-line-strong)] hover:decoration-[color:var(--dame-ink)]"
+                    >
+                      Try again
+                    </button>
                   </div>
-                  <button
-                    onClick={resetForm}
-                    className="mt-3 text-sm font-body text-red-700 hover:text-red-800 underline"
-                  >
-                    Try again
-                  </button>
                 </div>
               )}
               

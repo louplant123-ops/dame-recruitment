@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { ArrowRight, Clock } from 'lucide-react'
+import { PageBanner } from '@/components/PageBanner'
 
 export const metadata: Metadata = {
   title: 'News & Insights | Dame Recruitment',
@@ -16,7 +18,6 @@ export const metadata: Metadata = {
   },
 }
 
-// Mock blog posts data
 const blogPosts = [
   {
     id: 1,
@@ -47,125 +48,160 @@ const blogPosts = [
   },
 ]
 
+const formatDate = (iso: string) =>
+  new Date(iso).toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  })
+
 export default function NewsPage() {
+  const [featured, ...rest] = blogPosts
+
   return (
     <div className="relative">
-      {/* Header Section */}
-      <section className="bg-neutral-white py-16 section-accent-blue">
-        <div className="max-w-container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h1 className="text-h1 font-heading font-bold text-charcoal mb-6">
-              News &amp; Insights
-            </h1>
-            <p className="text-body-lg font-body text-charcoal/80 max-w-prose mx-auto">
-              Stay informed with the latest recruitment trends, industry insights, and career advice from our East Midlands specialists.
-            </p>
-          </div>
-        </div>
-      </section>
+      <PageBanner
+        eyebrow="News &amp; Insights"
+        title="Sharper thinking on hiring."
+        subtitle="Practical recruitment, market data, and career advice from our East Midlands specialists."
+      />
 
-      {/* Blog Posts Grid */}
-      <section className="py-20 bg-neutral-light">
+      {/* Featured story */}
+      <section className="py-16 bg-[color:var(--dame-bg)]">
         <div className="max-w-container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {blogPosts.map((post) => (
-              <article 
-                key={post.id}
-                className="bg-white rounded-lg shadow-sm border border-neutral-light overflow-hidden card-hover"
-              >
-                <div className="p-6">
-                  <div className="flex items-center justify-between text-sm text-charcoal/60 mb-3">
-                    <span className="bg-accent-teal/10 text-accent-teal px-2 py-1 rounded text-xs font-medium">
-                      {post.category}
+          {featured ? (
+            <Link
+              href={`/news/${featured.slug}`}
+              className="card-premium card-premium--featured group block p-8 md:p-10 mb-12"
+              aria-label={`Read featured article: ${featured.title}`}
+            >
+              <div className="grid gap-6 md:grid-cols-5 md:gap-10 items-center relative">
+                <div className="md:col-span-3">
+                  <div className="flex items-center gap-3 text-sm text-[color:var(--dame-muted)] mb-3">
+                    <span className="dame-eyebrow text-[color:var(--dame-cyan)]">
+                      Featured
                     </span>
-                    <time dateTime={post.publishedAt}>
-                      {new Date(post.publishedAt).toLocaleDateString('en-GB', {
-                        day: 'numeric',
-                        month: 'long',
-                        year: 'numeric'
-                      })}
-                    </time>
+                    <span className="h-1 w-1 rounded-full bg-[color:var(--dame-line-strong)]" />
+                    <span>{featured.category}</span>
                   </div>
-                  
-                  <h2 className="text-h3 font-heading font-semibold text-charcoal mb-3 line-clamp-2">
-                    <Link 
-                      href={`/news/${post.slug}`}
-                      className="hover:text-primary-red transition-colors focus:outline-none focus:ring-2 focus:ring-primary-red focus:ring-offset-2 rounded"
-                    >
-                      {post.title}
-                    </Link>
+                  <h2
+                    className="text-2xl md:text-3xl font-semibold text-[color:var(--dame-ink)] leading-tight mb-3"
+                    style={{ fontFamily: "'General Sans', var(--font-inter), system-ui, sans-serif" }}
+                  >
+                    {featured.title}
                   </h2>
-                  
-                  <p className="text-body font-body text-charcoal/70 mb-4 line-clamp-3">
-                    {post.excerpt}
+                  <p className="text-[color:var(--dame-muted)] max-w-2xl">
+                    {featured.excerpt}
                   </p>
-                  
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-charcoal/60 font-body">
-                      {post.readTime}
+                  <div className="mt-6 flex items-center gap-4 text-sm text-[color:var(--dame-muted)]">
+                    <time dateTime={featured.publishedAt}>{formatDate(featured.publishedAt)}</time>
+                    <span className="inline-flex items-center gap-1">
+                      <Clock className="h-3.5 w-3.5" />
+                      {featured.readTime}
                     </span>
-                    <Link
-                      href={`/news/${post.slug}`}
-                      className="text-primary-red hover:text-primary-red/80 font-body font-medium text-sm btn-lift focus:outline-none focus:ring-2 focus:ring-primary-red focus:ring-offset-2 rounded"
-                      aria-label={`Read full article: ${post.title}`}
-                    >
-                      Read More →
-                    </Link>
                   </div>
                 </div>
-              </article>
-            ))}
-          </div>
-          
-          {/* Empty State for Future Posts */}
+                <div className="md:col-span-2 md:justify-self-end">
+                  <span className="inline-flex items-center gap-2 text-sm font-medium text-[color:var(--dame-ink)] group-hover:gap-3 transition-all">
+                    Read the full article
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                  </span>
+                </div>
+              </div>
+            </Link>
+          ) : null}
+
+          {rest.length ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {rest.map((post) => (
+                <article key={post.id} className="card-premium overflow-hidden">
+                  <Link
+                    href={`/news/${post.slug}`}
+                    className="block p-7 focus:outline-none focus:ring-2 focus:ring-[color:var(--dame-ink)] focus:ring-offset-2 rounded-[var(--dame-radius)]"
+                  >
+                    <div className="flex items-center justify-between text-xs text-[color:var(--dame-muted)] mb-3">
+                      <span className="dame-eyebrow text-[color:var(--dame-cyan)]">
+                        {post.category}
+                      </span>
+                      <time dateTime={post.publishedAt}>{formatDate(post.publishedAt)}</time>
+                    </div>
+                    <h3
+                      className="text-lg font-semibold text-[color:var(--dame-ink)] mb-2 line-clamp-2"
+                      style={{ fontFamily: "'General Sans', var(--font-inter), system-ui, sans-serif" }}
+                    >
+                      {post.title}
+                    </h3>
+                    <p className="text-sm text-[color:var(--dame-muted)] line-clamp-3 mb-5">
+                      {post.excerpt}
+                    </p>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-[color:var(--dame-muted)] inline-flex items-center gap-1">
+                        <Clock className="h-3.5 w-3.5" />
+                        {post.readTime}
+                      </span>
+                      <span className="inline-flex items-center gap-1 font-medium text-[color:var(--dame-ink)]">
+                        Read more
+                        <ArrowRight className="h-3.5 w-3.5" />
+                      </span>
+                    </div>
+                  </Link>
+                </article>
+              ))}
+            </div>
+          ) : null}
+
           <div className="text-center mt-16">
-            <div className="bg-white rounded-lg border border-neutral-light p-8 max-w-md mx-auto">
-              <h3 className="text-h3 font-heading font-semibold text-charcoal mb-3">
+            <div className="card-premium max-w-md mx-auto p-8">
+              <h3
+                className="text-xl font-semibold text-[color:var(--dame-ink)] mb-3"
+                style={{ fontFamily: "'General Sans', var(--font-inter), system-ui, sans-serif" }}
+              >
                 More Articles Coming Soon
               </h3>
-              <p className="text-body font-body text-charcoal/70 mb-6">
+              <p className="text-[color:var(--dame-muted)] mb-6">
                 We&apos;re working on more valuable insights and industry updates. Check back soon for fresh content.
               </p>
-              <Link
-                href="/contact"
-                className="inline-block bg-primary-red text-white px-6 py-3 rounded-lg font-body font-medium btn-lift focus:outline-none focus:ring-2 focus:ring-primary-red focus:ring-offset-2"
-              >
+              <Link href="/contact" className="dame-button-primary btn-lift">
                 Suggest a Topic
+                <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Newsletter Signup */}
-      <section className="py-16 bg-charcoal section-accent-yellow">
+      {/* Newsletter signup */}
+      <section className="relative bg-gradient-hero py-20 border-t border-[color:var(--dame-line)]">
+        <div
+          aria-hidden
+          className="absolute inset-x-0 top-0 h-px"
+          style={{ background: 'var(--dame-gradient)', opacity: 0.55 }}
+        />
         <div className="max-w-container mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-h2 font-heading font-semibold text-white mb-4">
-            Stay Updated
+          <p className="dame-eyebrow text-white/60 mb-3">Stay updated</p>
+          <h2
+            className="text-3xl md:text-4xl font-semibold text-white mb-3"
+            style={{ fontFamily: "'General Sans', var(--font-inter), system-ui, sans-serif" }}
+          >
+            Recruitment insights, monthly.
           </h2>
-          <p className="text-body-lg font-body text-white/80 mb-8 max-w-prose mx-auto">
-            Get the latest recruitment insights and job market updates delivered to your inbox monthly.
+          <p className="text-white/75 mb-8 max-w-prose mx-auto">
+            Get the latest recruitment trends and East Midlands job market updates delivered to your inbox.
           </p>
-          <div className="max-w-md mx-auto">
-            <form className="flex gap-3">
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className="flex-1 px-4 py-3 rounded-lg border border-neutral-light form-input focus:ring-white focus:border-transparent"
-                aria-label="Email address for newsletter"
-                required
-              />
-              <button
-                type="submit"
-                className="bg-primary-red text-white px-6 py-3 rounded-lg font-body font-medium btn-lift focus:outline-none focus:ring-2 focus:ring-primary-red focus:ring-offset-2 focus:ring-offset-charcoal"
-              >
-                Subscribe
-              </button>
-            </form>
-            <p className="text-sm text-white/60 font-body mt-3">
-              No spam. Unsubscribe anytime.
-            </p>
-          </div>
+          <form className="max-w-md mx-auto flex flex-col sm:flex-row gap-3">
+            <input
+              type="email"
+              placeholder="Enter your email"
+              className="flex-1 px-4 py-3 rounded-full bg-white/10 border border-white/20 text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-white/40"
+              aria-label="Email address for newsletter"
+              required
+            />
+            <button type="submit" className="dame-button-primary btn-lift" style={{ background: '#ffffff', color: 'var(--dame-ink)' }}>
+              Subscribe
+              <ArrowRight className="h-4 w-4" />
+            </button>
+          </form>
+          <p className="text-sm text-white/55 mt-3">No spam. Unsubscribe anytime.</p>
         </div>
       </section>
     </div>

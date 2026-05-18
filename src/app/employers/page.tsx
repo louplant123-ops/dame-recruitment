@@ -14,8 +14,10 @@ import {
   Quote,
   FileText,
   BellRing,
-  Headphones
+  Headphones,
+  ArrowRight,
 } from 'lucide-react'
+import { PageBanner } from '@/components/PageBanner'
 
 export const metadata: Metadata = {
   title: 'For Employers',
@@ -111,27 +113,18 @@ const engagementModels = [
 export default function EmployersPage() {
   return (
     <div>
-      {/* Page Banner */}
-      <div className="page-banner">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <h1 className="text-3xl md:text-4xl font-heading font-bold text-white">
-                For Employers
-              </h1>
-              <p className="text-white/80 font-body mt-2">
-                Reliable staffing solutions across the East Midlands
-              </p>
-            </div>
-            <Link
-              href="/contact"
-              className="inline-block bg-white text-charcoal px-6 py-3 rounded-lg font-body font-medium hover:bg-neutral-light transition-colors"
-            >
-              Book a call
-            </Link>
-          </div>
-        </div>
-      </div>
+      <PageBanner
+        align="left"
+        eyebrow="For employers"
+        title="Reliable staffing across the East Midlands."
+        subtitle="Permanent and temporary recruitment for warehousing, manufacturing, and engineering &mdash; with the consultants who actually pick up the phone."
+        aside={
+          <Link href="/contact" className="dame-button-primary btn-lift">
+            Book a call
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        }
+      />
 
       {/* Hero Section */}
       <section className="py-16 bg-neutral-white">
@@ -389,19 +382,26 @@ export default function EmployersPage() {
       </section>
 
       {/* Final CTA Band */}
-      <section id="brief" className="py-16 bg-primary-red">
+      <section id="brief" className="relative bg-gradient-hero py-20">
+        <div
+          aria-hidden
+          className="absolute inset-x-0 top-0 h-px"
+          style={{ background: 'var(--dame-gradient)', opacity: 0.55 }}
+        />
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-heading font-bold text-white mb-4">
-            Ready to find the right people?
+          <p className="dame-eyebrow text-white/60 mb-3">Ready when you are</p>
+          <h2
+            className="text-3xl md:text-4xl font-semibold text-white mb-3"
+            style={{ fontFamily: "'General Sans', var(--font-inter), system-ui, sans-serif" }}
+          >
+            Find the right people, faster.
           </h2>
-          <p className="text-lg font-body text-white/90 mb-8">
+          <p className="text-white/75 mb-8 max-w-prose mx-auto">
             Book a 20-minute intro call and we&apos;ll show you how our process works.
           </p>
-          <Link
-            href="/contact"
-            className="inline-block bg-white text-primary-red px-8 py-4 rounded-lg font-body font-medium hover:bg-neutral-light transition-colors"
-          >
+          <Link href="/contact" className="dame-button-primary btn-lift" style={{ background: '#ffffff', color: 'var(--dame-ink)' }}>
             Book a 20-minute intro
+            <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
       </section>

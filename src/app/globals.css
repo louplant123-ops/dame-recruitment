@@ -192,6 +192,45 @@
     border-color: var(--dame-line-strong);
   }
 
+  /* Premium card — adds a gradient hairline that reveals on hover, used for
+     hero/featured cards (e.g. featured jobs, news feature card, CTA cards). */
+  .card-premium {
+    position: relative;
+    background: var(--dame-surface);
+    border: 1px solid var(--dame-line);
+    border-radius: var(--dame-radius);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  }
+
+  .card-premium::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: var(--dame-gradient);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    pointer-events: none;
+  }
+
+  .card-premium:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 24px 48px rgba(20, 24, 29, 0.10);
+    border-color: transparent;
+  }
+
+  .card-premium:hover::before {
+    opacity: 0.85;
+  }
+
+  .card-premium--featured::before {
+    opacity: 0.65;
+  }
+
   .card-accent-top {
     border-top-width: 3px;
   }
@@ -223,6 +262,100 @@
     outline: none;
     border-color: var(--dame-ink);
     box-shadow: 0 0 0 3px rgba(20, 24, 29, 0.08);
+  }
+
+  /* Grouped form section — used to break long registration / contact forms
+     into clear, scannable blocks with a quiet eyebrow + soft surface body. */
+  .form-section {
+    background: var(--dame-surface);
+    border: 1px solid var(--dame-line);
+    border-radius: var(--dame-radius);
+    padding: 1.5rem;
+    box-shadow: 0 1px 2px rgba(20, 24, 29, 0.04);
+  }
+
+  @media (min-width: 768px) {
+    .form-section { padding: 2rem; }
+  }
+
+  .form-section + .form-section { margin-top: 1.25rem; }
+
+  .form-section__header {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding-bottom: 1.25rem;
+    margin-bottom: 1.25rem;
+    border-bottom: 1px solid var(--dame-line);
+  }
+
+  .form-section__step {
+    flex-shrink: 0;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 999px;
+    background: var(--dame-ink);
+    color: #ffffff;
+    font-family: 'General Sans', var(--font-inter), system-ui, sans-serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .form-section__title {
+    font-family: 'General Sans', var(--font-inter), system-ui, sans-serif;
+    font-weight: 600;
+    font-size: 1.125rem;
+    color: var(--dame-ink);
+    margin: 0;
+  }
+
+  .form-section__hint {
+    font-size: 0.875rem;
+    color: var(--dame-muted);
+    margin-top: 0.25rem;
+  }
+
+  /* Refined success / error / info feedback blocks */
+  .form-feedback {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.85rem;
+    padding: 1rem 1.15rem;
+    border-radius: var(--dame-radius-sm);
+    border: 1px solid var(--dame-line);
+    background: var(--dame-surface);
+  }
+
+  .form-feedback__icon {
+    flex-shrink: 0;
+    margin-top: 0.15rem;
+  }
+
+  .form-feedback--success {
+    background: rgba(43, 159, 198, 0.06);
+    border-color: rgba(43, 159, 198, 0.35);
+  }
+  .form-feedback--success .form-feedback__icon { color: var(--dame-cyan); }
+
+  .form-feedback--error {
+    background: rgba(197, 75, 101, 0.06);
+    border-color: rgba(197, 75, 101, 0.35);
+  }
+  .form-feedback--error .form-feedback__icon { color: var(--dame-red); }
+
+  .form-feedback--info {
+    background: var(--dame-surface-soft);
+    border-color: var(--dame-line);
+  }
+  .form-feedback--info .form-feedback__icon { color: var(--dame-muted); }
+
+  /* Sticky form sidebar (used on long single-column form pages) */
+  .form-sidebar {
+    position: sticky;
+    top: 5.5rem;
   }
 
   /* Hero band — the only dark brand moment on the public site */

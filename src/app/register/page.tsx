@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { PageBanner } from '@/components/PageBanner'
 
 // Registration form component (wrapped in Suspense)
 function RegistrationForm() {
@@ -405,93 +406,98 @@ maxTravelDistance: '10',
   if (isSubmitted) {
     return (
       <div>
-        {/* Page Banner */}
-        <div className="page-banner">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center">
-              <h1 className="text-3xl md:text-4xl font-heading font-bold text-white">
-                Registration Complete
-              </h1>
-            </div>
-          </div>
-        </div>
+        <PageBanner
+          eyebrow="Welcome aboard"
+          title="Registration complete."
+          subtitle="Thanks for joining our talent pool. We'll be in touch with suitable roles."
+        />
 
         <div className="py-16 px-4 sm:px-6">
-          <div className="max-w-2xl mx-auto text-center">
-            <div className="bg-green-50 border border-green-200 rounded-lg p-8 mb-8">
-              <div className="text-green-600 text-6xl mb-4">✓</div>
-              <h1 className="text-3xl font-heading font-bold text-charcoal mb-4">
-                Registration Complete!
-              </h1>
-            <p className="text-lg font-body text-charcoal/80 mb-6">
-              Thank you for registering with Dame Recruitment. We&apos;ll review your application and be in touch soon.
-            </p>
-            <div className="bg-white border border-neutral-light rounded-lg p-6">
-              <h2 className="font-heading font-semibold text-charcoal mb-3">What happens next?</h2>
-              <ul className="text-left font-body text-charcoal/70 space-y-2">
-                <li>• We&apos;ll review your registration within 24 hours</li>
-                <li>• A consultant will contact you to discuss opportunities</li>
-                <li>• We&apos;ll match you with suitable roles in your area</li>
-              </ul>
+          <div className="max-w-2xl mx-auto">
+            <div className="form-section text-center">
+              <div className="w-14 h-14 rounded-full bg-[color:var(--dame-cyan)]/10 flex items-center justify-center mx-auto mb-4">
+                <svg className="w-7 h-7 text-[color:var(--dame-cyan)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h2
+                className="text-2xl font-semibold text-[color:var(--dame-ink)] mb-2"
+                style={{ fontFamily: "'General Sans', var(--font-inter), system-ui, sans-serif" }}
+              >
+                You&rsquo;re in.
+              </h2>
+              <p className="text-[color:var(--dame-muted)] mb-8 max-w-md mx-auto">
+                Thanks for registering with Dame Recruitment. A consultant will review your details and be in touch with suitable roles.
+              </p>
+
+              <div className="text-left bg-[color:var(--dame-surface-soft)] border border-[color:var(--dame-line)] rounded-[var(--dame-radius)] p-6">
+                <p className="dame-eyebrow mb-3">What happens next</p>
+                <ol className="space-y-3 text-sm text-[color:var(--dame-text)]">
+                  <li className="flex items-start gap-3">
+                    <span className="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-[color:var(--dame-ink)] text-white text-[11px] font-semibold">1</span>
+                    We&apos;ll review your registration within 24 hours.
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-[color:var(--dame-ink)] text-white text-[11px] font-semibold">2</span>
+                    A consultant will contact you to discuss opportunities.
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-[color:var(--dame-ink)] text-white text-[11px] font-semibold">3</span>
+                    We&apos;ll match you with suitable roles in your area.
+                  </li>
+                </ol>
+              </div>
             </div>
-          </div>
-          
-          <div className="space-y-4">
-            <p className="font-body text-charcoal/70">
-              Have questions? Get in touch with our team:
-            </p>
-            <a
-              href={`mailto:louise@damerecruitment.co.uk?subject=Registration Enquiry - ${formData.firstName} ${formData.lastName}&body=Hi Dame Recruitment team,%0D%0A%0D%0AI have just completed my registration and wanted to get in touch.%0D%0A%0D%0AName: ${formData.firstName} ${formData.lastName}%0D%0AEmail: ${formData.email}%0D%0APhone: ${formData.phone}%0D%0A%0D%0AThanks!`}
-              className="inline-block bg-primary-red text-white px-6 py-3 rounded-lg font-body font-medium hover:bg-primary-red/90 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-red focus:ring-offset-2"
-            >
-              Email Our Team
-            </a>
+
+            <div className="mt-8 text-center">
+              <p className="text-sm text-[color:var(--dame-muted)] mb-3">
+                Have a question in the meantime?
+              </p>
+              <a
+                href={`mailto:louise@damerecruitment.co.uk?subject=Registration Enquiry - ${formData.firstName} ${formData.lastName}&body=Hi Dame Recruitment team,%0D%0A%0D%0AI have just completed my registration and wanted to get in touch.%0D%0A%0D%0AName: ${formData.firstName} ${formData.lastName}%0D%0AEmail: ${formData.email}%0D%0APhone: ${formData.phone}%0D%0A%0D%0AThanks!`}
+                className="dame-button-primary btn-lift"
+              >
+                Email our team
+              </a>
+            </div>
           </div>
         </div>
       </div>
-    </div>
     )
   }
 
   return (
     <div>
-      {/* Page Banner */}
-      <div className="page-banner">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h1 className="text-3xl md:text-4xl font-heading font-bold text-white">
-              Register for Work
-            </h1>
-            <p className="text-white/80 font-body mt-2 max-w-2xl mx-auto">
-              Join our talent pool for temporary and permanent opportunities across the East Midlands.
-            </p>
-          </div>
-        </div>
-      </div>
+      <PageBanner
+        eyebrow="Register for work"
+        title="Join our talent pool."
+        subtitle="Temporary and permanent opportunities across the East Midlands &mdash; we'll match you with the right roles."
+      />
 
       <div className="py-16">
         <div className="max-w-2xl mx-auto px-4 sm:px-6">
           <div className="mb-8">
-            <p className="text-lg font-body text-charcoal/80">
-              Complete the form below to join our talent pool. We&apos;ll match you with suitable opportunities.
+            <p className="text-base md:text-lg text-[color:var(--dame-muted)]">
+              Complete the form below to join our talent pool &mdash; it takes about five minutes.
             </p>
           </div>
 
-        {/* Progress Bar */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-2">
-            <span className="font-body text-sm text-charcoal/70">
-              Step {currentStep} of {totalSteps}: {stepTitles[currentStep - 1]}
+        {/* Progress */}
+        <div className="mb-8 form-section py-4 md:py-5">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-sm font-medium text-[color:var(--dame-ink)]">
+              <span className="dame-eyebrow mr-2">Step {currentStep}/{totalSteps}</span>
+              {stepTitles[currentStep - 1]}
             </span>
-            <span className="font-body text-sm text-charcoal/70">
-              {Math.round((currentStep / totalSteps) * 100)}% Complete
+            <span className="text-sm text-[color:var(--dame-muted)]">
+              {Math.round((currentStep / totalSteps) * 100)}% complete
             </span>
           </div>
-          <div className="w-full bg-neutral-light rounded-full h-2">
-            <div 
-              className="bg-primary-red h-2 rounded-full transition-all duration-300"
-              style={{ width: `${(currentStep / totalSteps) * 100}%` }}
-            ></div>
+          <div className="relative w-full h-1.5 rounded-full bg-[color:var(--dame-line)] overflow-hidden">
+            <div
+              className="absolute inset-y-0 left-0 rounded-full transition-all duration-300"
+              style={{ width: `${(currentStep / totalSteps) * 100}%`, background: 'var(--dame-gradient)' }}
+            />
           </div>
         </div>
 

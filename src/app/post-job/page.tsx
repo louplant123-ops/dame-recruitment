@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { PageBanner } from '@/components/PageBanner'
 
 export default function PostJobPage() {
   const [formData, setFormData] = useState({
@@ -107,19 +108,11 @@ export default function PostJobPage() {
   }
   return (
     <div>
-      {/* Page Banner */}
-      <div className="page-banner">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h1 className="text-3xl md:text-4xl font-heading font-bold text-white">
-              Post a Job
-            </h1>
-            <p className="text-white/80 font-body mt-2 max-w-2xl mx-auto">
-              Tell us what you need and we&apos;ll find the right people for your business.
-            </p>
-          </div>
-        </div>
-      </div>
+      <PageBanner
+        eyebrow="For employers"
+        title="Post a job."
+        subtitle="Tell us what you need and we&rsquo;ll match you with the right people &mdash; we typically respond within a few hours."
+      />
 
       <div className="py-16">
         <div className="max-w-2xl mx-auto px-4 sm:px-6">
@@ -131,32 +124,42 @@ export default function PostJobPage() {
           </p>
         
         {formState === 'success' && (
-          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-            <h3 className="font-body font-medium text-green-800 mb-2">Job Posted Successfully!</h3>
-            <p className="font-body text-green-700">
-              Thank you for posting your job. We&apos;ll contact you within 24 hours to discuss your requirements.
-            </p>
-            <button
-              onClick={resetForm}
-              className="mt-3 text-sm font-body text-green-700 hover:text-green-800 underline"
-            >
-              Post another job
-            </button>
+          <div className="form-feedback form-feedback--success mb-6" role="alert" aria-live="polite">
+            <svg className="form-feedback__icon h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            <div className="flex-1">
+              <p className="font-medium text-[color:var(--dame-ink)]">Job posted successfully</p>
+              <p className="text-sm text-[color:var(--dame-muted)] mt-0.5">
+                We&apos;ll contact you within 24 hours to discuss your requirements.
+              </p>
+              <button
+                onClick={resetForm}
+                className="mt-2 text-sm font-medium text-[color:var(--dame-ink)] underline underline-offset-4 decoration-[color:var(--dame-line-strong)] hover:decoration-[color:var(--dame-ink)]"
+              >
+                Post another job
+              </button>
+            </div>
           </div>
         )}
 
         {formState === 'error' && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <h3 className="font-body font-medium text-red-800 mb-2">Submission Failed</h3>
-            <p className="font-body text-red-700 text-sm">
-              Sorry, there was an error submitting your job. Please try again or call us directly.
-            </p>
-            <button
-              onClick={resetForm}
-              className="mt-3 text-sm font-body text-red-700 hover:text-red-800 underline"
-            >
-              Try again
-            </button>
+          <div className="form-feedback form-feedback--error mb-6" role="alert" aria-live="polite">
+            <svg className="form-feedback__icon h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+            <div className="flex-1">
+              <p className="font-medium text-[color:var(--dame-ink)]">Submission failed</p>
+              <p className="text-sm text-[color:var(--dame-muted)] mt-0.5">
+                Sorry, there was an error submitting your job. Please try again or call us directly.
+              </p>
+              <button
+                onClick={resetForm}
+                className="mt-2 text-sm font-medium text-[color:var(--dame-ink)] underline underline-offset-4 decoration-[color:var(--dame-line-strong)] hover:decoration-[color:var(--dame-ink)]"
+              >
+                Try again
+              </button>
+            </div>
           </div>
         )}
 

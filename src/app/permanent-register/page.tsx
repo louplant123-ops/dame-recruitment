@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { ChevronRight, ChevronLeft, Upload, Plus, Trash2, MapPin, Briefcase, GraduationCap, Target, Clock, Home } from 'lucide-react';
+import { PageBanner } from '@/components/PageBanner';
 
 interface EmploymentHistory {
   id: string;
@@ -1112,19 +1113,11 @@ export default function PermanentCandidateRegistration() {
 
   return (
     <div>
-      {/* Page Banner */}
-      <div className="page-banner">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h1 className="text-3xl md:text-4xl font-heading font-bold text-white">
-              Permanent Position Registration
-            </h1>
-            <p className="text-white/80 font-body mt-2 max-w-2xl mx-auto">
-              Join our network of professional candidates
-            </p>
-          </div>
-        </div>
-      </div>
+      <PageBanner
+        eyebrow="Permanent roles"
+        title="Register for a permanent position."
+        subtitle="Join our network of professional candidates &mdash; we'll match you with carefully selected opportunities."
+      />
 
       <div className="py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
