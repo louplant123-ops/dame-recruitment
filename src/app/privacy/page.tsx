@@ -27,7 +27,7 @@ const sections: PrivacySection[] = [
       'Dame Recruitment takes the privacy of clients, candidates, workers and website users seriously. We are a recruitment business operating across temporary and permanent recruitment, with a focus on industrial, commercial, warehousing, manufacturing and engineering roles.',
       'We may receive your personal data when you apply directly for an advertised role via our website, register for work-finding services, contact one of our consultants, submit a CV, or respond to a job post placed by Dame Recruitment on a job board or third-party platform.',
       'When you register with Dame Recruitment, we collect and store personal information so that we can provide recruitment and work-finding services. This may include your name, contact details, address, employment history, mobility, education, qualifications and other information relevant to work-finding services.',
-      'During telephone calls, email conversations, online forms and interviews, we may collect information relating to employment preferences, strengths, experience, availability and suitability for particular roles. This information helps us support your job search and make appropriate recommendations when shortlisting candidates.',
+      'During telephone calls, email conversations, WhatsApp messages, online forms and interviews, we may collect information relating to employment preferences, strengths, experience, availability and suitability for particular roles. This information helps us support your job search and make appropriate recommendations when shortlisting candidates.',
       'We will not share your CV or personal details with a client or third party for a specific role unless we are entitled to do so and, where required, you have given consent for that introduction.',
     ],
   },
@@ -52,7 +52,7 @@ const sections: PrivacySection[] = [
     id: 'job-alerts',
     title: '4. Job Alerts and Career Information',
     paragraphs: [
-      'We may contact candidates stored in our database where we identify a role that appears to match their career aspirations, experience, location or availability.',
+      'We may contact candidates stored in our database where we identify a role that appears to match their career aspirations, experience, location or availability. Contact may be by email, telephone, SMS or WhatsApp, where we have a lawful basis and, where required, your consent.',
       'We may also occasionally send relevant career-related information such as interview advice, salary guidance, market updates or recruitment information.',
       `If you do not wish to receive this type of communication, please contact ${contactEmail}.`,
     ],
@@ -66,8 +66,18 @@ const sections: PrivacySection[] = [
     ],
   },
   {
+    id: 'whatsapp-messaging',
+    title: '6. WhatsApp Messaging',
+    paragraphs: [
+      'Dame Recruitment uses the WhatsApp Business Platform, provided by Meta, to communicate with candidates and clients about recruitment and work-finding services. This includes responding to enquiries you send us and, where we have a lawful basis and any required consent, contacting you about roles or recruitment-related updates.',
+      'When you message us on WhatsApp, or we message you, we may process your phone number, WhatsApp profile name, message content, timestamps and any information you choose to share in the conversation (such as employment history or availability). We use this information to provide recruitment services, maintain accurate records and manage our relationship with you.',
+      'WhatsApp messages are delivered through Meta’s infrastructure. Meta processes message data in accordance with its own terms and privacy policy. We do not use WhatsApp to access your personal WhatsApp account beyond the messages exchanged with our business number.',
+      `You can opt out of WhatsApp messages from Dame Recruitment at any time by emailing ${contactEmail}, telling your consultant, or by asking us not to contact you on WhatsApp. Withdrawing consent does not affect the lawfulness of processing before withdrawal, and we may continue to contact you where another lawful basis applies (for example, to respond to an enquiry you have already started).`,
+    ],
+  },
+  {
     id: 'cookies',
-    title: '6. Cookies',
+    title: '7. Cookies',
     paragraphs: [
       'A cookie is a small text file that is downloaded when a user accesses a website. It allows the website to recognise that individual’s device and store some information about preferences or past actions.',
       'Cookies may be used to make our website work, improve its performance and understand how visitors use the site. Some cookies may be strictly necessary for the website to function, while others may relate to analytics or marketing depending on how the site is configured.',
@@ -82,7 +92,7 @@ const sections: PrivacySection[] = [
   },
   {
     id: 'updating-information',
-    title: '7. Request to Have Personal Data Amended',
+    title: '8. Request to Have Personal Data Amended',
     paragraphs: [
       'It is likely that your employment history, availability or contact details will change over time. If you provide us with an updated CV or updated details, Dame Recruitment will aim to update your registration promptly.',
       'Under data protection law, you have the right to ask for access to your personal information. Once we have verified your identity, we will respond within the required legal timeframe.',
@@ -91,7 +101,7 @@ const sections: PrivacySection[] = [
   },
   {
     id: 'removal-deletion',
-    title: '8. Request to Have Personal Data Removed or Deleted',
+    title: '9. Request to Have Personal Data Removed or Deleted',
     paragraphs: [
       'You may ask Dame Recruitment to delete your personal registration or remove you from our recruitment database. We will review the request and respond in line with data protection law.',
       'Where we have placed a candidate in a role, we may be required to retain limited evidence of that placement so contractual, legal or regulatory obligations can be met. In these circumstances, we will take steps to ensure only necessary personal data is retained and that we do not make further contact unless we have a lawful basis to do so.',
@@ -100,7 +110,7 @@ const sections: PrivacySection[] = [
   },
   {
     id: 'retention',
-    title: '9. Retention',
+    title: '10. Retention',
     paragraphs: [
       'We retain personal data only for as long as is necessary for the purposes for which it was collected, including providing recruitment services, complying with legal obligations, resolving disputes, enforcing agreements and maintaining business records.',
       'Different laws require different records to be kept for different periods. For more detail on candidate retention and work-seeker records, please see our Data Processing page.',
@@ -108,7 +118,7 @@ const sections: PrivacySection[] = [
   },
   {
     id: 'breaches',
-    title: '10. Notification of Breaches',
+    title: '11. Notification of Breaches',
     paragraphs: [
       'Dame Recruitment is aware of its responsibility to protect personal information and to only share details where we have a lawful basis to do so.',
       'In the unlikely event that our systems are compromised and there is a risk to the confidentiality, integrity or availability of personal data, we will take appropriate action to investigate, contain and address the issue.',
@@ -117,7 +127,7 @@ const sections: PrivacySection[] = [
   },
   {
     id: 'access',
-    title: '11. Access',
+    title: '12. Access',
     paragraphs: [
       'If Dame Recruitment receives a request for access to personal information, we will verify your identity before releasing personal data to you.',
       `If you would like to make a request for access to your personal information, please contact ${contactEmail}.`,
@@ -125,7 +135,7 @@ const sections: PrivacySection[] = [
   },
   {
     id: 'complaints',
-    title: '12. Complaints Procedure',
+    title: '13. Complaints Procedure',
     paragraphs: [
       `If you have a complaint about the way your data is stored or handled by Dame Recruitment, please contact ${contactEmail}.`,
       'We will aim to deal with complaints fairly and promptly.',
@@ -133,7 +143,7 @@ const sections: PrivacySection[] = [
   },
   {
     id: 'ico',
-    title: '13. Escalated Complaints',
+    title: '14. Escalated Complaints',
     paragraphs: [
       'If you remain unhappy with the handling of your data, you can complain to the Information Commissioner’s Office (ICO), Wycliffe House, Water Lane, Wilmslow, Cheshire, SK9 5AF.',
       'You can also contact the ICO by telephone on 0303 123 1113 or visit https://ico.org.uk/concerns/.',
@@ -141,7 +151,7 @@ const sections: PrivacySection[] = [
   },
   {
     id: 'changes',
-    title: '14. Changes to Our Privacy Policy',
+    title: '15. Changes to Our Privacy Policy',
     paragraphs: [
       `This privacy policy may be changed by Dame Recruitment at any time. Any changes will be updated on our website. If you have any questions or concerns, please email ${contactEmail}.`,
     ],
