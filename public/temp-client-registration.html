@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Client Registration - Dame Recruitment</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .form-container {
+            padding: 40px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            color: #2c3e50;
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e74c3c;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ecf0f1;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #e74c3c;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: auto;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            width: 100%;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .required {
+            color: #e74c3c;
+        }
+
+        .gdpr-notice {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 16px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            color: #6c757d;
+            line-height: 1.5;
+        }
+
+        .gdpr-notice a {
+            color: #e74c3c;
+            text-decoration: underline;
+        }
+
+        .consent-checkbox {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .consent-checkbox input[type="checkbox"] {
+            width: auto;
+            margin-top: 3px;
+            flex-shrink: 0;
+        }
+
+        .consent-checkbox label {
+            font-size: 14px;
+            margin-bottom: 0;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                margin: 10px;
+            }
+            
+            .form-container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Dame Recruitment</h1>
+            <p>Temp Client Registration</p>
+        </div>
+
+        <div class="form-container">
+            <form id="clientRegistrationForm">
+                <!-- Company Information -->
+                <div class="section">
+                    <h2 class="section-title">Company Information</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="companyName">Company Name <span class="required">*</span></label>
+                            <input type="text" id="companyName" name="companyName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="industry">Industry <span class="required">*</span></label>
+                            <select id="industry" name="industry" required>
+                                <option value="">Select Industry</option>
+                                <option value="warehouse">Warehouse & Logistics</option>
+                                <option value="manufacturing">Manufacturing</option>
+                                <option value="retail">Retail</option>
+                                <option value="hospitality">Hospitality</option>
+                                <option value="healthcare">Healthcare</option>
+                                <option value="construction">Construction</option>
+                                <option value="admin">Administration</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="companySize">Company Size</label>
+                            <select id="companySize" name="companySize">
+                                <option value="">Select Size</option>
+                                <option value="1-10">1-10 employees</option>
+                                <option value="11-50">11-50 employees</option>
+                                <option value="51-200">51-200 employees</option>
+                                <option value="201-500">201-500 employees</option>
+                                <option value="500+">500+ employees</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="website">Company Website</label>
+                            <input type="url" id="website" name="website" placeholder="https://www.example.com">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="companyNumber">Company Number</label>
+                            <input type="text" id="companyNumber" name="companyNumber" placeholder="e.g., 12345678">
+                        </div>
+                        <div class="form-group">
+                            <label for="vatNumber">VAT Number</label>
+                            <input type="text" id="vatNumber" name="vatNumber" placeholder="e.g., GB123456789">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact Information -->
+                <div class="section">
+                    <h2 class="section-title">Primary Contact</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="contactName">Contact Name <span class="required">*</span></label>
+                            <input type="text" id="contactName" name="contactName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="jobTitle">Job Title <span class="required">*</span></label>
+                            <input type="text" id="jobTitle" name="jobTitle" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="email">Email Address <span class="required">*</span></label>
+                            <input type="email" id="email" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Phone Number <span class="required">*</span></label>
+                            <input type="tel" id="phone" name="phone" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Accounts Contact -->
+                <div class="section">
+                    <h2 class="section-title">Accounts Contact (Optional)</h2>
+                    <p style="margin-bottom: 15px; color: #7f8c8d;">For invoicing and payment queries</p>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="accountsContactName">Accounts Person Name</label>
+                            <input type="text" id="accountsContactName" name="accountsContactName" placeholder="e.g., Jane Smith">
+                        </div>
+                        <div class="form-group">
+                            <label for="accountsContactEmail">Accounts Email</label>
+                            <input type="email" id="accountsContactEmail" name="accountsContactEmail" placeholder="accounts@company.com">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="accountsContactPhone">Accounts Phone</label>
+                            <input type="tel" id="accountsContactPhone" name="accountsContactPhone" placeholder="+44 330 043 5011">
+                        </div>
+                        <div class="form-group"></div>
+                    </div>
+                </div>
+
+                <!-- Location Information -->
+                <div class="section">
+                    <h2 class="section-title">Location Details</h2>
+                    <div class="form-group full-width">
+                        <label for="address">Primary Site Address <span class="required">*</span></label>
+                        <textarea id="address" name="address" required placeholder="Full address including postcode"></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="postcode">Postcode <span class="required">*</span></label>
+                            <input type="text" id="postcode" name="postcode" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="multipleLocations">Multiple Locations?</label>
+                            <select id="multipleLocations" name="multipleLocations">
+                                <option value="no">No</option>
+                                <option value="yes">Yes</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Staffing Requirements -->
+                <div class="section">
+                    <h2 class="section-title">Staffing Requirements</h2>
+                    <div class="form-group">
+                        <label>Types of Temp Roles Needed <span class="required">*</span></label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="warehouse" name="roleTypes" value="warehouse">
+                                <label for="warehouse">Warehouse Operative</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="forklift" name="roleTypes" value="forklift">
+                                <label for="forklift">Forklift Driver</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="picker" name="roleTypes" value="picker">
+                                <label for="picker">Order Picker</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="admin" name="roleTypes" value="admin">
+                                <label for="admin">Administrative</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="production" name="roleTypes" value="production">
+                                <label for="production">Production Worker</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="cleaning" name="roleTypes" value="cleaning">
+                                <label for="cleaning">Cleaning</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="security" name="roleTypes" value="security">
+                                <label for="security">Security</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="other_role" name="roleTypes" value="other">
+                                <label for="other_role">Other</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="urgency">Urgency Level <span class="required">*</span></label>
+                            <select id="urgency" name="urgency" required>
+                                <option value="">Select Urgency</option>
+                                <option value="immediate">Immediate (Within 24 hours)</option>
+                                <option value="urgent">Urgent (Within 1 week)</option>
+                                <option value="standard">Standard (Within 2 weeks)</option>
+                                <option value="ongoing">Ongoing requirement</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="numberOfStaff">Number of Staff Needed</label>
+                            <input type="number" id="numberOfStaff" name="numberOfStaff" min="1" placeholder="e.g. 5">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Shift Patterns -->
+                <div class="section">
+                    <h2 class="section-title">Shift Patterns & Working Hours</h2>
+                    <div class="form-group">
+                        <label>Shift Types Required</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="day_shift" name="shiftTypes" value="day">
+                                <label for="day_shift">Day Shift (6am-6pm)</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="night_shift" name="shiftTypes" value="night">
+                                <label for="night_shift">Night Shift (6pm-6am)</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="weekend" name="shiftTypes" value="weekend">
+                                <label for="weekend">Weekend Work</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="flexible" name="shiftTypes" value="flexible">
+                                <label for="flexible">Flexible Hours</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="startTime">Typical Start Time</label>
+                            <input type="time" id="startTime" name="startTime">
+                        </div>
+                        <div class="form-group">
+                            <label for="endTime">Typical End Time</label>
+                            <input type="time" id="endTime" name="endTime">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rates & Terms -->
+                <div class="section">
+                    <h2 class="section-title">Rates & Payment Terms</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="hourlyRate">Expected Hourly Rate Range</label>
+                            <select id="hourlyRate" name="hourlyRate">
+                                <option value="">Select Rate Range</option>
+                                <option value="minimum">National Living Wage (£12.71/hr, 21+)</option>
+                                <option value="13-14">£13-14 per hour</option>
+                                <option value="15-16">£15-16 per hour</option>
+                                <option value="17-18">£17-18 per hour</option>
+                                <option value="19-22">£19-22 per hour</option>
+                                <option value="23+">£23+ per hour</option>
+                                <option value="negotiable">Negotiable</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="paymentTerms">Preferred Payment Terms</label>
+                            <select id="paymentTerms" name="paymentTerms">
+                                <option value="">Select Terms</option>
+                                <option value="weekly">Weekly</option>
+                                <option value="fortnightly">Fortnightly</option>
+                                <option value="monthly">Monthly</option>
+                                <option value="30days">30 Days</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Requirements & Additional Info -->
+                <div class="section">
+                    <h2 class="section-title">Additional Requirements</h2>
+                    <div class="form-group">
+                        <label for="requirements">Specific Skills or Qualifications Required</label>
+                        <textarea id="requirements" name="requirements" placeholder="e.g. Forklift license, Health & Safety certification, Previous warehouse experience"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="healthSafety">Health & Safety Requirements</label>
+                        <textarea id="healthSafety" name="healthSafety" placeholder="e.g. PPE requirements, safety induction, medical clearance"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="additionalInfo">Additional Information</label>
+                        <textarea id="additionalInfo" name="additionalInfo" placeholder="Any other details about your staffing needs, site access, parking, etc."></textarea>
+                    </div>
+                </div>
+
+                <!-- GDPR / Privacy -->
+                <div class="gdpr-notice">
+                    <strong>Privacy Notice:</strong> Dame Recruitment Ltd processes your data on the lawful basis of legitimate interests (Article 6(1)(f) UK GDPR) for the purpose of providing recruitment and staffing services. Your data will be stored securely and processed in accordance with UK GDPR and the Data Protection Act 2018. We will retain your information for up to 2 years from the date of last contact, unless you request earlier deletion. We will not share your information with third parties without your consent, except where necessary to fulfil our recruitment services or as required by law. You have the right to access, rectify, erase, restrict processing of, and port your data, and to object to processing. To exercise these rights contact <a href="mailto:hello@damerecruitment.co.uk">hello@damerecruitment.co.uk</a>. For full details, see our <a href="https://www.damerecruitment.co.uk/privacy" target="_blank">Privacy Policy</a>.
+                </div>
+
+                <div class="consent-checkbox">
+                    <input type="checkbox" id="accuracyConfirm" name="accuracyConfirm" required>
+                    <label for="accuracyConfirm">I confirm that the information provided is accurate and complete to the best of my knowledge. <span class="required">*</span></label>
+                </div>
+
+                <div class="consent-checkbox">
+                    <input type="checkbox" id="gdprConsent" name="gdprConsent" required>
+                    <label for="gdprConsent">I have read and understood the Privacy Notice above and consent to Dame Recruitment processing this data to manage our staffing requirements. <span class="required">*</span></label>
+                </div>
+
+                <button type="submit" class="submit-btn" id="submitBtn">Submit Registration</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Pre-fill contact name from URL if sent via Form Library
+        (function() {
+            const params = new URLSearchParams(window.location.search);
+            const name = params.get('name');
+            if (name) {
+                const field = document.getElementById('contactName');
+                if (field) field.value = name;
+            }
+        })();
+
+        document.getElementById('clientRegistrationForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+            
+            const formData = new FormData(this);
+            const data = {};
+            
+            for (let [key, value] of formData.entries()) {
+                if (data[key]) {
+                    if (Array.isArray(data[key])) {
+                        data[key].push(value);
+                    } else {
+                        data[key] = [data[key], value];
+                    }
+                } else {
+                    data[key] = value;
+                }
+            }
+            
+            const roleTypes = [];
+            const shiftTypes = [];
+            
+            document.querySelectorAll('input[name="roleTypes"]:checked').forEach(cb => {
+                roleTypes.push(cb.value);
+            });
+            
+            document.querySelectorAll('input[name="shiftTypes"]:checked').forEach(cb => {
+                shiftTypes.push(cb.value);
+            });
+            
+            data.roleTypes = roleTypes;
+            data.shiftTypes = shiftTypes;
+            data.timestamp = new Date().toISOString();
+            data.source = 'website_client_form';
+            data.status = 'new_inquiry';
+            
+            try {
+                const response = await fetch('/.netlify/functions/temp-client-registration', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    document.getElementById('clientRegistrationForm').style.display = 'none';
+                    const successDiv = document.createElement('div');
+                    successDiv.innerHTML = `
+                        <div style="text-align: center; padding: 40px;">
+                            <svg style="width: 80px; height: 80px; color: #27ae60; margin-bottom: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <h2 style="color: #2c3e50; margin-bottom: 15px;">Registration Submitted Successfully!</h2>
+                            <p style="color: #7f8c8d; font-size: 1.1rem;">Thank you for registering with Dame Recruitment.</p>
+                            <p style="color: #7f8c8d;">A member of our team will contact you within 24 hours to discuss your staffing requirements.</p>
+                            <p style="margin-top: 20px; color: #95a5a6; font-size: 0.9rem;">Reference: ${result.clientId}</p>
+                        </div>
+                    `;
+                    document.querySelector('.form-container').appendChild(successDiv);
+                } else {
+                    throw new Error(result.error || 'Submission failed');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Registration';
+                alert('There was an error submitting your registration. Please try again or contact us directly on 0330 043 5011.');
+            }
+        });
+    </script>
+</body>
+</html>
