@@ -334,12 +334,15 @@ exports.handler = async (event, context) => {
       phone: contactData.phone || null,
       company: contactData.company || null,
       message: contactData.message,
+      inquiryType: contactData.inquiryType || 'general',
       contactType: contactType,
       temperature: temperature
     };
 
     const dbResult = await storeInDatabase(dataToStore);
     console.log('✅ Contact saved to database:', dbResult);
+
+    notifyConsultants(dataToStore, dbResult).catch((e) => console.error('⚠️ Consultant notification failed:', e.message));
 
     return {
       statusCode: 200,
@@ -378,3 +381,56 @@ exports.handler = async (event, context) => {
     };
   }
 };
+
+function buildNotificationCopy(contactData) {
+  const companySuffix = contactData.company ? ` (${contactData.company})` : '';
+  if (contactData.contactType === 'candidate') {
+    return {
+      title: `New candidate enquiry — ${contactData.name}`,
+      message: `${contactData.name}${companySuffix} submitted the website contact form as a job seeker.`,
+      linkType: 'candidate',
+      icon: 'person-outline',
+      color: '#3B82F6',
+    };
+  }
+  if (contactData.inquiryType === 'employer') {
+    return {
+      title: `New employer enquiry — ${contactData.name}`,
+      message: `${contactData.name}${companySuffix} submitted the website contact form as an employer.`,
+      linkType: 'prospect',
+      icon: 'business-outline',
+      color: '#EF4444',
+    };
+  }
+  return {
+    title: `New website enquiry — ${contactData.name}`,
+    message: `${contactData.name}${companySuffix} submitted the website contact form.`,
+    linkType: 'prospect',
+    icon: 'mail-outline',
+    color: '#10B981',
+  };
+}
+
+async function notifyConsultants(contactData, dbResult) {
+  const serverUrl = process.env.TELNYX_SERVER_URL || process.env.SERVER_URL || process.env.RAILWAY_BACKEND_URL;
+  if (!serverUrl) return;
+
+  const copy = buildNotificationCopy(contactData);
+  const headers = { 'Content-Type': 'application/json' };
+  if (process.env.SERVER_API_KEY) headers['x-api-key'] = process.env.SERVER_API_KEY;
+
+  await fetch(`${serverUrl}/notifications/create`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      type: 'website_enquiry',
+      title: copy.title,
+      message: copy.message,
+      icon: copy.icon,
+      color: copy.color,
+      linkType: copy.linkType,
+      linkId: dbResult.id,
+    }),
+  });
+  console.log(`🔔 Consultant notification sent for ${contactData.name}`);
+}
