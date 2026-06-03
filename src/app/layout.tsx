@@ -78,18 +78,37 @@ const organizationJsonLd = {
   image: 'https://www.damerecruitment.co.uk/og-image.png',
   description:
     'East Midlands recruitment specialists providing temporary and permanent staffing for warehousing, manufacturing and engineering across Leicester, Nottingham, Derby and Coventry.',
+  telephone: '+443300435011',
+  email: 'hello@damerecruitment.co.uk',
   areaServed: [
     { '@type': 'City', name: 'Leicester' },
     { '@type': 'City', name: 'Nottingham' },
     { '@type': 'City', name: 'Derby' },
     { '@type': 'City', name: 'Coventry' },
+    { '@type': 'City', name: 'Northampton' },
     { '@type': 'AdministrativeArea', name: 'East Midlands' },
   ],
   address: {
     '@type': 'PostalAddress',
-    addressRegion: 'East Midlands',
+    streetAddress: '3 Oswin Road',
+    addressLocality: 'Leicester',
+    postalCode: 'LE3 1HR',
+    addressRegion: 'Leicestershire',
     addressCountry: 'GB',
   },
+  contactPoint: [
+    {
+      '@type': 'ContactPoint',
+      telephone: '+443300435011',
+      contactType: 'customer service',
+      areaServed: 'GB',
+      availableLanguage: 'English',
+    },
+    { '@type': 'ContactPoint', telephone: '+441164560011', contactType: 'sales', areaServed: 'Leicester' },
+    { '@type': 'ContactPoint', telephone: '+441156612460', contactType: 'sales', areaServed: 'Nottingham' },
+    { '@type': 'ContactPoint', telephone: '+441604969011', contactType: 'sales', areaServed: 'Northampton' },
+    { '@type': 'ContactPoint', telephone: '+442477753721', contactType: 'sales', areaServed: 'Coventry' },
+  ],
 }
 
 const websiteJsonLd = {
