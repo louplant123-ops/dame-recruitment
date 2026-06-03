@@ -1,4 +1,6 @@
 import { MetadataRoute } from 'next'
+import { LOCATIONS } from '@/lib/locations'
+import { SECTORS } from '@/lib/sectors'
 
 const BASE_URL = 'https://www.damerecruitment.co.uk'
 const API_BASE = 'https://damedesk-production.up.railway.app'
@@ -36,6 +38,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.9,
   }))
 
+  const locationEntries: MetadataRoute.Sitemap = LOCATIONS.map((location) => ({
+    url: `${BASE_URL}/locations/${location.slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly' as const,
+    priority: 0.8,
+  }))
+
+  const sectorEntries: MetadataRoute.Sitemap = SECTORS.map((sector) => ({
+    url: `${BASE_URL}/sectors/${sector.slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly' as const,
+    priority: 0.8,
+  }))
+
   return [
     {
       url: BASE_URL,
@@ -56,6 +72,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'monthly',
       priority: 0.8,
     },
+    {
+      url: `${BASE_URL}/locations`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    ...locationEntries,
+    {
+      url: `${BASE_URL}/sectors`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    ...sectorEntries,
     {
       url: `${BASE_URL}/register`,
       lastModified: new Date(),

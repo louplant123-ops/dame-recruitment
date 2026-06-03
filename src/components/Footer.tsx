@@ -1,5 +1,7 @@
 import Link from 'next/link'
 import { MapPin, Phone, Mail, Shield, Award, Clock } from 'lucide-react'
+import { LOCATIONS } from '@/lib/locations'
+import { SECTORS } from '@/lib/sectors'
 
 export default function Footer() {
   const currentYear = new Date().getFullYear()
@@ -185,6 +187,52 @@ export default function Footer() {
                 </Link>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Areas & sectors — internal links for discovery and SEO */}
+      <div className="border-t border-charcoal/20">
+        <div className="max-w-container mx-auto px-4 sm:px-6 lg:px-8 py-8 grid gap-8 md:grid-cols-2">
+          <div>
+            <h3 className="font-heading font-semibold text-dark-text mb-3">Areas we cover</h3>
+            <ul className="flex flex-wrap gap-x-5 gap-y-2">
+              <li>
+                <Link href="/locations" className="font-body text-sm text-dark-text/70 hover:text-primary-red transition-colors">
+                  All locations
+                </Link>
+              </li>
+              {LOCATIONS.map((location) => (
+                <li key={location.slug}>
+                  <Link
+                    href={`/locations/${location.slug}`}
+                    className="font-body text-sm text-dark-text/70 hover:text-primary-red transition-colors"
+                  >
+                    {location.city}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h3 className="font-heading font-semibold text-dark-text mb-3">Sectors we recruit for</h3>
+            <ul className="flex flex-wrap gap-x-5 gap-y-2">
+              <li>
+                <Link href="/sectors" className="font-body text-sm text-dark-text/70 hover:text-primary-red transition-colors">
+                  All sectors
+                </Link>
+              </li>
+              {SECTORS.map((sector) => (
+                <li key={sector.slug}>
+                  <Link
+                    href={`/sectors/${sector.slug}`}
+                    className="font-body text-sm text-dark-text/70 hover:text-primary-red transition-colors"
+                  >
+                    {sector.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       </div>
