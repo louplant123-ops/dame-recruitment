@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowRight, Clock } from 'lucide-react'
 import { PageBanner } from '@/components/PageBanner'
+import { OG_IMAGES } from '@/lib/seo'
 
 export const metadata: Metadata = {
   title: 'News & Insights | Dame Recruitment',
@@ -12,6 +13,7 @@ export const metadata: Metadata = {
     description: 'Latest recruitment news, industry insights, and career advice from East Midlands recruitment specialists.',
     type: 'website',
     locale: 'en_GB',
+    images: OG_IMAGES,
   },
   alternates: {
     canonical: '/news',

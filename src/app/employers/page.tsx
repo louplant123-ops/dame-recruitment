@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { OG_IMAGES } from '@/lib/seo'
 import { 
   Warehouse, 
   Factory, 
@@ -27,6 +28,7 @@ export const metadata: Metadata = {
     description: 'Same-day shortlists, permanent and temporary hires, transparent fees. East Midlands recruitment specialists.',
     url: 'https://www.damerecruitment.co.uk/employers',
     siteName: 'Dame Recruitment',
+    images: OG_IMAGES,
   },
   alternates: {
     canonical: '/employers',

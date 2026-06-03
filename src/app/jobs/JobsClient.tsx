@@ -241,12 +241,6 @@ function JobsContent() {
 
   return (
     <div>
-      <PageBanner
-        eyebrow="Live vacancies"
-        title="Find your next role."
-        subtitle="Local opportunities across the East Midlands &mdash; honest descriptions, fair pay, and roles that lead somewhere."
-      />
-
       <section className="py-12 lg:py-16 bg-[color:var(--dame-bg)]">
         <div className="max-w-container mx-auto px-4 sm:px-6 lg:px-8">
           {/* Search bar */}
@@ -486,8 +480,15 @@ function JobsContent() {
 
 export default function JobsClient() {
   return (
-    <Suspense fallback={<div className="py-16"><div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"><div className="text-center">Loading jobs...</div></div></div>}>
-      <JobsContent />
-    </Suspense>
+    <div>
+      <PageBanner
+        eyebrow="Live vacancies"
+        title="Find your next role in the East Midlands."
+        subtitle="Local opportunities across the East Midlands &mdash; honest descriptions, fair pay, and roles that lead somewhere."
+      />
+      <Suspense fallback={<div className="py-16"><div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"><div className="text-center">Loading jobs...</div></div></div>}>
+        <JobsContent />
+      </Suspense>
+    </div>
   )
 }

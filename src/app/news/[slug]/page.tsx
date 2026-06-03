@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Calendar, Clock, Tag } from 'lucide-react'
+import { OG_IMAGES } from '@/lib/seo'
 
 interface BlogPost {
   id: number
@@ -124,6 +125,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
       siteName: 'Dame Recruitment',
       type: 'article',
       publishedTime: post.publishedAt,
+      images: OG_IMAGES,
     },
     alternates: {
       canonical: `/news/${params.slug}`,

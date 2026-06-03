@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import JobDetailView from '@/components/JobDetailView'
 import { buildJobPostingJsonLd, fetchAllPublicJobs, fetchPublicJobBySlug } from '@/lib/publicJob'
+import { OG_IMAGES } from '@/lib/seo'
 
 export const dynamicParams = false
 
@@ -31,6 +32,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
       description: job.brief || `${job.type} role in ${job.location}. ${job.rate} ${job.rateType}.`,
       url: `https://www.damerecruitment.co.uk/jobs/${params.slug}`,
       siteName: 'Dame Recruitment',
+      images: OG_IMAGES,
     },
     alternates: {
       canonical: `/jobs/${params.slug}`,

@@ -65,6 +65,40 @@ export const metadata: Metadata = {
   },
 }
 
+const organizationJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': ['Organization', 'EmploymentAgency'],
+  '@id': 'https://www.damerecruitment.co.uk/#organization',
+  name: 'Dame Recruitment',
+  url: 'https://www.damerecruitment.co.uk',
+  logo: 'https://www.damerecruitment.co.uk/dame-logo.png',
+  image: 'https://www.damerecruitment.co.uk/og-image.png',
+  description:
+    'East Midlands recruitment specialists providing temporary and permanent staffing for warehousing, manufacturing and engineering across Leicester, Nottingham, Derby and Coventry.',
+  areaServed: [
+    { '@type': 'City', name: 'Leicester' },
+    { '@type': 'City', name: 'Nottingham' },
+    { '@type': 'City', name: 'Derby' },
+    { '@type': 'City', name: 'Coventry' },
+    { '@type': 'AdministrativeArea', name: 'East Midlands' },
+  ],
+  address: {
+    '@type': 'PostalAddress',
+    addressRegion: 'East Midlands',
+    addressCountry: 'GB',
+  },
+}
+
+const websiteJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  '@id': 'https://www.damerecruitment.co.uk/#website',
+  url: 'https://www.damerecruitment.co.uk',
+  name: 'Dame Recruitment',
+  publisher: { '@id': 'https://www.damerecruitment.co.uk/#organization' },
+  inLanguage: 'en-GB',
+}
+
 export default function RootLayout({
   children,
 }: {
@@ -73,6 +107,14 @@ export default function RootLayout({
   return (
     <html lang="en-GB" className={`${inter.variable} scroll-smooth`}>
       <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+        />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://api.fontshare.com" />

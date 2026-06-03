@@ -29,12 +29,33 @@ export interface PublicJob {
   datePosted: string
 }
 
+// Build-time fetches can fail transiently. A dropped request here silently
+// removes job pages (and their Google Jobs JobPosting schema) from the export,
+// so retry a few times with a short backoff before giving up.
+//
+// Note: we intentionally do NOT pass `cache: 'no-store'`. With output: 'export'
+// a no-store fetch marks the route as dynamic, which causes Next to skip writing
+// the static HTML for /jobs/<slug>. The default (build-time) caching keeps these
+// pages statically exported so their JobPosting structured data ships to Google.
+async function fetchWithRetry(url: string, attempts = 4): Promise<Response | null> {
+  for (let attempt = 0; attempt < attempts; attempt++) {
+    try {
+      const res = await fetch(url)
+      if (res.ok) return res
+    } catch {
+      // swallow and retry
+    }
+    if (attempt < attempts - 1) {
+      await new Promise((resolve) => setTimeout(resolve, 500 * (attempt + 1)))
+    }
+  }
+  return null
+}
+
 export async function fetchPublicJobBySlug(slug: string): Promise<PublicJob | null> {
+  const res = await fetchWithRetry(`${PUBLIC_JOBS_API}/jobs/public/${encodeURIComponent(slug)}`)
+  if (!res) return null
   try {
-    const res = await fetch(`${PUBLIC_JOBS_API}/jobs/public/${encodeURIComponent(slug)}`, {
-      cache: 'no-store',
-    })
-    if (!res.ok) return null
     const data = await res.json()
     return data.success ? data.job : null
   } catch {
@@ -43,9 +64,9 @@ export async function fetchPublicJobBySlug(slug: string): Promise<PublicJob | nu
 }
 
 export async function fetchAllPublicJobs(): Promise<PublicJob[]> {
+  const res = await fetchWithRetry(`${PUBLIC_JOBS_API}/jobs/public`)
+  if (!res) return []
   try {
-    const res = await fetch(`${PUBLIC_JOBS_API}/jobs/public`, { cache: 'no-store' })
-    if (!res.ok) return []
     const data = await res.json()
     return data.success ? data.jobs : []
   } catch {
@@ -59,11 +80,16 @@ export function buildJobPostingJsonLd(job: PublicJob): Record<string, unknown> {
     '@type': 'JobPosting',
     title: job.title,
     description: job.description || job.brief,
+    identifier: {
+      '@type': 'PropertyValue',
+      name: 'Dame Recruitment',
+      value: job.id,
+    },
     hiringOrganization: {
       '@type': 'Organization',
       name: 'Dame Recruitment',
       sameAs: 'https://www.damerecruitment.co.uk',
-      logo: 'https://www.damerecruitment.co.uk/logo.png',
+      logo: 'https://www.damerecruitment.co.uk/dame-logo.png',
     },
     jobLocation: {
       '@type': 'Place',

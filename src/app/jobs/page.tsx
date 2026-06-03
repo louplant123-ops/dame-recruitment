@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import JobsClient from './JobsClient'
+import { OG_IMAGES } from '@/lib/seo'
 
 export const metadata: Metadata = {
   title: 'Current Vacancies',
@@ -10,6 +11,7 @@ export const metadata: Metadata = {
     description: 'Browse live job vacancies across the East Midlands. Weekly pay, honest job descriptions, and roles that lead somewhere.',
     url: 'https://www.damerecruitment.co.uk/jobs',
     siteName: 'Dame Recruitment',
+    images: OG_IMAGES,
   },
   alternates: {
     canonical: '/jobs',

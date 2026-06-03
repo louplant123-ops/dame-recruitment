@@ -9,14 +9,21 @@ interface PublicJob {
 }
 
 async function fetchPublicJobs(): Promise<PublicJob[]> {
-  try {
-    const res = await fetch(`${API_BASE}/jobs/public`)
-    if (!res.ok) return []
-    const data = await res.json()
-    return data.success ? data.jobs : []
-  } catch {
-    return []
+  for (let attempt = 0; attempt < 4; attempt++) {
+    try {
+      const res = await fetch(`${API_BASE}/jobs/public`)
+      if (res.ok) {
+        const data = await res.json()
+        return data.success ? data.jobs : []
+      }
+    } catch {
+      // swallow and retry
+    }
+    if (attempt < 3) {
+      await new Promise((resolve) => setTimeout(resolve, 500 * (attempt + 1)))
+    }
   }
+  return []
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
