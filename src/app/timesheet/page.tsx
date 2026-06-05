@@ -53,6 +53,9 @@ export default function ClientTimesheetPortal() {
   const [submitterName, setSubmitterName] = useState('');
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [timesheetId, setTimesheetId] = useState('');
+  const [submissionComplete, setSubmissionComplete] = useState(false);
+  const [submittedAt, setSubmittedAt] = useState<string | null>(null);
 
   // Authentication check
   useEffect(() => {
@@ -80,7 +83,20 @@ export default function ClientTimesheetPortal() {
       setClientId(data.client_id);
       setClientName(data.client_company || data.client_name);
       setWeekEndingDate(data.week_ending_date);
+      setTimesheetId(data.id || '');
       setIsAuthenticated(true);
+
+      const alreadySubmitted =
+        ['approved', 'invoiced'].includes(data.status) ||
+        (data.status === 'submitted' &&
+          (parseFloat(data.total_hours) > 0 || (data.submitted_by && data.submitted_by !== 'consultant')));
+      if (alreadySubmitted) {
+        setSubmissionComplete(true);
+        setSubmittedAt(data.submitted_at || data.updated_at || null);
+        setSubmitterName(data.submitted_by || '');
+        setLoading(false);
+        return;
+      }
 
       // Convert workers to candidate rows
       const weekEnd = parseISO(data.week_ending_date);
@@ -246,6 +262,8 @@ export default function ClientTimesheetPortal() {
 
   // Submit timesheet
   const submitTimesheet = async () => {
+    if (submissionComplete) return;
+
     if (!submitterName.trim()) {
       alert('Please enter your name before submitting');
       return;
@@ -283,6 +301,7 @@ export default function ClientTimesheetPortal() {
       );
 
       const submissionData = {
+        timesheetId: timesheetId || undefined,
         clientId,
         weekEnding: weekEndingDate,
         submittedBy: submitterName,
@@ -306,11 +325,22 @@ export default function ClientTimesheetPortal() {
         body: JSON.stringify(submissionData)
       });
 
-      if (response.ok) {
-        alert('Timesheet submitted successfully! You will receive a confirmation email shortly.');
-        // Reset form or redirect
+      const result = await response.json().catch(() => ({}));
+
+      if (response.status === 409) {
+        setSubmissionComplete(true);
+        setSubmittedAt(result.submittedAt || new Date().toISOString());
+        return;
+      }
+
+      if (response.ok && result.success) {
+        setSubmissionComplete(true);
+        setSubmittedAt(result.submittedAt || new Date().toISOString());
+        if (result.timesheetId) {
+          setTimesheetId(result.timesheetId);
+        }
       } else {
-        throw new Error('Failed to submit timesheet');
+        throw new Error(result.message || result.error || 'Failed to submit timesheet');
       }
     } catch (error) {
       console.error('Submission error:', error);
@@ -427,6 +457,31 @@ export default function ClientTimesheetPortal() {
   const weekEnd = parseISO(weekEndingDate);
   const weekStart = startOfWeek(weekEnd, { weekStartsOn: 1 });
   const weekDates = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
+
+  if (submissionComplete) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+        <div className="max-w-lg w-full bg-white rounded-lg shadow-md border p-8 text-center">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-3xl">
+            ✓
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Timesheet submitted</h1>
+          <p className="text-gray-600 mb-1">
+            Thank you{submitterName ? `, ${submitterName}` : ''}. Your timesheet for{' '}
+            <strong>{clientName}</strong> (week ending {format(weekEnd, 'dd MMMM yyyy')}) has been received.
+          </p>
+          {submittedAt && (
+            <p className="text-sm text-gray-500 mb-6">
+              Submitted {format(new Date(submittedAt), 'dd MMM yyyy, HH:mm')}
+            </p>
+          )}
+          <p className="text-sm text-gray-500">
+            You can close this page. Your account manager will review the timesheet and contact you if anything is needed.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
