@@ -176,8 +176,8 @@ export default function ClientLoginPage() {
               We sent a 6-digit code — enter it below to sign in.
             </p>
 
-            {/* OTP inputs */}
-            <div className="flex gap-2 mb-5">
+            {/* OTP inputs — fixed cell size so boxes stay compact on mobile */}
+            <div className="grid grid-cols-6 gap-1.5 sm:gap-2 mb-5 max-w-[17.5rem] mx-auto">
               {code.map((digit, idx) => (
                 <input
                   key={idx}
@@ -188,8 +188,8 @@ export default function ClientLoginPage() {
                   value={digit}
                   onChange={e => handleCodeInput(idx, e.target.value)}
                   onKeyDown={e => handleCodeKeyDown(idx, e)}
-                  className={`flex-1 aspect-square text-center text-white font-bold text-xl
-                    bg-white/10 border rounded-xl focus:outline-none transition-all
+                  className={`w-full h-11 sm:h-12 text-center text-white font-bold text-lg sm:text-xl
+                    bg-white/10 border rounded-lg sm:rounded-xl focus:outline-none transition-all
                     ${digit ? 'border-primary-red/60 bg-primary-red/10' : 'border-white/15'}
                     focus:border-primary-red/80`}
                 />
