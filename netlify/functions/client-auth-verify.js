@@ -2,14 +2,15 @@
  * POST /netlify/functions/client-auth-verify
  * Body: { email: string, code: string }
  *
- * Validates the OTP, creates a 30-day session, and returns:
- * { token, client: { id, name, email, company } }
+ * Validates the OTP stored by Railway (verification_codes.phone + hashed code),
+ * then creates a 30-day client_sessions token for the Netlify portal APIs.
  */
 const crypto = require('crypto');
 const { getDbClient, rateLimit } = require('./db');
 const { CORS_HEADERS } = require('./client-auth');
 
 const SESSION_DAYS = 30;
+const MAX_OTP_ATTEMPTS = 5;
 
 function generateSessionToken() {
   return crypto.randomBytes(32).toString('hex');
@@ -33,7 +34,8 @@ exports.handler = async (event) => {
   }
 
   const normalised = (email || '').trim().toLowerCase();
-  if (!normalised || !code) {
+  const trimmedCode = String(code || '').trim();
+  if (!normalised || !trimmedCode) {
     return {
       statusCode: 400,
       headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
@@ -41,7 +43,6 @@ exports.handler = async (event) => {
     };
   }
 
-  // Rate-limit verify attempts: max 5 per 15 minutes
   const rl = rateLimit(`client-verify:${normalised}`, 5, 15 * 60 * 1000);
   if (!rl.allowed) {
     return {
@@ -55,15 +56,16 @@ exports.handler = async (event) => {
   try {
     await db.connect();
 
-    // Find the OTP record
-    const result = await db.query(
-      `SELECT id, candidate_id, expires_at FROM verification_codes
-        WHERE LOWER(TRIM(email)) = $1 AND code = $2 AND type = 'client_portal'
+    const codeHash = crypto.createHash('sha256').update(trimmedCode).digest('hex');
+    const otpResult = await db.query(
+      `SELECT phone, code, expires_at, attempts
+         FROM verification_codes
+        WHERE phone = $1 AND type = 'client_portal'
         LIMIT 1`,
-      [normalised, code.trim()]
+      [normalised]
     );
 
-    if (result.rows.length === 0) {
+    if (otpResult.rows.length === 0) {
       await db.end();
       return {
         statusCode: 400,
@@ -72,10 +74,19 @@ exports.handler = async (event) => {
       };
     }
 
-    const otp = result.rows[0];
+    const otp = otpResult.rows[0];
+
+    if (Number(otp.attempts || 0) >= MAX_OTP_ATTEMPTS) {
+      await db.end();
+      return {
+        statusCode: 429,
+        headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ error: 'Too many attempts. Please request a new code.' }),
+      };
+    }
 
     if (new Date(otp.expires_at) < new Date()) {
-      await db.query('DELETE FROM verification_codes WHERE id = $1', [otp.id]);
+      await db.query(`DELETE FROM verification_codes WHERE phone = $1 AND type = 'client_portal'`, [normalised]);
       await db.end();
       return {
         statusCode: 400,
@@ -84,13 +95,27 @@ exports.handler = async (event) => {
       };
     }
 
-    // Consume OTP
-    await db.query('DELETE FROM verification_codes WHERE id = $1', [otp.id]);
+    if (otp.code !== codeHash) {
+      await db.query(
+        `UPDATE verification_codes SET attempts = attempts + 1 WHERE phone = $1 AND type = 'client_portal'`,
+        [normalised]
+      );
+      await db.end();
+      return {
+        statusCode: 400,
+        headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ error: 'Invalid code. Please check and try again.' }),
+      };
+    }
 
-    // Fetch client details
+    await db.query(`DELETE FROM verification_codes WHERE phone = $1 AND type = 'client_portal'`, [normalised]);
+
     const clientResult = await db.query(
-      `SELECT id, name, email, company, phone, assigned_to FROM contacts WHERE id = $1`,
-      [otp.candidate_id]
+      `SELECT id, name, email, company, phone
+         FROM contacts
+        WHERE LOWER(TRIM(email)) = $1
+        LIMIT 1`,
+      [normalised]
     );
 
     if (clientResult.rows.length === 0) {
@@ -103,13 +128,10 @@ exports.handler = async (event) => {
     }
 
     const clientRow = clientResult.rows[0];
-
-    // Create session
     const token = generateSessionToken();
     const tokenHash = hashToken(token);
     const expiresAt = new Date(Date.now() + SESSION_DAYS * 24 * 60 * 60 * 1000);
 
-    // Clean up expired sessions for this client
     await db.query(
       `DELETE FROM client_sessions WHERE contact_id = $1 AND expires_at < NOW()`,
       [clientRow.id]
@@ -122,8 +144,6 @@ exports.handler = async (event) => {
     );
 
     await db.end();
-
-    console.log(`✅ Client portal session created for ${clientRow.id} (${clientRow.name})`);
 
     return {
       statusCode: 200,
@@ -140,7 +160,7 @@ exports.handler = async (event) => {
       }),
     };
   } catch (err) {
-    console.error('❌ client-auth-verify error:', err);
+    console.error('client-auth-verify error:', err);
     try { await db.end(); } catch { /* ignore */ }
     return {
       statusCode: 500,
