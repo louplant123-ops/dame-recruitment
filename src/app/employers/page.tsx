@@ -26,7 +26,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'For Employers | Dame Recruitment',
     description: 'Same-day shortlists, permanent and temporary hires, transparent fees. East Midlands recruitment specialists.',
-    url: 'https://www.damerecruitment.co.uk/employers',
+    url: 'https://damerecruitment.co.uk/employers',
     siteName: 'Dame Recruitment',
     images: OG_IMAGES,
   },

@@ -10,7 +10,8 @@ const inter = Inter({
   display: 'swap',
 })
 
-const GA_MEASUREMENT_ID = 'G-6QCCQXXR5K'
+// Override per-environment with NEXT_PUBLIC_GA_MEASUREMENT_ID if needed.
+const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || 'G-6QCCQXXR5K'
 
 export const metadata: Metadata = {
   title: {
@@ -27,11 +28,11 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL('https://www.damerecruitment.co.uk'),
+  metadataBase: new URL('https://damerecruitment.co.uk'),
   openGraph: {
     title: 'Dame Recruitment — Professional Staffing Solutions',
     description: 'Professional recruitment services across Leicester, Coventry and the East Midlands.',
-    url: 'https://www.damerecruitment.co.uk',
+    url: 'https://damerecruitment.co.uk',
     siteName: 'Dame Recruitment',
     locale: 'en_GB',
     type: 'website',
@@ -71,11 +72,11 @@ export const metadata: Metadata = {
 const organizationJsonLd = {
   '@context': 'https://schema.org',
   '@type': ['Organization', 'EmploymentAgency'],
-  '@id': 'https://www.damerecruitment.co.uk/#organization',
+  '@id': 'https://damerecruitment.co.uk/#organization',
   name: 'Dame Recruitment',
-  url: 'https://www.damerecruitment.co.uk',
-  logo: 'https://www.damerecruitment.co.uk/dame-logo.png',
-  image: 'https://www.damerecruitment.co.uk/og-image.png',
+  url: 'https://damerecruitment.co.uk',
+  logo: 'https://damerecruitment.co.uk/dame-logo.png',
+  image: 'https://damerecruitment.co.uk/og-image.png',
   description:
     'East Midlands recruitment specialists providing temporary and permanent staffing for warehousing, manufacturing and engineering across Leicester, Nottingham, Derby and Coventry.',
   telephone: '+443300435011',
@@ -114,10 +115,10 @@ const organizationJsonLd = {
 const websiteJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
-  '@id': 'https://www.damerecruitment.co.uk/#website',
-  url: 'https://www.damerecruitment.co.uk',
+  '@id': 'https://damerecruitment.co.uk/#website',
+  url: 'https://damerecruitment.co.uk',
   name: 'Dame Recruitment',
-  publisher: { '@id': 'https://www.damerecruitment.co.uk/#organization' },
+  publisher: { '@id': 'https://damerecruitment.co.uk/#organization' },
   inLanguage: 'en-GB',
 }
 

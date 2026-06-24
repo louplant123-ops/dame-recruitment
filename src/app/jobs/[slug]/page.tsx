@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
     openGraph: {
       title: `${job.title} in ${job.location} | Dame Recruitment`,
       description: job.brief || `${job.type} role in ${job.location}. ${job.rate} ${job.rateType}.`,
-      url: `https://www.damerecruitment.co.uk/jobs/${params.slug}`,
+      url: `https://damerecruitment.co.uk/jobs/${params.slug}`,
       siteName: 'Dame Recruitment',
       images: OG_IMAGES,
     },

@@ -88,8 +88,8 @@ export function buildJobPostingJsonLd(job: PublicJob): Record<string, unknown> {
     hiringOrganization: {
       '@type': 'Organization',
       name: 'Dame Recruitment',
-      sameAs: 'https://www.damerecruitment.co.uk',
-      logo: 'https://www.damerecruitment.co.uk/dame-logo.png',
+      sameAs: 'https://damerecruitment.co.uk',
+      logo: 'https://damerecruitment.co.uk/dame-logo.png',
     },
     jobLocation: {
       '@type': 'Place',

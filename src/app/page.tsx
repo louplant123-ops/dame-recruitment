@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Dame Recruitment - Staff that show up. Results that count.',
     description: 'East Midlands recruitment specialists delivering reliable temps and permanent hires when you need them most.',
-    url: 'https://www.damerecruitment.co.uk',
+    url: 'https://damerecruitment.co.uk',
     siteName: 'Dame Recruitment',
     type: 'website',
     locale: 'en_GB',

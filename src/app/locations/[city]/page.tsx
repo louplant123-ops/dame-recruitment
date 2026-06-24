@@ -35,7 +35,7 @@ export function generateMetadata({ params }: { params: { city: string } }): Meta
     openGraph: {
       title,
       description,
-      url: `https://www.damerecruitment.co.uk/locations/${location.slug}`,
+      url: `https://damerecruitment.co.uk/locations/${location.slug}`,
       siteName: 'Dame Recruitment',
       images: OG_IMAGES,
     },

@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     title: 'Recruitment Locations Across the East Midlands | Dame Recruitment',
     description:
       'Local recruitment teams across Leicester, Nottingham, Derby, Coventry and Northampton.',
-    url: 'https://www.damerecruitment.co.uk/locations',
+    url: 'https://damerecruitment.co.uk/locations',
     siteName: 'Dame Recruitment',
     images: OG_IMAGES,
   },

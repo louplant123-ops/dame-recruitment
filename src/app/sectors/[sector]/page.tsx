@@ -33,7 +33,7 @@ export function generateMetadata({ params }: { params: { sector: string } }): Me
     openGraph: {
       title,
       description,
-      url: `https://www.damerecruitment.co.uk/sectors/${sector.slug}`,
+      url: `https://damerecruitment.co.uk/sectors/${sector.slug}`,
       siteName: 'Dame Recruitment',
       images: OG_IMAGES,
     },

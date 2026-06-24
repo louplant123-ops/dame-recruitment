@@ -121,7 +121,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
     openGraph: {
       title: `${post.title} | Dame Recruitment`,
       description: post.excerpt,
-      url: `https://www.damerecruitment.co.uk/news/${params.slug}`,
+      url: `https://damerecruitment.co.uk/news/${params.slug}`,
       siteName: 'Dame Recruitment',
       type: 'article',
       publishedTime: post.publishedAt,

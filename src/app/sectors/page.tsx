@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     title: 'Sectors We Recruit For | Dame Recruitment',
     description:
       'Specialist recruitment across warehousing, manufacturing, engineering, logistics, finance and energy.',
-    url: 'https://www.damerecruitment.co.uk/sectors',
+    url: 'https://damerecruitment.co.uk/sectors',
     siteName: 'Dame Recruitment',
     images: OG_IMAGES,
   },

@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Register With Us | Dame Recruitment',
     description: 'Join our talent pool and get access to the best job opportunities across the East Midlands.',
-    url: 'https://www.damerecruitment.co.uk/register',
+    url: 'https://damerecruitment.co.uk/register',
     siteName: 'Dame Recruitment',
   },
   alternates: {

@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Current Vacancies | Dame Recruitment',
     description: 'Browse live job vacancies across the East Midlands. Weekly pay, honest job descriptions, and roles that lead somewhere.',
-    url: 'https://www.damerecruitment.co.uk/jobs',
+    url: 'https://damerecruitment.co.uk/jobs',
     siteName: 'Dame Recruitment',
     images: OG_IMAGES,
   },

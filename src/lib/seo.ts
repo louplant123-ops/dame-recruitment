@@ -7,7 +7,7 @@ export const OG_IMAGE = {
 
 export const OG_IMAGES = [OG_IMAGE]
 
-export const SITE_URL = 'https://www.damerecruitment.co.uk'
+export const SITE_URL = 'https://damerecruitment.co.uk'
 
 export function breadcrumbJsonLd(items: { name: string; path: string }[]) {
   return {
