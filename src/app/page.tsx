@@ -16,6 +16,11 @@ export const metadata: Metadata = {
   },
   alternates: {
     canonical: '/',
+    languages: {
+      'en-US': 'https://damerecruitment.com/',
+      'en-GB': 'https://damerecruitment.co.uk/',
+      'x-default': 'https://damerecruitment.com/',
+    },
   },
 }
 
